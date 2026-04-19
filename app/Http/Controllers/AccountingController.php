@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+use App\Models\Sale;
 
 class AccountingController extends Controller
 {
@@ -41,51 +44,33 @@ class AccountingController extends Controller
      */
     public function sales(Request $request)
     {
-        $allData = collect(range(1, 15))->map(function ($i) {
-            $status = $i % 3 == 0 ? 'ค้างชำระ' : 'ชำระแล้ว';
-            return (object)[
-                'id' => $i,
-                'doc_no' => 'INV202604' . str_pad($i, 3, '0', STR_PAD_LEFT),
-                'customer' => ($i % 2 == 0 ? 'บริษัท เอบีซี จำกัด' : 'ร้านใจดี การค้า') . ' ' . $i,
-                'date' => now()->subDays($i)->format('d/m/Y'),
-                'amount' => rand(5000, 50000),
-                'status' => $status,
-                'status_color' => $status == 'ค้างชำระ' ? 'text-red-600 bg-red-50' : 'text-green-600 bg-green-50'
-            ];
-        });
+        $query = Sale::query();
 
-        $search = $request->get('search');
-        $statusFilter = $request->get('status');
+        // ค้นหาตามเลขที่เอกสาร
+        if ($request->filled('search')) {
+            $query->where('doc_no', 'like', '%' . $request->search . '%');
+        }
 
-        $filteredData = $allData->filter(function ($item) use ($search, $statusFilter) {
-            $matchSearch = true;
-            $matchStatus = true;
+        // กรองตามสถานะ
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
 
-            if ($search) {
-                $matchSearch = str_contains($item->doc_no, $search) ||
-                    str_contains(mb_strtolower($item->customer), mb_strtolower($search));
-            }
-
-            if ($statusFilter) {
-                $matchStatus = $item->status == $statusFilter;
-            }
-
-            return $matchSearch && $matchStatus;
-        });
-
-        $currentPage = $request->get('page', 1);
-        $perPage = 10;
-        $currentItems = $filteredData->slice(($currentPage - 1) * $perPage, $perPage)->values();
-
-        $sales = new LengthAwarePaginator(
-            $currentItems,
-            $filteredData->count(),
-            $perPage,
-            $currentPage,
-            ['path' => $request->url(), 'query' => $request->query()]
-        );
+        // ดึงข้อมูลและเรียงจากล่าสุด
+        $sales = $query->orderBy('doc_date', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
 
         return view('pages.sales', compact('sales'));
+    }
+
+    public function sales_destroy($id)
+    {
+        $sale = Sale::findOrFail($id);
+        $docNo = $sale->doc_no;
+        $sale->delete(); // SaleItem จะโดนลบด้วยถ้าตั้ง onDelete('cascade') ใน Migration
+
+        return redirect()->route('pages.sales')->with('success', "ลบเอกสาร $docNo เรียบร้อยแล้ว");
     }
 
     /**
@@ -93,16 +78,78 @@ class AccountingController extends Controller
      */
     public function sales_create()
     {
-        return view('pages.sales_create');
+        // จำลองข้อมูลลูกค้า (ในระบบจริงดึงจาก Model Customer)
+        $customers = collect([
+            (object)['id' => 1, 'name' => 'บริษัท เอบีซี จำกัด (มหาชน)', 'tax_id' => '0105560000001', 'address' => '123 ถ.วิภาวดีรังสิต แขวงจตุจักร เขตจตุจักร กทม. 10900'],
+            (object)['id' => 2, 'name' => 'ร้านใจดี การค้า', 'tax_id' => '3100000000000', 'address' => '45/1 ม.2 ต.บางกรวย อ.บางกรวย จ.นนทบุรี 11130'],
+            (object)['id' => 3, 'name' => 'บจก. ไทยโพสต์ (สำนักงานใหญ่)', 'tax_id' => '0105546000002', 'address' => '111 ถ.แจ้งวัฒนะ แขวงทุ่งสองห้อง เขตหลักสี่ กทม. 10210']
+        ]);
+
+        // จำลองข้อมูลสาขา
+        $branches = collect([
+            (object)['id' => 0, 'name' => 'สำนักงานใหญ่'],
+            (object)['id' => 1, 'name' => 'สาขากรุงเทพฯ'],
+            (object)['id' => 2, 'name' => 'สาขาเชียงใหม่'],
+            (object)['id' => 3, 'name' => 'สาขาภูเก็ต']
+        ]);
+
+        return view('pages.sales_create', compact('customers', 'branches'));
     }
 
-    /**
-     * Store a newly created sale in storage. (ฟังก์ชันบันทึกข้อมูล)
-     */
     public function sales_store(Request $request)
     {
-        // ในระบบจริง: BankAccount::create($request->all());
-        return redirect()->route('sales')->with('success', 'บันทึกเอกสารเรียบร้อยแล้ว');
+        // ... (Validation เดิมของคุณ) ...
+        // $validator = Validator::make($request->all(), [
+        //     'customer_id' => 'required',
+        //     'branch_id'   => 'required',
+        //     'doc_date'    => 'required',
+        //     'items'       => 'required|array',
+        //     'items.*.product_id' => 'required',
+        //     'items.*.qty' => 'required|numeric',
+        //     'items.*.price' => 'required|numeric'
+        // ]);
+
+
+        try {
+            DB::beginTransaction();
+
+            // 1. คำนวณยอดเงิน
+            $subtotal = collect($request->items)->sum(function ($item) {
+                return $item['qty'] * $item['price'];
+            });
+            $vat = $subtotal * 0.07;
+            $total = $subtotal + $vat;
+
+            // 2. บันทึกหัวเอกสาร (Sale)
+            $sale = Sale::create([
+                'doc_no'      => 'INV-' . now()->format('Ymd-His'),
+                'customer_id' => $request->customer_id,
+                'branch_id'   => $request->branch_id,
+                'doc_date'    => $request->doc_date,
+                'due_date'    => now()->parse($request->doc_date)->addDays($request->credit_term ?? 30),
+                'subtotal'    => $subtotal,
+                'vat'         => $vat,
+                'total'       => $total,
+                'note'        => $request->note,
+                'status'      => 'ค้างชำระ'
+            ]);
+
+            // 3. บันทึกรายการสินค้า (SaleItems)
+            // foreach ($request->items as $item) {
+            //     $sale->items()->create([
+            //         'description' => $item['desc'],
+            //         'quantity'    => $item['qty'],
+            //         'unit_price'  => $item['price'],
+            //         'total'       => $item['qty'] * $item['price'],
+            //     ]);
+            // }
+
+            DB::commit();
+            return redirect()->route('pages.sales')->with('success', 'ออกใบกำกับภาษีเลขที่ ' . $sale->doc_no . ' เรียบร้อย');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors('เกิดข้อผิดพลาด: ' . $e->getMessage())->withInput();
+        }
     }
 
     /**
@@ -125,14 +172,18 @@ class AccountingController extends Controller
     /**
      * Remove the specified sale from storage. (ฟังก์ชันลบข้อมูล)
      */
-    public function sales_destroy($id)
-    {
-        // ในระบบจริง: BankAccount::destroy($id);
-        return redirect()->route('sales')->with('success', 'ลบเอกสารเรียบร้อยแล้ว');
-    }
 
     // เมนูอื่นๆ
-    public function customers() { return view('pages.customers'); }
-    public function company() { return view('pages.company'); }
-    public function branches() { return view('pages.branches'); }
+    public function customers()
+    {
+        return view('pages.customers');
+    }
+    public function company()
+    {
+        return view('pages.company');
+    }
+    public function branches()
+    {
+        return view('pages.branches');
+    }
 }
