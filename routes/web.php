@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AccountingController;
-
+use App\Http\Controllers\SalesController; // <--- เช็คว่ามีบรรทัดนี้ไหม
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -25,9 +25,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/sales/create', [AccountingController::class, 'sales_create'])->name('pages.sales_create');
     Route::post('/sales', [AccountingController::class, 'sales_store'])->name('pages.sales_store');
     Route::get('/sales/{id}/edit', [AccountingController::class, 'sales_edit'])->name('pages.sales_edit');
-    Route::get('/sales/destroy', [AccountingController::class, 'sales_destroy'])->name('pages.sales_destroy');
+    Route::put('/sales/{id}', [AccountingController::class, 'sales_update'])->name('pages.sales_update');
+    Route::delete('/sales/{id}', [AccountingController::class, 'sales_destroy'])->name('pages.sales_destroy');
 
-
+    Route::get('/sales/{id}/pdf', [AccountingController::class, 'sales_pdf'])->name('pages.sales_pdf');
+    Route::get('/sales/export', [SalesController::class, 'exportExcel'])->name('pages.sales_export');
     // --- ระบบงานซื้อ (Purchases) ---
     Route::get('/purchases', function () {
         return view('pages.purchases');

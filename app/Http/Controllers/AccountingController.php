@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use App\Models\Sale;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class AccountingController extends Controller
 {
@@ -42,16 +43,18 @@ class AccountingController extends Controller
     /**
      * Display a listing of the sales. (หน้าแสดงรายการขาย)
      */
-public function sales(Request $request) {
+    public function sales(Request $request)
+    {
         $query = Sale::query();
         if ($request->filled('search')) {
             $query->where('doc_no', 'like', '%' . $request->search . '%');
         }
-        $sales = $query->orderBy('doc_date', 'desc')->paginate(10);
+        $sales = $query->orderBy('created_at', 'desc')->paginate(10);
         return view('pages.sales', compact('sales'));
     }
 
-    public function sales_create() {
+    public function sales_create()
+    {
         // จำลองข้อมูลลูกค้า (ในงานจริงดึงจาก Model Customer)
         $customers = collect([
             (object)['id' => 1, 'name' => 'บจก. ไทยโพสต์', 'tax_id' => '0105546000002', 'address' => 'หลักสี่ กทม.'],
@@ -62,7 +65,8 @@ public function sales(Request $request) {
         return view('pages.sales_create', compact('customers', 'branches'));
     }
 
-    public function sales_store(Request $request) {
+    public function sales_store(Request $request)
+    {
         $request->validate([
             'customer_id' => 'required',
             'items' => 'required|array|min:1',
@@ -121,18 +125,84 @@ public function sales(Request $request) {
      */
     public function sales_edit($id)
     {
-        // จำลองการดึงข้อมูลตาม ID
-        $sale = (object)[
-            'id' => $id,
-            'doc_no' => 'INV202604' . str_pad($id, 3, '0', STR_PAD_LEFT),
-            'customer' => 'ร้านใจดี การค้า ' . $id,
-            'amount' => 15000,
-            'status' => 'ค้างชำระ'
-        ];
+        // ดึงข้อมูล Sale พร้อมรายการสินค้า (Eager Loading)
+        $sale = Sale::with('items')->findOrFail($id);
 
-        return view('pages.sales_edit', compact('sale'));
+        // จำลองข้อมูลลูกค้าและสาขา (เหมือนหน้า Create)
+        $customers = collect([
+            (object)['id' => 1, 'name' => 'บจก. ไทยโพสต์', 'tax_id' => '0105546000002', 'address' => 'หลักสี่ กทม.'],
+            (object)['id' => 2, 'name' => 'เอบีซี เทรดดิ้ง', 'tax_id' => '0105560000001', 'address' => 'บางนา กทม.']
+        ]);
+        $branches = collect([(object)['id' => 0, 'name' => 'สำนักงานใหญ่'], (object)['id' => 1, 'name' => 'สาขา 1']]);
+
+        return view('pages.sales_edit', compact('sale', 'customers', 'branches'));
     }
 
+    public function sales_update(Request $request, $id)
+    {
+        // 1. Validation ข้อมูลที่ส่งมา
+        $request->validate([
+            'customer_id' => 'required',
+            'items' => 'required|array|min:1',
+            'items.*.desc' => 'required',
+            'items.*.qty' => 'required|numeric|min:1',
+            'items.*.price' => 'required|numeric',
+        ]);
+
+        try {
+            // 2. ใช้ Transaction เพื่อป้องกันข้อมูลพังหาก Error กลางคัน
+            return DB::transaction(function () use ($request, $id) {
+                $sale = Sale::findOrFail($id);
+
+                // 3. คำนวณยอดเงินใหม่จาก Input
+                $subtotal = collect($request->items)->sum(fn($item) => $item['qty'] * $item['price']);
+                $vat = $subtotal * 0.07;
+                $total = $subtotal + $vat;
+
+                // 4. อัปเดตข้อมูลที่ตารางหลัก (sales)
+                $sale->update([
+                    'customer_id' => $request->customer_id,
+                    'status' => $request->status,
+                    'note' => $request->note,
+                    'subtotal' => $subtotal,
+                    'vat' => $vat,
+                    'total' => $total,
+                    // doc_date, due_date อัปเดตตามฟิลด์ที่คุณมี
+                ]);
+
+                // 5. ลบรายการสินค้าเดิมทั้งหมดในฐานข้อมูลที่ผูกกับ Sale ID นี้
+                $sale->items()->delete();
+
+                // 6. บันทึกรายการสินค้าใหม่เข้าไปทั้งหมด
+                foreach ($request->items as $item) {
+                    $sale->items()->create([
+                        'description' => $item['desc'],
+                        'quantity' => $item['qty'],
+                        'unit_price' => $item['price'],
+                        'total' => $item['qty'] * $item['price'],
+                    ]);
+                }
+
+                return redirect()->route('pages.sales')->with('success', 'อัปเดตรายการเรียบร้อยแล้ว');
+            });
+        } catch (\Exception $e) {
+            return back()->withErrors('เกิดข้อผิดพลาด: ' . $e->getMessage());
+        }
+    }
+
+    public function sales_pdf($id)
+{
+    $sale = Sale::findOrFail($id);
+
+    $pdf = Pdf::loadView('pages.sales_pdf_view', compact('sale'))
+              ->setPaper('a4')
+              ->setOption([
+                  'defaultFont' => 'THSarabunNew',
+                  'isRemoteEnabled' => true // อนุญาตให้โหลดรูปภาพจากภายนอก (ถ้ามี)
+              ]);
+
+    return $pdf->stream($sale->doc_no . '.pdf');
+}
     /**
      * Remove the specified sale from storage. (ฟังก์ชันลบข้อมูล)
      */
