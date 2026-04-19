@@ -42,26 +42,68 @@ class AccountingController extends Controller
     /**
      * Display a listing of the sales. (หน้าแสดงรายการขาย)
      */
-    public function sales(Request $request)
-    {
+public function sales(Request $request) {
         $query = Sale::query();
-
-        // ค้นหาตามเลขที่เอกสาร
         if ($request->filled('search')) {
             $query->where('doc_no', 'like', '%' . $request->search . '%');
         }
-
-        // กรองตามสถานะ
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        // ดึงข้อมูลและเรียงจากล่าสุด
-        $sales = $query->orderBy('doc_date', 'desc')
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
-
+        $sales = $query->orderBy('doc_date', 'desc')->paginate(10);
         return view('pages.sales', compact('sales'));
+    }
+
+    public function sales_create() {
+        // จำลองข้อมูลลูกค้า (ในงานจริงดึงจาก Model Customer)
+        $customers = collect([
+            (object)['id' => 1, 'name' => 'บจก. ไทยโพสต์', 'tax_id' => '0105546000002', 'address' => 'หลักสี่ กทม.'],
+            (object)['id' => 2, 'name' => 'เอบีซี เทรดดิ้ง', 'tax_id' => '0105560000001', 'address' => 'บางนา กทม.']
+        ]);
+        $branches = collect([(object)['id' => 0, 'name' => 'สำนักงานใหญ่'], (object)['id' => 1, 'name' => 'สาขา 1']]);
+
+        return view('pages.sales_create', compact('customers', 'branches'));
+    }
+
+    public function sales_store(Request $request) {
+        $request->validate([
+            'customer_id' => 'required',
+            'items' => 'required|array|min:1',
+            'items.*.desc' => 'required',
+            'items.*.qty' => 'required|numeric|min:0.1',
+            'items.*.price' => 'required|numeric|min:0',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $subtotal = collect($request->items)->sum(fn($i) => $i['qty'] * $i['price']);
+            $vat = $subtotal * 0.07;
+
+            $sale = Sale::create([
+                'doc_no' => 'INV-' . strtoupper(uniqid()),
+                'customer_id' => $request->customer_id,
+                'branch_id' => $request->branch_id,
+                'doc_date' => $request->doc_date,
+                'due_date' => now()->parse($request->doc_date)->addDays($request->credit_term),
+                'subtotal' => $subtotal,
+                'vat' => $vat,
+                'total' => $subtotal + $vat,
+                'note' => $request->note
+            ]);
+
+            foreach ($request->items as $item) {
+                $sale->items()->create([
+                    'description' => $item['desc'],
+                    'quantity' => $item['qty'],
+                    'unit_price' => $item['price'],
+                    'total' => $item['qty'] * $item['price']
+                ]);
+            }
+
+            DB::commit();
+            return redirect()->route('pages.sales')->with('success', 'บันทึกสำเร็จ');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors('Error: ' . $e->getMessage());
+        }
     }
 
     public function sales_destroy($id)
@@ -73,84 +115,6 @@ class AccountingController extends Controller
         return redirect()->route('pages.sales')->with('success', "ลบเอกสาร $docNo เรียบร้อยแล้ว");
     }
 
-    /**
-     * Show the form for creating a new sale. (หน้าสร้างเอกสาร)
-     */
-    public function sales_create()
-    {
-        // จำลองข้อมูลลูกค้า (ในระบบจริงดึงจาก Model Customer)
-        $customers = collect([
-            (object)['id' => 1, 'name' => 'บริษัท เอบีซี จำกัด (มหาชน)', 'tax_id' => '0105560000001', 'address' => '123 ถ.วิภาวดีรังสิต แขวงจตุจักร เขตจตุจักร กทม. 10900'],
-            (object)['id' => 2, 'name' => 'ร้านใจดี การค้า', 'tax_id' => '3100000000000', 'address' => '45/1 ม.2 ต.บางกรวย อ.บางกรวย จ.นนทบุรี 11130'],
-            (object)['id' => 3, 'name' => 'บจก. ไทยโพสต์ (สำนักงานใหญ่)', 'tax_id' => '0105546000002', 'address' => '111 ถ.แจ้งวัฒนะ แขวงทุ่งสองห้อง เขตหลักสี่ กทม. 10210']
-        ]);
-
-        // จำลองข้อมูลสาขา
-        $branches = collect([
-            (object)['id' => 0, 'name' => 'สำนักงานใหญ่'],
-            (object)['id' => 1, 'name' => 'สาขากรุงเทพฯ'],
-            (object)['id' => 2, 'name' => 'สาขาเชียงใหม่'],
-            (object)['id' => 3, 'name' => 'สาขาภูเก็ต']
-        ]);
-
-        return view('pages.sales_create', compact('customers', 'branches'));
-    }
-
-    public function sales_store(Request $request)
-    {
-        // ... (Validation เดิมของคุณ) ...
-        // $validator = Validator::make($request->all(), [
-        //     'customer_id' => 'required',
-        //     'branch_id'   => 'required',
-        //     'doc_date'    => 'required',
-        //     'items'       => 'required|array',
-        //     'items.*.product_id' => 'required',
-        //     'items.*.qty' => 'required|numeric',
-        //     'items.*.price' => 'required|numeric'
-        // ]);
-
-
-        try {
-            DB::beginTransaction();
-
-            // 1. คำนวณยอดเงิน
-            $subtotal = collect($request->items)->sum(function ($item) {
-                return $item['qty'] * $item['price'];
-            });
-            $vat = $subtotal * 0.07;
-            $total = $subtotal + $vat;
-
-            // 2. บันทึกหัวเอกสาร (Sale)
-            $sale = Sale::create([
-                'doc_no'      => 'INV-' . now()->format('Ymd-His'),
-                'customer_id' => $request->customer_id,
-                'branch_id'   => $request->branch_id,
-                'doc_date'    => $request->doc_date,
-                'due_date'    => now()->parse($request->doc_date)->addDays($request->credit_term ?? 30),
-                'subtotal'    => $subtotal,
-                'vat'         => $vat,
-                'total'       => $total,
-                'note'        => $request->note,
-                'status'      => 'ค้างชำระ'
-            ]);
-
-            // 3. บันทึกรายการสินค้า (SaleItems)
-            // foreach ($request->items as $item) {
-            //     $sale->items()->create([
-            //         'description' => $item['desc'],
-            //         'quantity'    => $item['qty'],
-            //         'unit_price'  => $item['price'],
-            //         'total'       => $item['qty'] * $item['price'],
-            //     ]);
-            // }
-
-            DB::commit();
-            return redirect()->route('pages.sales')->with('success', 'ออกใบกำกับภาษีเลขที่ ' . $sale->doc_no . ' เรียบร้อย');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->withErrors('เกิดข้อผิดพลาด: ' . $e->getMessage())->withInput();
-        }
-    }
 
     /**
      * Show the form for editing the specified sale. (หน้าแก้ไขเอกสาร)

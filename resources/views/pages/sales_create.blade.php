@@ -42,7 +42,7 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="md:col-span-1">
               <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">ชื่อลูกค้า / บริษัท</label>
-              <select name="customer_id" required onchange="updateCustomerInfo(this)" class="w-full rounded-xl border-gray-200 focus:ring-blue-500 focus:border-blue-500 text-sm py-2.5 @error('customer_id') border-red-500 @enderror">
+              <select name="customer_id"  onchange="updateCustomerInfo(this)" class="w-full rounded-xl border-gray-200 focus:ring-blue-500 focus:border-blue-500 text-sm py-2.5 @error('customer_id') border-red-500 @enderror">
                 <option value="">-- เลือกรายชื่อลูกค้า --</option>
                 @foreach ($customers as $customer)
                   <option value="{{ $customer->id }}" data-tax="{{ $customer->tax_id }}" data-address="{{ $customer->address }}" {{ old('customer_id') == $customer->id ? 'selected' : '' }}>
@@ -54,7 +54,7 @@
 
             <div class="md:col-span-1">
               <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">เลือกสาขา (Branch)</label>
-              <select name="branch_id" required class="w-full rounded-xl border-gray-200 focus:ring-blue-500 focus:border-blue-500 text-sm py-2.5">
+              <select name="branch_id"  class="w-full rounded-xl border-gray-200 focus:ring-blue-500 focus:border-blue-500 text-sm py-2.5">
                 @foreach ($branches as $branch)
                   <option value="{{ $branch->id }}" {{ old('branch_id') == $branch->id ? 'selected' : '' }}>
                     {{ $branch->name }}
@@ -81,6 +81,9 @@
               <i class="fas fa-boxes"></i>
               <span>รายการสินค้า/บริการ</span>
             </div>
+            <button type="button" onclick="addRow()" class="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-all font-bold">
+              <i class="fas fa-plus mr-1"></i> เพิ่มรายการ
+            </button>
           </div>
 
           <div class="overflow-x-auto">
@@ -91,25 +94,32 @@
                   <th class="px-4 py-3 text-[10px] font-bold text-gray-400 uppercase text-center w-24 tracking-widest">จำนวน</th>
                   <th class="px-4 py-3 text-[10px] font-bold text-gray-400 uppercase text-right w-32 tracking-widest">ราคา/หน่วย</th>
                   <th class="px-4 py-3 text-[10px] font-bold text-gray-400 uppercase text-right w-32 tracking-widest">รวมเงิน</th>
+                  <th class="w-10"></th>
                 </tr>
               </thead>
-              <tbody>
-                <tr class="bg-white border border-gray-100 rounded-lg shadow-sm">
+              <tbody id="item-tbody">
+                <tr class="bg-white border border-gray-100 rounded-lg shadow-sm item-row">
                   <td class="py-3 px-4">
-                    <input type="text" name="items[0][desc]" value="{{ old('items.0.desc') }}" class="w-full border-none focus:ring-0 text-sm p-0 font-medium @error('items.0.desc') placeholder-red-400 @enderror" placeholder="ระบุชื่อสินค้าหรือบริการที่นี่...">
+                    <input type="text" name="items[0][desc]"  class="w-full border-none focus:ring-0 text-sm p-0 font-medium" placeholder="ชื่อสินค้าหรือบริการ...">
                   </td>
                   <td class="py-3 px-4">
-                    <input type="number" name="items[0][qty]" value="{{ old('items.0.qty', 1) }}" oninput="calculateTotal()" class="qty-input w-full border-none focus:ring-0 text-sm text-center p-0 font-bold">
+                    <input type="number" name="items[0][qty]" value="1" min="1" oninput="calculateTotal()" class="qty-input w-full border-none focus:ring-0 text-sm text-center p-0 font-bold">
                   </td>
                   <td class="py-3 px-4">
-                    <input type="number" step="0.01" name="items[0][price]" value="{{ old('items.0.price', '0.00') }}" oninput="calculateTotal()" class="price-input w-full border-none focus:ring-0 text-sm text-right p-0 font-bold text-blue-600">
+                    <input type="number" step="0.01" name="items[0][price]" value="0.00" oninput="calculateTotal()" class="price-input w-full border-none focus:ring-0 text-sm text-right p-0 font-bold text-blue-600">
                   </td>
                   <td class="py-3 px-4 text-right text-sm font-bold text-gray-700 row-total">0.00</td>
+                  <td class="py-3 text-center">
+                    <button type="button" onclick="removeRow(this)" class="text-gray-300 hover:text-red-500 transition-colors">
+                      <i class="fas fa-trash-alt text-xs"></i>
+                    </button>
+                  </td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
+
       </div>
 
       <div class="space-y-6">
@@ -203,5 +213,90 @@
 
     // รันคำนวณครั้งแรกเมื่อโหลดหน้า (กรณีมี Old Input)
     window.onload = calculateTotal;
+  </script>
+
+  <script>
+    let rowCount = 1; // เริ่มต้นที่ 1 เพราะมีแถวแรกอยู่แล้ว
+
+    function addRow() {
+      const tbody = document.getElementById('item-tbody');
+      const newRow = document.createElement('tr');
+      newRow.className = "bg-white border border-gray-100 rounded-lg shadow-sm item-row";
+
+      // ใช้ rowCount ในการตั้งชื่อ name="items[index][...]"
+      newRow.innerHTML = `
+        <td class="py-3 px-4">
+            <input type="text" name="items[${rowCount}][desc]"  class="w-full border-none focus:ring-0 text-sm p-0 font-medium" placeholder="ชื่อสินค้าหรือบริการ...">
+        </td>
+        <td class="py-3 px-4">
+            <input type="number" name="items[${rowCount}][qty]" value="1" min="1" oninput="calculateTotal()" class="qty-input w-full border-none focus:ring-0 text-sm text-center p-0 font-bold">
+        </td>
+        <td class="py-3 px-4">
+            <input type="number" step="0.01" name="items[${rowCount}][price]" value="0.00" oninput="calculateTotal()" class="price-input w-full border-none focus:ring-0 text-sm text-right p-0 font-bold text-blue-600">
+        </td>
+        <td class="py-3 px-4 text-right text-sm font-bold text-gray-700 row-total">0.00</td>
+        <td class="py-3 text-center">
+            <button type="button" onclick="removeRow(this)" class="text-gray-300 hover:text-red-500 transition-colors">
+                <i class="fas fa-trash-alt text-xs"></i>
+            </button>
+        </td>
+    `;
+
+      tbody.appendChild(newRow);
+      rowCount++;
+      calculateTotal(); // คำนวณใหม่เผื่อมีการตั้งค่า Default ไว้
+    }
+
+    function removeRow(button) {
+      const rows = document.querySelectorAll('.item-row');
+      if (rows.length > 1) {
+        button.closest('tr').remove();
+        reIndexRows(); // จัดลำดับ Index ใหม่หลังจากลบ
+        calculateTotal();
+      } else {
+        alert('อย่างน้อยต้องมี 1 รายการครับ');
+      }
+    }
+
+    // ฟังก์ชันจัด Index ใหม่เพื่อให้เวลาส่ง Data เข้า Laravel แล้วไม่แหว่ง
+    function reIndexRows() {
+      const rows = document.querySelectorAll('.item-row');
+      rows.forEach((row, index) => {
+        row.querySelector('input[name*="[desc]"]').name = `items[${index}][desc]`;
+        row.querySelector('input[name*="[qty]"]').name = `items[${index}][qty]`;
+        row.querySelector('input[name*="[price]"]').name = `items[${index}][price]`;
+      });
+      rowCount = rows.length;
+    }
+
+    // ฟังก์ชันคำนวณ (อัปเดตจากของเดิมให้รองรับ Dynamic)
+    function calculateTotal() {
+      let subtotal = 0;
+      const rows = document.querySelectorAll('.item-row');
+
+      rows.forEach(row => {
+        const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
+        const price = parseFloat(row.querySelector('.price-input').value) || 0;
+        const total = qty * price;
+
+        row.querySelector('.row-total').innerText = total.toLocaleString(undefined, {
+          minimumFractionDigits: 2
+        });
+        subtotal += total;
+      });
+
+      const vat = subtotal * 0.07;
+      const grandTotal = subtotal + vat;
+
+      document.getElementById('display-subtotal').innerText = subtotal.toLocaleString(undefined, {
+        minimumFractionDigits: 2
+      });
+      document.getElementById('display-vat').innerText = vat.toLocaleString(undefined, {
+        minimumFractionDigits: 2
+      });
+      document.getElementById('display-total').innerText = grandTotal.toLocaleString(undefined, {
+        minimumFractionDigits: 2
+      });
+    }
   </script>
 </x-app-layout>
