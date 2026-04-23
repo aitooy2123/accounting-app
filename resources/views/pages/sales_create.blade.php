@@ -42,7 +42,7 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="md:col-span-1">
               <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">ชื่อลูกค้า / บริษัท</label>
-              <select name="customer_id"  onchange="updateCustomerInfo(this)" class="w-full rounded-xl border-gray-200 focus:ring-blue-500 focus:border-blue-500 text-sm py-2.5 @error('customer_id') border-red-500 @enderror">
+              <select name="customer_id" onchange="updateCustomerInfo(this)" class="w-full rounded-xl border-gray-200 focus:ring-blue-500 focus:border-blue-500 text-sm py-2.5 @error('customer_id') border-red-500 @enderror">
                 <option value="">-- เลือกรายชื่อลูกค้า --</option>
                 @foreach ($customers as $customer)
                   <option value="{{ $customer->id }}" data-tax="{{ $customer->tax_id }}" data-address="{{ $customer->address }}" {{ old('customer_id') == $customer->id ? 'selected' : '' }}>
@@ -54,7 +54,7 @@
 
             <div class="md:col-span-1">
               <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">เลือกสาขา (Branch)</label>
-              <select name="branch_id"  class="w-full rounded-xl border-gray-200 focus:ring-blue-500 focus:border-blue-500 text-sm py-2.5">
+              <select name="branch_id" class="w-full rounded-xl border-gray-200 focus:ring-blue-500 focus:border-blue-500 text-sm py-2.5">
                 @foreach ($branches as $branch)
                   <option value="{{ $branch->id }}" {{ old('branch_id') == $branch->id ? 'selected' : '' }}>
                     {{ $branch->name }}
@@ -100,7 +100,7 @@
               <tbody id="item-tbody">
                 <tr class="bg-white border border-gray-100 rounded-lg shadow-sm item-row">
                   <td class="py-3 px-4">
-                    <input type="text" name="items[0][desc]"  class="w-full border-none focus:ring-0 text-sm p-0 font-medium" placeholder="ชื่อสินค้าหรือบริการ...">
+                    <input type="text" name="items[0][desc]" class="w-full border-none focus:ring-0 text-sm p-0 font-medium" placeholder="ชื่อสินค้าหรือบริการ...">
                   </td>
                   <td class="py-3 px-4">
                     <input type="number" name="items[0][qty]" value="1" min="1" oninput="calculateTotal()" class="qty-input w-full border-none focus:ring-0 text-sm text-center p-0 font-bold">
@@ -119,14 +119,13 @@
             </table>
           </div>
         </div>
-
       </div>
 
       <div class="space-y-6">
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 font-kanit">
           <div class="flex items-center space-x-2 mb-4 text-blue-600 font-bold text-lg">
             <i class="fas fa-file-invoice"></i>
-            <span>สรุปผลเอกสาร</span>
+            <span>ข้อมูลทั่วไป</span>
           </div>
           <div class="space-y-4">
             <div>
@@ -141,6 +140,19 @@
                 <option value="30" {{ old('credit_term') == 30 || !old('credit_term') ? 'selected' : '' }}>30 วัน</option>
               </select>
             </div>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 font-kanit">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-percent text-blue-600"></i>
+                <span class="text-sm font-bold text-gray-700">คำนวณภาษี (VAT 7%)</span>
+            </div>
+            <label class="inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="vat_toggle" name="is_vat" class="sr-only peer" checked onchange="calculateTotal()">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
           </div>
         </div>
 
@@ -176,57 +188,24 @@
   </form>
 
   <script>
+    let rowCount = 1;
+
+    // อัปเดตข้อมูลลูกค้า
     function updateCustomerInfo(select) {
       const selectedOption = select.options[select.selectedIndex];
       document.getElementById('tax_id').value = selectedOption.getAttribute('data-tax') || '';
       document.getElementById('address').value = selectedOption.getAttribute('data-address') || '';
     }
 
-    function calculateTotal() {
-      let subtotal = 0;
-      const rows = document.querySelectorAll('#itemsTable tbody tr');
-
-      rows.forEach(row => {
-        const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
-        const price = parseFloat(row.querySelector('.price-input').value) || 0;
-        const total = qty * price;
-
-        row.querySelector('.row-total').innerText = total.toLocaleString(undefined, {
-          minimumFractionDigits: 2
-        });
-        subtotal += total;
-      });
-
-      const vat = subtotal * 0.07;
-      const grandTotal = subtotal + vat;
-
-      document.getElementById('display-subtotal').innerText = subtotal.toLocaleString(undefined, {
-        minimumFractionDigits: 2
-      });
-      document.getElementById('display-vat').innerText = vat.toLocaleString(undefined, {
-        minimumFractionDigits: 2
-      });
-      document.getElementById('display-total').innerText = grandTotal.toLocaleString(undefined, {
-        minimumFractionDigits: 2
-      });
-    }
-
-    // รันคำนวณครั้งแรกเมื่อโหลดหน้า (กรณีมี Old Input)
-    window.onload = calculateTotal;
-  </script>
-
-  <script>
-    let rowCount = 1; // เริ่มต้นที่ 1 เพราะมีแถวแรกอยู่แล้ว
-
+    // เพิ่มแถวสินค้า
     function addRow() {
       const tbody = document.getElementById('item-tbody');
       const newRow = document.createElement('tr');
       newRow.className = "bg-white border border-gray-100 rounded-lg shadow-sm item-row";
 
-      // ใช้ rowCount ในการตั้งชื่อ name="items[index][...]"
       newRow.innerHTML = `
         <td class="py-3 px-4">
-            <input type="text" name="items[${rowCount}][desc]"  class="w-full border-none focus:ring-0 text-sm p-0 font-medium" placeholder="ชื่อสินค้าหรือบริการ...">
+            <input type="text" name="items[${rowCount}][desc]" class="w-full border-none focus:ring-0 text-sm p-0 font-medium" placeholder="ชื่อสินค้าหรือบริการ...">
         </td>
         <td class="py-3 px-4">
             <input type="number" name="items[${rowCount}][qty]" value="1" min="1" oninput="calculateTotal()" class="qty-input w-full border-none focus:ring-0 text-sm text-center p-0 font-bold">
@@ -240,25 +219,25 @@
                 <i class="fas fa-trash-alt text-xs"></i>
             </button>
         </td>
-    `;
-
+      `;
       tbody.appendChild(newRow);
       rowCount++;
-      calculateTotal(); // คำนวณใหม่เผื่อมีการตั้งค่า Default ไว้
+      calculateTotal();
     }
 
+    // ลบแถวสินค้า
     function removeRow(button) {
       const rows = document.querySelectorAll('.item-row');
       if (rows.length > 1) {
         button.closest('tr').remove();
-        reIndexRows(); // จัดลำดับ Index ใหม่หลังจากลบ
+        reIndexRows();
         calculateTotal();
       } else {
         alert('อย่างน้อยต้องมี 1 รายการครับ');
       }
     }
 
-    // ฟังก์ชันจัด Index ใหม่เพื่อให้เวลาส่ง Data เข้า Laravel แล้วไม่แหว่ง
+    // จัดลำดับ Index ของ Input ใหม่ (กันข้อมูลหายตอนส่ง POST)
     function reIndexRows() {
       const rows = document.querySelectorAll('.item-row');
       rows.forEach((row, index) => {
@@ -269,7 +248,7 @@
       rowCount = rows.length;
     }
 
-    // ฟังก์ชันคำนวณ (อัปเดตจากของเดิมให้รองรับ Dynamic)
+    // ฟังก์ชันคำนวณเงินทั้งหมด + ระบบเปิด/ปิด VAT
     function calculateTotal() {
       let subtotal = 0;
       const rows = document.querySelectorAll('.item-row');
@@ -285,9 +264,14 @@
         subtotal += total;
       });
 
-      const vat = subtotal * 0.07;
+      // ตรวจสอบการเปิด-ปิด VAT จาก Toggle
+      const vatToggle = document.getElementById('vat_toggle');
+      const vatRate = vatToggle.checked ? 0.07 : 0; // ถ้าเปิด = 7%, ปิด = 0%
+
+      const vat = subtotal * vatRate;
       const grandTotal = subtotal + vat;
 
+      // แสดงผลตัวเลข
       document.getElementById('display-subtotal').innerText = subtotal.toLocaleString(undefined, {
         minimumFractionDigits: 2
       });
@@ -298,5 +282,8 @@
         minimumFractionDigits: 2
       });
     }
+
+    // คำนวณครั้งแรกเมื่อโหลดหน้า
+    window.onload = calculateTotal;
   </script>
 </x-app-layout>

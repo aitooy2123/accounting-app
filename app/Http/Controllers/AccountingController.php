@@ -138,58 +138,65 @@ class AccountingController extends Controller
         return view('pages.sales_edit', compact('sale', 'customers', 'branches'));
     }
 
-    public function sales_update(Request $request, $id)
-    {
-        // 1. Validation ข้อมูลที่ส่งมา
-        $request->validate([
-            'customer_id' => 'required',
-            'items' => 'required|array|min:1',
-            'items.*.desc' => 'required',
-            'items.*.qty' => 'required|numeric|min:1',
-            'items.*.price' => 'required|numeric',
-        ]);
+  public function sales_update(Request $request, $id)
+{
+    // 1. Validation
+    $request->validate([
+        'customer_id' => 'required',
+        'items' => 'required|array|min:1',
+        'items.*.desc' => 'required',
+        'items.*.qty' => 'required|numeric|min:1',
+        'items.*.price' => 'required|numeric',
+    ]);
 
-        try {
-            // 2. ใช้ Transaction เพื่อป้องกันข้อมูลพังหาก Error กลางคัน
-            return DB::transaction(function () use ($request, $id) {
-                $sale = Sale::findOrFail($id);
+    try {
+        return DB::transaction(function () use ($request, $id) {
+            $sale = Sale::findOrFail($id);
 
-                // 3. คำนวณยอดเงินใหม่จาก Input
-                $subtotal = collect($request->items)->sum(fn($item) => $item['qty'] * $item['price']);
+            // 2. คำนวณยอดเงิน Subtotal
+            $subtotal = collect($request->items)->sum(fn($item) => $item['qty'] * $item['price']);
+
+            // --- จุดที่แก้ไข: เช็ค Toggle จากหน้าเว็บ ---
+            // ถ้าติ๊กถูกมา $request->is_vat จะมีค่า (เช่น "1" หรือ "on")
+            // ถ้าไม่ติ๊กมา ค่าจะเป็น null หรือ 0 (ขึ้นอยู่กับว่าเราใส่ hidden input ไหม)
+            $vat = 0;
+            if ($request->has('is_vat') && $request->is_vat == '1') {
                 $vat = $subtotal * 0.07;
-                $total = $subtotal + $vat;
+            }
+            // ---------------------------------------
 
-                // 4. อัปเดตข้อมูลที่ตารางหลัก (sales)
-                $sale->update([
-                    'customer_id' => $request->customer_id,
-                    'status' => $request->status,
-                    'note' => $request->note,
-                    'subtotal' => $subtotal,
-                    'vat' => $vat,
-                    'total' => $total,
-                    // doc_date, due_date อัปเดตตามฟิลด์ที่คุณมี
+            $total = $subtotal + $vat;
+
+            // 3. อัปเดตข้อมูลที่ตารางหลัก (sales)
+            $sale->update([
+                'customer_id' => $request->customer_id,
+                'status' => $request->status,
+                'note' => $request->note,
+                'subtotal' => $subtotal,
+                'vat' => $vat,
+                'total' => $total,
+                'doc_date' => $request->doc_date, // อย่าลืมเก็บวันที่ถ้ามีการแก้ไข
+            ]);
+
+            // 4. ลบรายการสินค้าเดิม
+            $sale->items()->delete();
+
+            // 5. บันทึกรายการสินค้าใหม่
+            foreach ($request->items as $item) {
+                $sale->items()->create([
+                    'description' => $item['desc'],
+                    'quantity' => $item['qty'],
+                    'unit_price' => $item['price'],
+                    'total' => $item['qty'] * $item['price'],
                 ]);
+            }
 
-                // 5. ลบรายการสินค้าเดิมทั้งหมดในฐานข้อมูลที่ผูกกับ Sale ID นี้
-                $sale->items()->delete();
-
-                // 6. บันทึกรายการสินค้าใหม่เข้าไปทั้งหมด
-                foreach ($request->items as $item) {
-                    $sale->items()->create([
-                        'description' => $item['desc'],
-                        'quantity' => $item['qty'],
-                        'unit_price' => $item['price'],
-                        'total' => $item['qty'] * $item['price'],
-                    ]);
-                }
-
-                return redirect()->route('pages.sales')->with('success', 'อัปเดตรายการเรียบร้อยแล้ว');
-            });
-        } catch (\Exception $e) {
-            return back()->withErrors('เกิดข้อผิดพลาด: ' . $e->getMessage());
-        }
+            return redirect()->route('pages.sales')->with('success', 'อัปเดตรายการเรียบร้อยแล้ว');
+        });
+    } catch (\Exception $e) {
+        return back()->withErrors('เกิดข้อผิดพลาด: ' . $e->getMessage());
     }
-
+}
     public function sales_pdf($id)
 {
     $sale = Sale::findOrFail($id);
@@ -197,8 +204,10 @@ class AccountingController extends Controller
     $pdf = Pdf::loadView('pages.sales_pdf_view', compact('sale'))
               ->setPaper('a4')
               ->setOption([
-                  'defaultFont' => 'THSarabunNew',
-                  'isRemoteEnabled' => true // อนุญาตให้โหลดรูปภาพจากภายนอก (ถ้ามี)
+                  'defaultFont' => 'Kanthit', // เปลี่ยนจาก THSarabunNew เป็น Kanthit
+                  'isRemoteEnabled' => true,
+                  'isHtml5ParserEnabled' => true, // ช่วยเรื่องการจัดโครงสร้าง HTML
+                  'isFontSubsettingEnabled' => true // ช่วยลดขนาดไฟล์ PDF โดยดึงเฉพาะตัวอักษรที่ใช้
               ]);
 
     return $pdf->stream($sale->doc_no . '.pdf');

@@ -2,7 +2,7 @@
   <div class="p-6">
     <div class="flex items-center space-x-3 text-blue-600">
       <i class="fas fa-cube text-3xl"></i>
-      <span class="text-xl font-bold tracking-tight">SMEMOVE PRO</span>
+      <span class="text-xl font-bold tracking-tight">ระบบบัญชี ACC</span>
     </div>
   </div>
 
