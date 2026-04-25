@@ -8,24 +8,38 @@
 /* ================= FONT ================= */
 
 @font-face {
-    font-family: "thsarabun";
-    font-style: normal;
+    font-family: 'kanit';
+    src: url('{{ storage_path("fonts/Kanit-Regular.ttf") }}') format("truetype");
     font-weight: normal;
-    src: url("{{ storage_path('fonts/THSarabunNew.ttf') }}") format("truetype");
 }
 
 @font-face {
-    font-family: "thsarabun";
-    font-style: normal;
+    font-family: 'kanit';
+    src: url('{{ storage_path("fonts/Kanit-Bold.ttf") }}') format("truetype");
     font-weight: bold;
-    src: url("{{ storage_path('fonts/THSarabunNew-Bold.ttf') }}") format("truetype");
+}
+
+@font-face {
+    font-family: 'kanit';
+    src: url('{{ storage_path("fonts/Kanit-SemiBold.ttf") }}') format("truetype");
+    font-weight: 600;
+}
+
+@font-face {
+    font-family: 'kanit';
+    src: url('{{ storage_path("fonts/Kanit-Medium.ttf") }}') format("truetype");
+    font-weight: 500;
+}
+
+@font-face {
+    font-family: 'kanit';
+    src: url('{{ storage_path("fonts/Kanit-Light.ttf") }}') format("truetype");
+    font-weight: 300;
 }
 
 body {
-    font-family: "thsarabun";
-    font-size: 16pt;
-    line-height: 1.2;
-    color: #000;
+    font-family: 'kanit', sans-serif;
+}
 }
 
 /* ================= Utility ================= */

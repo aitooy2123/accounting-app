@@ -1,0 +1,9 @@
+{
+    "kanit": {
+        "normal": "\/Applications\/XAMPP\/xamppfiles\/htdocs\/accounting-app\/storage\/fonts\/kanit_normal_2d00378b8d0ccad760d016b28207850f",
+        "bold": "\/Applications\/XAMPP\/xamppfiles\/htdocs\/accounting-app\/storage\/fonts\/kanit_bold_8c7fe49b8ae5b5060bdc46599035d8ef",
+        "600": "\/Applications\/XAMPP\/xamppfiles\/htdocs\/accounting-app\/storage\/fonts\/kanit_600_bb02bd3f0ed71aa1c4b9b22280935f1b",
+        "500": "\/Applications\/XAMPP\/xamppfiles\/htdocs\/accounting-app\/storage\/fonts\/kanit_500_8e3956622219a65f2f794970e5f64a45",
+        "300": "kanit_300_00adca11d60fc5f042c82ce66b5cb439"
+    }
+}
