@@ -3,6 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AccountingController;
 use App\Http\Controllers\SalesController; // <--- เช็คว่ามีบรรทัดนี้ไหม
+use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\BranchController;
+
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -46,6 +50,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/company', [AccountingController::class, 'company'])->name('company');
     Route::get('/branches', [AccountingController::class, 'branches'])->name('branches');
     Route::get('/customers', [AccountingController::class, 'customers'])->name('customers');
+
+
+    Route::resource('companies', CompanyController::class);
+
+
+    Route::resource('branches', BranchController::class);
 });
 
 // ดึง Route สำหรับระบบ Auth (Login, Register, Forgot Password) ที่ Breeze สร้างให้

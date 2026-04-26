@@ -39,11 +39,11 @@
 
     <div class="pt-4 pb-2 px-3 text-xs font-semibold text-gray-400 uppercase">ตั้งค่าระบบ</div>
 
-    <x-sidebar-link :href="route('company')" :active="request()->routeIs('company')" icon="fas fa-building">
+    <x-sidebar-link :href="route('companies.index')" :active="request()->routeIs('companies.*')" icon="fas fa-building">
       ข้อมูลบริษัท
     </x-sidebar-link>
 
-    <x-sidebar-link :href="route('branches')" :active="request()->routeIs('branches')" icon="fas fa-network-wired">
+    <x-sidebar-link :href="route('branches.index')" :active="request()->routeIs('branches.*')" icon="fas fa-network-wired">
       สาขา (Branches)
     </x-sidebar-link>
   </nav>

@@ -18,8 +18,12 @@
     @include('layouts.sidebar')
 
     <div class="flex-1 flex flex-col overflow-hidden">
-      @include('layouts.navigation') <main class="flex-1 overflow-y-auto p-8">
-        {{ $slot }}
+      @include('layouts.navigation')
+      <main class="flex-1 overflow-y-auto p-8">
+        @if (!empty($slot))
+          {{ $slot }}
+        @endif
+        @yield('content')
       </main>
     </div>
   </div>

@@ -1,9 +1,9 @@
 {
     "kanit": {
-        "normal": "C:\\xampp\\htdocs\\accounting-app\\storage\\fonts\/kanit_normal_3894b4433b2e5c71b348f2b656e312a9",
-        "bold": "C:\\xampp\\htdocs\\accounting-app\\storage\\fonts\/kanit_bold_a8c73d0e16b0ca2f266da8d3b6d78a03",
-        "600": "C:\\xampp\\htdocs\\accounting-app\\storage\\fonts\/kanit_600_d2755765865201e73ae4c62f9af4600c",
-        "500": "C:\\xampp\\htdocs\\accounting-app\\storage\\fonts\/kanit_500_93ad94fb0307354490649fc6c822770a",
-        "300": "kanit_300_9d007441781fe4fd871783519a57e067"
+        "normal": "C:\\laragon\\www\\accounting-app\\storage\\fonts\/kanit_normal_d5f29958c22387fdf51eb2707c68534e",
+        "bold": "C:\\laragon\\www\\accounting-app\\storage\\fonts\/kanit_bold_96d0770138e5a562a9a907b45a877c60",
+        "600": "C:\\laragon\\www\\accounting-app\\storage\\fonts\/kanit_600_9eb5153d4fd157fe9db1c7ce92fff3fb",
+        "500": "C:\\laragon\\www\\accounting-app\\storage\\fonts\/kanit_500_be82fdc98e63d6143c93ef4fe36e8c3f",
+        "300": "kanit_300_858b59f212d7e401305dadd9c0b080d7"
     }
 }

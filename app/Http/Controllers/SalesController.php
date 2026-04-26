@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Sale; // ตรวจสอบชื่อ Model ของคุณ (อาจเป็น Sale หรือ Sales)
 use Illuminate\Http\Request;
 use App\Exports\SalesExport;
+use App\Models\Branch;
+use App\Models\Customer;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
+use COM;
 use Illuminate\Support\Facades\DB;
 
 class SalesController extends Controller
@@ -28,13 +31,8 @@ class SalesController extends Controller
 
     public function create()
     {
-        // จำลองข้อมูลลูกค้า (ในงานจริงดึงจาก Model Customer)
-        $customers = collect([
-            (object)['id' => 1, 'name' => 'บจก. ไทยโพสต์', 'tax_id' => '0105546000002', 'address' => 'หลักสี่ กทม.'],
-            (object)['id' => 2, 'name' => 'เอบีซี เทรดดิ้ง', 'tax_id' => '0105560000001', 'address' => 'บางนา กทม.']
-        ]);
-        $branches = collect([(object)['id' => 0, 'name' => 'สำนักงานใหญ่'], (object)['id' => 1, 'name' => 'สาขา 1']]);
-
+        $customers = Customer::orderBy('name')->get();
+        $branches  = Branch::where('is_active', true)->orderBy('name')->get();
         return view('pages.sale.create', compact('customers', 'branches'));
     }
 

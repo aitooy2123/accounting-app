@@ -33,16 +33,17 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div class="lg:col-span-2 space-y-6">
+        {{-- ข้อมูลลูกค้าและสาขา --}}
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <div class="flex items-center space-x-2 mb-6 text-blue-600 font-bold text-lg border-b pb-4 font-kanit">
             <i class="fas fa-user-circle"></i>
-            <span>ระบุรายละเอียดคู่ค้า</span>
+            <span>ระบุรายละเอียดคู่ค้าและสาขา</span>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="md:col-span-1">
+            <div>
               <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">ชื่อลูกค้า / บริษัท</label>
-              <select name="customer_id" onchange="updateCustomerInfo(this)" class="w-full rounded-xl border-gray-200 focus:ring-blue-500 focus:border-blue-500 text-sm py-2.5 @error('customer_id') border-red-500 @enderror">
+              <select name="customer_id" onchange="updateCustomerInfo(this)" class="w-full rounded-xl border-gray-200 focus:ring-blue-500 focus:border-blue-500 text-sm py-2.5 @error('customer_id') border-red-500 @enderror" required>
                 <option value="">-- เลือกรายชื่อลูกค้า --</option>
                 @foreach ($customers as $customer)
                   <option value="{{ $customer->id }}" data-tax="{{ $customer->tax_id }}" data-address="{{ $customer->address }}" {{ old('customer_id') == $customer->id ? 'selected' : '' }}>
@@ -52,29 +53,36 @@
               </select>
             </div>
 
-            <div class="md:col-span-1">
+            <div>
               <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">เลือกสาขา (Branch)</label>
-              <select name="branch_id" class="w-full rounded-xl border-gray-200 focus:ring-blue-500 focus:border-blue-500 text-sm py-2.5">
+              <select name="branch_id" class="w-full rounded-xl border-gray-200 focus:ring-blue-500 focus:border-blue-500 text-sm py-2.5" required>
+                <option value="">สำนักงานใหญ่</option>
                 @foreach ($branches as $branch)
                   <option value="{{ $branch->id }}" {{ old('branch_id') == $branch->id ? 'selected' : '' }}>
-                    {{ $branch->name }}
+                    สาขา {{ $branch->name }} ({{ $branch->code }})
                   </option>
                 @endforeach
               </select>
             </div>
 
-            <div class="md:col-span-1">
+            <div>
               <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">เลขประจำตัวผู้เสียภาษี</label>
-              <input type="text" name="tax_id" id="tax_id" value="{{ old('tax_id') }}" readonly class="w-full rounded-xl border-gray-200 bg-gray-50 text-sm py-2.5 text-gray-500" placeholder="จะปรากฏอัตโนมัติ">
+              <input type="text" name="tax_id" id="tax_id" value="{{ old('tax_id') }}" readonly class="w-full rounded-xl border-gray-200 bg-gray-50 text-sm py-2.5 text-gray-500">
             </div>
 
-            <div class="md:col-span-1">
+            <div>
               <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">ที่อยู่จัดส่งเอกสาร</label>
-              <input type="text" name="address" id="address" value="{{ old('address') }}" readonly class="w-full rounded-xl border-gray-200 bg-gray-50 text-sm py-2.5 text-gray-500" placeholder="ที่อยู่ตามฐานข้อมูลลูกค้า">
+              <input type="text" name="address" id="address" value="{{ old('address') }}" readonly class="w-full rounded-xl border-gray-200 bg-gray-50 text-sm py-2.5 text-gray-500">
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">หมายเหตุ (Note)</label>
+              <textarea name="note" rows="2" class="w-full rounded-xl border-gray-200 text-sm" placeholder="ระบุหมายเหตุแนบท้ายเอกสาร...">{{ old('note') }}</textarea>
             </div>
           </div>
         </div>
 
+        {{-- รายการสินค้า --}}
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <div class="flex items-center justify-between mb-4 text-blue-600 font-bold text-lg font-kanit">
             <div class="flex items-center space-x-2">
@@ -121,6 +129,7 @@
         </div>
       </div>
 
+      {{-- Sidebar ขวา --}}
       <div class="space-y-6">
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 font-kanit">
           <div class="flex items-center space-x-2 mb-4 text-blue-600 font-bold text-lg">
@@ -143,19 +152,29 @@
           </div>
         </div>
 
+        {{-- เลือกอัตรา VAT --}}
         <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 font-kanit">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-                <i class="fas fa-percent text-blue-600"></i>
-                <span class="text-sm font-bold text-gray-700">คำนวณภาษี (VAT 7%)</span>
-            </div>
-            <label class="inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="vat_toggle" name="is_vat" class="sr-only peer" checked onchange="calculateTotal()">
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+          <div class="flex items-center space-x-2 mb-3">
+            <i class="fas fa-percent text-blue-600"></i>
+            <span class="text-sm font-bold text-gray-700">เลือกอัตราภาษีมูลค่าเพิ่ม (VAT)</span>
+          </div>
+          <div class="flex flex-col space-y-2">
+            <label class="inline-flex items-center">
+              <input type="radio" name="vat_rate" value="0" onchange="calculateTotal()" class="form-radio text-blue-600 focus:ring-blue-500">
+              <span class="ml-2 text-sm text-gray-700">VAT 0% (ยกเว้นภาษี)</span>
+            </label>
+            <label class="inline-flex items-center">
+              <input type="radio" name="vat_rate" value="7" onchange="calculateTotal()" class="form-radio text-blue-600 focus:ring-blue-500" checked>
+              <span class="ml-2 text-sm text-gray-700">VAT 7% (มาตรฐาน)</span>
+            </label>
+            <label class="inline-flex items-center">
+              <input type="radio" name="vat_rate" value="10" onchange="calculateTotal()" class="form-radio text-blue-600 focus:ring-blue-500">
+              <span class="ml-2 text-sm text-gray-700">VAT 10% (กรณีพิเศษ)</span>
             </label>
           </div>
         </div>
 
+        {{-- สรุปยอด --}}
         <div class="bg-blue-600 p-6 rounded-3xl shadow-xl text-white relative overflow-hidden font-kanit">
           <div class="absolute -right-4 -top-4 opacity-10 text-8xl">
             <i class="fas fa-calculator"></i>
@@ -166,7 +185,7 @@
               <span id="display-subtotal">0.00</span>
             </div>
             <div class="flex justify-between text-sm opacity-80">
-              <span>ภาษีมูลค่าเพิ่ม (VAT 7%)</span>
+              <span id="vat-label">ภาษีมูลค่าเพิ่ม (VAT 7%)</span>
               <span id="display-vat">0.00</span>
             </div>
             <div class="border-t border-blue-400/50 pt-4 flex justify-between items-end">
@@ -178,11 +197,6 @@
             </div>
           </div>
         </div>
-
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider font-kanit">หมายเหตุ (Note)</label>
-          <textarea name="note" rows="2" class="w-full rounded-xl border-gray-200 text-sm" placeholder="ระบุหมายเหตุแนบท้ายเอกสาร...">{{ old('note') }}</textarea>
-        </div>
       </div>
     </div>
   </form>
@@ -190,7 +204,7 @@
   <script>
     let rowCount = 1;
 
-    // อัปเดตข้อมูลลูกค้า
+    // อัปเดตข้อมูลลูกค้า (เลขผู้เสียภาษี, ที่อยู่)
     function updateCustomerInfo(select) {
       const selectedOption = select.options[select.selectedIndex];
       document.getElementById('tax_id').value = selectedOption.getAttribute('data-tax') || '';
@@ -225,7 +239,7 @@
       calculateTotal();
     }
 
-    // ลบแถวสินค้า
+    // ลบแถวสินค้า (ห้ามลบแถวสุดท้าย)
     function removeRow(button) {
       const rows = document.querySelectorAll('.item-row');
       if (rows.length > 1) {
@@ -233,11 +247,11 @@
         reIndexRows();
         calculateTotal();
       } else {
-        alert('อย่างน้อยต้องมี 1 รายการครับ');
+        alert('กรุณามีสินค้าอย่างน้อย 1 รายการ');
       }
     }
 
-    // จัดลำดับ Index ของ Input ใหม่ (กันข้อมูลหายตอนส่ง POST)
+    // จัดลำดับ name attributes ใหม่ (items[0][desc], items[1][desc]...)
     function reIndexRows() {
       const rows = document.querySelectorAll('.item-row');
       rows.forEach((row, index) => {
@@ -248,7 +262,7 @@
       rowCount = rows.length;
     }
 
-    // ฟังก์ชันคำนวณเงินทั้งหมด + ระบบเปิด/ปิด VAT
+    // ฟังก์ชันคำนวณยอดรวมและ VAT
     function calculateTotal() {
       let subtotal = 0;
       const rows = document.querySelectorAll('.item-row');
@@ -258,32 +272,32 @@
         const price = parseFloat(row.querySelector('.price-input').value) || 0;
         const total = qty * price;
 
-        row.querySelector('.row-total').innerText = total.toLocaleString(undefined, {
-          minimumFractionDigits: 2
-        });
+        row.querySelector('.row-total').innerText = total.toLocaleString(undefined, { minimumFractionDigits: 2 });
         subtotal += total;
       });
 
-      // ตรวจสอบการเปิด-ปิด VAT จาก Toggle
-      const vatToggle = document.getElementById('vat_toggle');
-      const vatRate = vatToggle.checked ? 0.07 : 0; // ถ้าเปิด = 7%, ปิด = 0%
-
+      // อ่านค่า VAT rate ที่เลือก (radio)
+      const selectedRadio = document.querySelector('input[name="vat_rate"]:checked');
+      let vatPercent = 0;
+      if (selectedRadio) {
+        vatPercent = parseFloat(selectedRadio.value);
+      }
+      const vatRate = vatPercent / 100;
       const vat = subtotal * vatRate;
       const grandTotal = subtotal + vat;
 
-      // แสดงผลตัวเลข
-      document.getElementById('display-subtotal').innerText = subtotal.toLocaleString(undefined, {
-        minimumFractionDigits: 2
-      });
-      document.getElementById('display-vat').innerText = vat.toLocaleString(undefined, {
-        minimumFractionDigits: 2
-      });
-      document.getElementById('display-total').innerText = grandTotal.toLocaleString(undefined, {
-        minimumFractionDigits: 2
-      });
+      // อัปเดตข้อความ label VAT
+      document.getElementById('vat-label').innerHTML = `ภาษีมูลค่าเพิ่ม (VAT ${vatPercent}%)`;
+      // อัปเดตตัวเลข
+      document.getElementById('display-subtotal').innerText = subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 });
+      document.getElementById('display-vat').innerText = vat.toLocaleString(undefined, { minimumFractionDigits: 2 });
+      document.getElementById('display-total').innerText = grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 });
     }
 
-    // คำนวณครั้งแรกเมื่อโหลดหน้า
-    window.onload = calculateTotal;
+    // เริ่มต้นเมื่อหน้าโหลด
+    window.onload = function() {
+      calculateTotal();
+      // เปิด event ให้ radio ที่อาจมีการเพิ่มแบบไดนามิก (ถ้ามีการเพิ่มใหม่จะเช็คตรง onchange อยู่แล้ว)
+    };
   </script>
 </x-app-layout>
