@@ -13,20 +13,30 @@ class CreateSalesTable extends Migration
      */
     public function up()
     {
-        Schema::create('sales', function (Blueprint $table) {
-            $table->id();
-            $table->string('doc_no')->unique(); // เลขที่ใบกำกับ
-            $table->foreignId('customer_id');   // เชื่อมโยงลูกค้า
-            $table->integer('branch_id');       // สาขา
-            $table->date('doc_date');           // วันที่เอกสาร
-            $table->date('due_date');           // วันครบกำหนด
-            $table->decimal('subtotal', 15, 2); // ยอดก่อนภาษี
-            $table->decimal('vat', 15, 2);      // ภาษี 7%
-            $table->decimal('total', 15, 2);    // ยอดสุทธิ
-            $table->text('note')->nullable();   // หมายเหตุ
-            $table->string('status')->default('ค้างชำระ');
-            $table->timestamps();
-        });
+        // 1. ตรวจสอบว่ามีตาราง 'sales' หรือยัง
+        if (!Schema::hasTable('sales')) {
+            Schema::create('sales', function (Blueprint $table) {
+                $table->id();
+                $table->string('doc_no')->unique();
+                $table->foreignId('customer_id');
+                $table->integer('branch_id');
+                $table->date('doc_date');
+                $table->date('due_date');
+                $table->decimal('subtotal', 15, 2);
+                $table->decimal('vat', 15, 2);
+                $table->decimal('total', 15, 2);
+                $table->text('note')->nullable();
+                $table->string('status')->default('ค้างชำระ');
+                $table->timestamps();
+            });
+        } else {
+            // 2. ถ้ามีตารางแล้ว แต่ต้องการเช็คฟิลด์ที่อาจจะยังไม่มี (ตัวอย่างการดักฟิลด์)
+            Schema::table('sales', function (Blueprint $table) {
+                if (!Schema::hasColumn('sales', 'tax_id')) {
+                    // $table->string('tax_id')->nullable()->after('doc_no'); // ตัวอย่างการเพิ่มฟิลด์ใหม่
+                }
+            });
+        }
     }
 
     /**
@@ -36,6 +46,9 @@ class CreateSalesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('sales');
+        // ลบตารางเฉพาะเมื่อมีตารางอยู่จริง
+        if (Schema::hasTable('sales')) {
+            Schema::dropIfExists('sales');
+        }
     }
 }
