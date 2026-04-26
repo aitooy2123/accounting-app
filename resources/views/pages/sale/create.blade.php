@@ -17,7 +17,6 @@
 
   <form action="{{ route('sales.store') }}" method="POST" id="salesForm">
     @csrf
-    @method('PUT')
 
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 space-y-4 md:space-y-0">
       <div>

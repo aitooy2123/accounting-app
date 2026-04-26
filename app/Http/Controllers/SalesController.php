@@ -76,7 +76,7 @@ class SalesController extends Controller
             }
 
             DB::commit();
-            return redirect()->route('pages.sales')->with('success', 'บันทึกสำเร็จ');
+            return redirect()->route('sales.index')->with('success', 'บันทึกสำเร็จ');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withErrors('Error: ' . $e->getMessage());
@@ -164,14 +164,14 @@ class SalesController extends Controller
         $docNo = $sale->doc_no;
         $sale->delete(); // SaleItem จะโดนลบด้วยถ้าตั้ง onDelete('cascade') ใน Migration
 
-        return redirect()->route('pages.sales')->with('success', "ลบเอกสาร $docNo เรียบร้อยแล้ว");
+        return redirect()->route('sales.index')->with('success', "ลบเอกสาร $docNo เรียบร้อยแล้ว");
     }
 
     public function pdf($id)
     {
         $sale = Sale::findOrFail($id);
 
-        $pdf = Pdf::loadView('pages.sales_pdf_view', compact('sale'))
+        $pdf = Pdf::loadView('pages.sale.pdf', compact('sale'))
             ->setPaper('a4')
             ->setOption([
                 'defaultFont' => 'Kanthit', // เปลี่ยนจาก THSarabunNew เป็น Kanthit

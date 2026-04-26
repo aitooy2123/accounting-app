@@ -1,10 +1,10 @@
 <x-app-layout>
-  @if (session('success'))
+  {{-- @if (session('success'))
     <div class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-r-xl flex items-center shadow-sm">
       <i class="fas fa-check-circle text-green-500 mr-3 text-lg"></i>
       <span class="text-green-800 font-bold text-sm font-kanit">{{ session('success') }}</span>
     </div>
-  @endif
+  @endif --}}
 
   <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 space-y-4 md:space-y-0">
     <div>
@@ -120,3 +120,7 @@
     @endif
   </div>
 </x-app-layout>
+
+@session('scripts')
+  @include('scripts.sweetalert2')
+@endsession
