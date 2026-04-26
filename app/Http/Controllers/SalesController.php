@@ -31,11 +31,10 @@ class SalesController extends Controller
 
     public function create()
     {
-        $customers = Customer::orderBy('name')->get();
+        $customers = Customer::with(['company', 'branch'])->orderBy('name')->get();
         $branches  = Branch::where('is_active', true)->orderBy('name')->get();
         return view('pages.sale.create', compact('customers', 'branches'));
     }
-
     public function store(Request $request)
     {
         $request->validate([

@@ -43,19 +43,38 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">ชื่อลูกค้า / บริษัท</label>
-              <select name="customer_id" onchange="updateCustomerInfo(this)" class="w-full rounded-xl border-gray-200 focus:ring-blue-500 focus:border-blue-500 text-sm py-2.5 @error('customer_id') border-red-500 @enderror" required>
+              <select name="customer_id" onchange="updateCustomerInfo(this)" class="w-full rounded-xl border-gray-200 focus:ring-blue-500 focus:border-blue-500 text-sm py-2.5 @error('customer_id') border-red-500 @enderror" >
                 <option value="">-- เลือกรายชื่อลูกค้า --</option>
                 @foreach ($customers as $customer)
-                  <option value="{{ $customer->id }}" data-tax="{{ $customer->tax_id }}" data-address="{{ $customer->address }}" {{ old('customer_id') == $customer->id ? 'selected' : '' }}>
+                  <option value="{{ $customer->id }}"
+                      data-tax="{{ $customer->tax_id }}"
+                      data-address="{{ $customer->address }}"
+                      data-company="{{ $customer->company->name ?? '' }}"
+                      data-company-id="{{ $customer->company_id ?? '' }}"
+                      data-branch-id="{{ $customer->branch_id ?? '' }}"
+                      {{ old('customer_id') == $customer->id ? 'selected' : '' }}>
                     {{ $customer->name }}
                   </option>
                 @endforeach
               </select>
+              @error('customer_id')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+              @enderror
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">บริษัท (Company)</label>
+              <input type="text" id="company_name" value="{{ old('company_name') }}" readonly
+                     class="w-full rounded-xl border-gray-200 bg-gray-50 text-sm py-2.5 text-gray-500">
+              <input type="hidden" name="company_id" id="company_id" value="{{ old('company_id') }}">
+              @error('company_id')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+              @enderror
             </div>
 
             <div>
               <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">เลือกสาขา (Branch)</label>
-              <select name="branch_id" class="w-full rounded-xl border-gray-200 focus:ring-blue-500 focus:border-blue-500 text-sm py-2.5" required>
+              <select name="branch_id" id="branch_select" class="w-full rounded-xl border-gray-200 focus:ring-blue-500 focus:border-blue-500 text-sm py-2.5 @error('branch_id') border-red-500 @enderror" >
                 <option value="">สำนักงานใหญ่</option>
                 @foreach ($branches as $branch)
                   <option value="{{ $branch->id }}" {{ old('branch_id') == $branch->id ? 'selected' : '' }}>
@@ -63,21 +82,33 @@
                   </option>
                 @endforeach
               </select>
+              @error('branch_id')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+              @enderror
             </div>
 
             <div>
               <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">เลขประจำตัวผู้เสียภาษี</label>
               <input type="text" name="tax_id" id="tax_id" value="{{ old('tax_id') }}" readonly class="w-full rounded-xl border-gray-200 bg-gray-50 text-sm py-2.5 text-gray-500">
+              @error('tax_id')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+              @enderror
             </div>
 
-            <div>
+            <div class="md:col-span-2">
               <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">ที่อยู่จัดส่งเอกสาร</label>
               <input type="text" name="address" id="address" value="{{ old('address') }}" readonly class="w-full rounded-xl border-gray-200 bg-gray-50 text-sm py-2.5 text-gray-500">
+              @error('address')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+              @enderror
             </div>
 
             <div class="md:col-span-2">
               <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">หมายเหตุ (Note)</label>
-              <textarea name="note" rows="2" class="w-full rounded-xl border-gray-200 text-sm" placeholder="ระบุหมายเหตุแนบท้ายเอกสาร...">{{ old('note') }}</textarea>
+              <textarea name="note" rows="2" class="w-full rounded-xl border-gray-200 text-sm @error('note') border-red-500 @enderror" placeholder="ระบุหมายเหตุแนบท้ายเอกสาร...">{{ old('note') }}</textarea>
+              @error('note')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+              @enderror
             </div>
           </div>
         </div>
@@ -106,15 +137,31 @@
                 </tr>
               </thead>
               <tbody id="item-tbody">
+                @php
+                  $oldItems = old('items', [['desc' => '', 'qty' => 1, 'price' => 0]]);
+                  if (empty($oldItems) || count($oldItems) == 0) {
+                      $oldItems = [['desc' => '', 'qty' => 1, 'price' => 0]];
+                  }
+                @endphp
+                @foreach ($oldItems as $index => $item)
                 <tr class="bg-white border border-gray-100 rounded-lg shadow-sm item-row">
                   <td class="py-3 px-4">
-                    <input type="text" name="items[0][desc]" class="w-full border-none focus:ring-0 text-sm p-0 font-medium" placeholder="ชื่อสินค้าหรือบริการ...">
+                    <input type="text" name="items[{{ $index }}][desc]" value="{{ $item['desc'] ?? '' }}" class="w-full border-none focus:ring-0 text-sm p-0 font-medium @error("items.$index.desc") border-red-500 @enderror" placeholder="ชื่อสินค้าหรือบริการ...">
+                    @error("items.$index.desc")
+                      <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                   </td>
                   <td class="py-3 px-4">
-                    <input type="number" name="items[0][qty]" value="1" min="1" oninput="calculateTotal()" class="qty-input w-full border-none focus:ring-0 text-sm text-center p-0 font-bold">
+                    <input type="number" name="items[{{ $index }}][qty]" value="{{ $item['qty'] ?? 1 }}" min="1" oninput="calculateTotal()" class="qty-input w-full border-none focus:ring-0 text-sm text-center p-0 font-bold @error("items.$index.qty") border-red-500 @enderror">
+                    @error("items.$index.qty")
+                      <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                   </td>
                   <td class="py-3 px-4">
-                    <input type="number" step="0.01" name="items[0][price]" value="0.00" oninput="calculateTotal()" class="price-input w-full border-none focus:ring-0 text-sm text-right p-0 font-bold text-blue-600">
+                    <input type="number" step="0.01" name="items[{{ $index }}][price]" value="{{ $item['price'] ?? 0 }}" oninput="calculateTotal()" class="price-input w-full border-none focus:ring-0 text-sm text-right p-0 font-bold text-blue-600 @error("items.$index.price") border-red-500 @enderror">
+                    @error("items.$index.price")
+                      <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                   </td>
                   <td class="py-3 px-4 text-right text-sm font-bold text-gray-700 row-total">0.00</td>
                   <td class="py-3 text-center">
@@ -123,6 +170,7 @@
                     </button>
                   </td>
                 </tr>
+                @endforeach
               </tbody>
             </table>
           </div>
@@ -139,15 +187,21 @@
           <div class="space-y-4">
             <div>
               <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1">วันที่เอกสาร</label>
-              <input type="date" name="doc_date" value="{{ old('doc_date', date('Y-m-d')) }}" class="w-full rounded-xl border-gray-200 text-sm py-2">
+              <input type="date" name="doc_date" value="{{ old('doc_date', date('Y-m-d')) }}" class="w-full rounded-xl border-gray-200 text-sm py-2 @error('doc_date') border-red-500 @enderror">
+              @error('doc_date')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+              @enderror
             </div>
             <div>
               <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1">เครดิต (วัน)</label>
-              <select name="credit_term" class="w-full rounded-xl border-gray-200 text-sm py-2">
+              <select name="credit_term" class="w-full rounded-xl border-gray-200 text-sm py-2 @error('credit_term') border-red-500 @enderror">
                 <option value="0" {{ old('credit_term') == 0 ? 'selected' : '' }}>เงินสด</option>
                 <option value="7" {{ old('credit_term') == 7 ? 'selected' : '' }}>7 วัน</option>
                 <option value="30" {{ old('credit_term') == 30 || !old('credit_term') ? 'selected' : '' }}>30 วัน</option>
               </select>
+              @error('credit_term')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+              @enderror
             </div>
           </div>
         </div>
@@ -160,18 +214,21 @@
           </div>
           <div class="flex flex-col space-y-2">
             <label class="inline-flex items-center">
-              <input type="radio" name="vat_rate" value="0" onchange="calculateTotal()" class="form-radio text-blue-600 focus:ring-blue-500">
+              <input type="radio" name="vat_rate" value="0" onchange="calculateTotal()" class="form-radio text-blue-600 focus:ring-blue-500" {{ old('vat_rate') == '0' ? 'checked' : '' }}>
               <span class="ml-2 text-sm text-gray-700">VAT 0% (ยกเว้นภาษี)</span>
             </label>
             <label class="inline-flex items-center">
-              <input type="radio" name="vat_rate" value="7" onchange="calculateTotal()" class="form-radio text-blue-600 focus:ring-blue-500" checked>
+              <input type="radio" name="vat_rate" value="7" onchange="calculateTotal()" class="form-radio text-blue-600 focus:ring-blue-500" {{ old('vat_rate', '7') == '7' ? 'checked' : '' }}>
               <span class="ml-2 text-sm text-gray-700">VAT 7% (มาตรฐาน)</span>
             </label>
             <label class="inline-flex items-center">
-              <input type="radio" name="vat_rate" value="10" onchange="calculateTotal()" class="form-radio text-blue-600 focus:ring-blue-500">
+              <input type="radio" name="vat_rate" value="10" onchange="calculateTotal()" class="form-radio text-blue-600 focus:ring-blue-500" {{ old('vat_rate') == '10' ? 'checked' : '' }}>
               <span class="ml-2 text-sm text-gray-700">VAT 10% (กรณีพิเศษ)</span>
             </label>
           </div>
+          @error('vat_rate')
+            <p class="text-red-500 text-xs mt-2">{{ $message }}</p>
+          @enderror
         </div>
 
         {{-- สรุปยอด --}}
@@ -185,7 +242,7 @@
               <span id="display-subtotal">0.00</span>
             </div>
             <div class="flex justify-between text-sm opacity-80">
-              <span id="vat-label">ภาษีมูลค่าเพิ่ม (VAT 7%)</span>
+              <span id="vat-label">ภาษีมูลค่าเพิ่ม (VAT {{ old('vat_rate', '7') }}%)</span>
               <span id="display-vat">0.00</span>
             </div>
             <div class="border-t border-blue-400/50 pt-4 flex justify-between items-end">
@@ -202,13 +259,32 @@
   </form>
 
   <script>
-    let rowCount = 1;
+    let rowCount = {{ count(old('items', [['desc' => '', 'qty' => 1, 'price' => 0]])) }};
 
-    // อัปเดตข้อมูลลูกค้า (เลขผู้เสียภาษี, ที่อยู่)
+    // อัปเดตข้อมูลลูกค้า (เลขผู้เสียภาษี, ที่อยู่, บริษัท, สาขา)
     function updateCustomerInfo(select) {
       const selectedOption = select.options[select.selectedIndex];
+
+      // อัปเดตฟิลด์ทั่วไป
       document.getElementById('tax_id').value = selectedOption.getAttribute('data-tax') || '';
       document.getElementById('address').value = selectedOption.getAttribute('data-address') || '';
+
+      // อัปเดตข้อมูลบริษัท
+      const companyName = selectedOption.getAttribute('data-company') || '';
+      const companyId = selectedOption.getAttribute('data-company-id') || '';
+      document.getElementById('company_name').value = companyName;
+      document.getElementById('company_id').value = companyId;
+
+      // อัปเดตสาขาให้ตรงกับ branch_id ของลูกค้า
+      const branchId = selectedOption.getAttribute('data-branch-id');
+      const branchSelect = document.getElementById('branch_select');
+      if (branchSelect) {
+        if (branchId) {
+          branchSelect.value = branchId;
+        } else {
+          branchSelect.value = "";
+        }
+      }
     }
 
     // เพิ่มแถวสินค้า
@@ -294,10 +370,14 @@
       document.getElementById('display-total').innerText = grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 });
     }
 
-    // เริ่มต้นเมื่อหน้าโหลด
+    // เริ่มต้นเมื่อหน้าโหลด: คำนวณและ set ค่าต่าง ๆ ถ้ามีค่า old หรือค่าเริ่มต้น
     window.onload = function() {
       calculateTotal();
-      // เปิด event ให้ radio ที่อาจมีการเพิ่มแบบไดนามิก (ถ้ามีการเพิ่มใหม่จะเช็คตรง onchange อยู่แล้ว)
+      // ถ้ามี customer ถูกเลือกไว้แล้ว (จาก old) ให้เรียก updateCustomerInfo เพื่อ fill ข้อมูล
+      const customerSelect = document.querySelector('select[name="customer_id"]');
+      if (customerSelect && customerSelect.value) {
+        updateCustomerInfo(customerSelect);
+      }
     };
   </script>
 </x-app-layout>
