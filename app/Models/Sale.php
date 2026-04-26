@@ -22,17 +22,23 @@ class Sale extends Model
         'total',
         'note',
         'status',
+        'vat_rate',
+
     ];
 
     /**
      * กำหนดการแปลงประเภทข้อมูลอัตโนมัติ (Casting)
      */
     protected $casts = [
-        'doc_date' => 'date',
-        'due_date' => 'date',
+        // 'doc_date' => 'date',
+        // 'due_date' => 'date',
         'subtotal' => 'decimal:2',
         'vat'      => 'decimal:2',
         'total'    => 'decimal:2',
+    ];
+
+    protected $attributes = [
+        'vat_rate' => 7,
     ];
 
     /**
@@ -46,5 +52,24 @@ class Sale extends Model
     // หากคุณมี Model Customer สามารถทำ BelongsTo ได้
     // public function customer() {
     //     return $this->belongsTo(Customer::class);
+    // }
+
+
+    // Relationship to Customer
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    // Relationship to Branch
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
+
+    // Relationship to Sale Items
+    // public function items()
+    // {
+    //     return $this->hasMany(SaleItem::class);
     // }
 }

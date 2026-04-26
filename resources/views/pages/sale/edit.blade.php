@@ -1,6 +1,6 @@
 <x-app-layout>
   @if ($errors->any())
-    <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl font-kanit">
+    <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl">
       <div class="flex">
         <i class="fas fa-exclamation-circle text-red-500 mt-1 mr-3"></i>
         <div>
@@ -15,66 +15,106 @@
     </div>
   @endif
 
-  <form action="{{ route('sales.update', $sale->id) }}" method="POST" id="salesForm">
+  <form action="{{ route('sales.update', $sale) }}" method="POST" id="salesForm">
     @csrf
     @method('PUT')
 
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 space-y-4 md:space-y-0">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900 font-kanit">แก้ไขเอกสาร: <span class="text-blue-600">{{ $sale->doc_no }}</span></h1>
-        <p class="text-sm text-gray-500 font-kanit">อัปเดตรายละเอียดและรายการสินค้าในเอกสารการขาย</p>
+        <h1 class="text-2xl font-bold text-gray-900 font-kanit">แก้ไขใบกำกับภาษี / ใบแจ้งหนี้</h1>
+        <p class="text-sm text-gray-500 font-kanit">แก้ไขเอกสารการขาย #{{ $sale->doc_no }}</p>
       </div>
       <div class="flex space-x-3">
-        <a href="{{ route('sales.index') }}" class="px-5 py-2.5 bg-white border border-gray-200 text-gray-600 text-sm font-bold rounded-xl hover:bg-gray-50 transition-all font-kanit">ยกเลิก</a>
+        <a href="{{ route('sales.index') }}" class="px-5 py-2.5 bg-white border border-gray-200 text-gray-600 text-sm font-bold rounded-xl hover:bg-gray-50 transition-all">ยกเลิก</a>
         <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-all shadow-sm shadow-blue-200 font-kanit">
-          <i class="fas fa-save mr-2"></i> บันทึกการแก้ไข
+          <i class="fas fa-save mr-2"></i> อัปเดตเอกสาร
         </button>
       </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div class="lg:col-span-2 space-y-6">
+        {{-- ข้อมูลลูกค้าและสาขา --}}
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <div class="flex items-center space-x-2 mb-6 text-blue-600 font-bold text-lg border-b pb-4 font-kanit">
             <i class="fas fa-user-circle"></i>
-            <span>ระบุรายละเอียดคู่ค้า</span>
+            <span>ระบุรายละเอียดคู่ค้าและสาขา</span>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="md:col-span-1">
+            <div>
               <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">ชื่อลูกค้า / บริษัท</label>
-              <select name="customer_id" onchange="updateCustomerInfo(this)" class="w-full rounded-xl border-gray-200 focus:ring-blue-500 focus:border-blue-500 text-sm py-2.5">
+              <select name="customer_id" onchange="updateCustomerInfo(this)" class="w-full rounded-xl border-gray-200 focus:ring-blue-500 focus:border-blue-500 text-sm py-2.5 @error('customer_id') border-red-500 @enderror" >
+                <option value="">-- เลือกรายชื่อลูกค้า --</option>
                 @foreach ($customers as $customer)
-                  <option value="{{ $customer->id }}" data-tax="{{ $customer->tax_id }}" data-address="{{ $customer->address }}" {{ $sale->customer_id == $customer->id ? 'selected' : '' }}>
+                  <option value="{{ $customer->id }}"
+                      data-tax="{{ $customer->tax_id }}"
+                      data-address="{{ $customer->address }}"
+                      data-company="{{ $customer->company->name ?? '' }}"
+                      data-company-id="{{ $customer->company_id ?? '' }}"
+                      data-branch-id="{{ $customer->branch_id ?? '' }}"
+                      {{ old('customer_id', $sale->customer_id) == $customer->id ? 'selected' : '' }}>
                     {{ $customer->name }}
                   </option>
                 @endforeach
               </select>
+              @error('customer_id')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+              @enderror
             </div>
 
-            <div class="md:col-span-1">
+            <div>
+              <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">บริษัท (Company)</label>
+              <input type="text" id="company_name" value="{{ old('company_name', $sale->customer->company->name ?? '') }}" readonly
+                     class="w-full rounded-xl border-gray-200 bg-gray-50 text-sm py-2.5 text-gray-500">
+              <input type="hidden" name="company_id" id="company_id" value="{{ old('company_id', $sale->customer->company_id ?? '') }}">
+              @error('company_id')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+              @enderror
+            </div>
+
+            <div>
               <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">เลือกสาขา (Branch)</label>
-              <select name="branch_id" class="w-full rounded-xl border-gray-200 focus:ring-blue-500 focus:border-blue-500 text-sm py-2.5">
+              <select name="branch_id" id="branch_select" class="w-full rounded-xl border-gray-200 focus:ring-blue-500 focus:border-blue-500 text-sm py-2.5 @error('branch_id') border-red-500 @enderror" >
+                <option value="">สำนักงานใหญ่</option>
                 @foreach ($branches as $branch)
-                  <option value="{{ $branch->id }}" {{ $sale->branch_id == $branch->id ? 'selected' : '' }}>
-                    {{ $branch->name }}
+                  <option value="{{ $branch->id }}" {{ old('branch_id', $sale->branch_id) == $branch->id ? 'selected' : '' }}>
+                    สาขา {{ $branch->name }} ({{ $branch->code }})
                   </option>
                 @endforeach
               </select>
+              @error('branch_id')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+              @enderror
             </div>
 
-            <div class="md:col-span-1">
+            <div>
               <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">เลขประจำตัวผู้เสียภาษี</label>
-              <input type="text" name="tax_id" id="tax_id" value="{{ $sale->customer->tax_id ?? '' }}" readonly class="w-full rounded-xl border-gray-200 bg-gray-50 text-sm py-2.5 text-gray-500">
+              <input type="text" name="tax_id" id="tax_id" value="{{ old('tax_id', $sale->customer->tax_id ?? '') }}" readonly class="w-full rounded-xl border-gray-200 bg-gray-50 text-sm py-2.5 text-gray-500">
+              @error('tax_id')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+              @enderror
             </div>
 
-            <div class="md:col-span-1">
+            <div class="md:col-span-2">
               <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">ที่อยู่จัดส่งเอกสาร</label>
-              <input type="text" name="address" id="address" value="{{ $sale->customer->address ?? '' }}" readonly class="w-full rounded-xl border-gray-200 bg-gray-50 text-sm py-2.5 text-gray-500">
+              <input type="text" name="address" id="address" value="{{ old('address', $sale->customer->address ?? '') }}" readonly class="w-full rounded-xl border-gray-200 bg-gray-50 text-sm py-2.5 text-gray-500">
+              @error('address')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+              @enderror
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">หมายเหตุ (Note)</label>
+              <textarea name="note" rows="2" class="w-full rounded-xl border-gray-200 text-sm @error('note') border-red-500 @enderror" placeholder="ระบุหมายเหตุแนบท้ายเอกสาร...">{{ old('note', $sale->note) }}</textarea>
+              @error('note')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+              @enderror
             </div>
           </div>
         </div>
 
+        {{-- รายการสินค้า --}}
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <div class="flex items-center justify-between mb-4 text-blue-600 font-bold text-lg font-kanit">
             <div class="flex items-center space-x-2">
@@ -98,24 +138,48 @@
                 </tr>
               </thead>
               <tbody id="item-tbody">
-                @foreach ($sale->items as $index => $item)
-                  <tr class="bg-white border border-gray-100 rounded-lg shadow-sm item-row">
-                    <td class="py-3 px-4">
-                      <input type="text" name="items[{{ $index }}][desc]" value="{{ $item->description }}" class="w-full border-none focus:ring-0 text-sm p-0 font-medium" placeholder="ชื่อสินค้าหรือบริการ...">
-                    </td>
-                    <td class="py-3 px-4">
-                      <input type="number" name="items[{{ $index }}][qty]" value="{{ (float) $item->quantity }}" min="1" oninput="calculateTotal()" class="qty-input w-full border-none focus:ring-0 text-sm text-center p-0 font-bold">
-                    </td>
-                    <td class="py-3 px-4">
-                      <input type="number" step="0.01" name="items[{{ $index }}][price]" value="{{ $item->unit_price }}" oninput="calculateTotal()" class="price-input w-full border-none focus:ring-0 text-sm text-right p-0 font-bold text-blue-600">
-                    </td>
-                    <td class="py-3 px-4 text-right text-sm font-bold text-gray-700 row-total">0.00</td>
-                    <td class="py-3 text-center">
-                      <button type="button" onclick="removeRow(this)" class="text-gray-300 hover:text-red-500 transition-colors">
-                        <i class="fas fa-trash-alt text-xs"></i>
-                      </button>
-                    </td>
-                  </tr>
+                @php
+                  $oldItems = old('items');
+                  if ($oldItems && count($oldItems)) {
+                      $items = $oldItems;
+                  } else {
+                      $items = $sale->items->map(function($item) {
+                          return [
+                              'desc' => $item->description,
+                              'qty' => $item->quantity,
+                              'price' => $item->unit_price,
+                          ];
+                      })->toArray();
+                      if (empty($items)) $items = [['desc' => '', 'qty' => 1, 'price' => 0]];
+                  }
+                @endphp
+                @foreach ($items as $index => $item)
+                <tr class="bg-white border border-gray-100 rounded-lg shadow-sm item-row">
+                  <td class="py-3 px-4">
+                    <input type="text" name="items[{{ $index }}][desc]" value="{{ $item['desc'] ?? '' }}" class="w-full border-none focus:ring-0 text-sm p-0 font-medium @error("items.$index.desc") border-red-500 @enderror" placeholder="ชื่อสินค้าหรือบริการ...">
+                    @error("items.$index.desc")
+                      <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                  </td>
+                  <td class="py-3 px-4">
+                    <input type="number" name="items[{{ $index }}][qty]" value="{{ $item['qty'] ?? 1 }}" min="1" oninput="calculateTotal()" class="qty-input w-full border-none focus:ring-0 text-sm text-center p-0 font-bold @error("items.$index.qty") border-red-500 @enderror">
+                    @error("items.$index.qty")
+                      <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                  </td>
+                  <td class="py-3 px-4">
+                    <input type="number" step="0.01" name="items[{{ $index }}][price]" value="{{ $item['price'] ?? 0 }}" oninput="calculateTotal()" class="price-input w-full border-none focus:ring-0 text-sm text-right p-0 font-bold text-blue-600 @error("items.$index.price") border-red-500 @enderror">
+                    @error("items.$index.price")
+                      <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                  </td>
+                  <td class="py-3 px-4 text-right text-sm font-bold text-gray-700 row-total">0.00</td>
+                  <td class="py-3 text-center">
+                    <button type="button" onclick="removeRow(this)" class="text-gray-300 hover:text-red-500 transition-colors">
+                      <i class="fas fa-trash-alt text-xs"></i>
+                    </button>
+                  </td>
+                </tr>
                 @endforeach
               </tbody>
             </table>
@@ -123,6 +187,7 @@
         </div>
       </div>
 
+      {{-- Sidebar ขวา --}}
       <div class="space-y-6">
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 font-kanit">
           <div class="flex items-center space-x-2 mb-4 text-blue-600 font-bold text-lg">
@@ -131,33 +196,52 @@
           </div>
           <div class="space-y-4">
             <div>
-              <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1">สถานะ</label>
-              <select name="status" class="w-full rounded-xl border-gray-200 text-sm py-2">
-                <option value="ค้างชำระ" {{ $sale->status == 'ค้างชำระ' ? 'selected' : '' }}>ค้างชำระ</option>
-                <option value="ชำระแล้ว" {{ $sale->status == 'ชำระแล้ว' ? 'selected' : '' }}>ชำระแล้ว</option>
-              </select>
+              <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1">วันที่เอกสาร</label>
+              <input type="date" name="doc_date" value="{{ old('doc_date', $sale->doc_date) }}" class="w-full rounded-xl border-gray-200 text-sm py-2 @error('doc_date') border-red-500 @enderror">
+              @error('doc_date')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+              @enderror
             </div>
             <div>
-              <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1">วันที่เอกสาร</label>
-              <input type="date" name="doc_date" value="{{ $sale->doc_date->format('Y-m-d') }}" class="w-full rounded-xl border-gray-200 text-sm py-2">
+              <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1">เครดิต (วัน)</label>
+              <select name="credit_term" class="w-full rounded-xl border-gray-200 text-sm py-2 @error('credit_term') border-red-500 @enderror">
+                <option value="0" {{ old('credit_term', $sale->credit_term) == 0 ? 'selected' : '' }}>เงินสด</option>
+                <option value="7" {{ old('credit_term', $sale->credit_term) == 7 ? 'selected' : '' }}>7 วัน</option>
+                <option value="30" {{ old('credit_term', $sale->credit_term) == 30 ? 'selected' : '' }}>30 วัน</option>
+              </select>
+              @error('credit_term')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+              @enderror
             </div>
           </div>
         </div>
 
-        <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-2">
+        {{-- เลือกอัตรา VAT --}}
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 font-kanit">
+          <div class="flex items-center space-x-2 mb-3">
             <i class="fas fa-percent text-blue-600"></i>
-            <span class="text-sm font-bold text-gray-700">คำนวณภาษี (VAT 7%)</span>
+            <span class="text-sm font-bold text-gray-700">เลือกอัตราภาษีมูลค่าเพิ่ม (VAT)</span>
           </div>
-          <label class="inline-flex items-center cursor-pointer">
-            <input type="hidden" name="is_vat" value="0">
-
-            <input type="checkbox" id="vat_toggle" name="is_vat" value="1" class="sr-only peer" {{ $sale->vat > 0 ? 'checked' : '' }} onchange="calculateTotal()">
-
-            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-          </label>
+          <div class="flex flex-col space-y-2">
+            <label class="inline-flex items-center">
+              <input type="radio" name="vat_rate" value="0" onchange="calculateTotal()" class="form-radio text-blue-600 focus:ring-blue-500" {{ old('vat_rate', $sale->vat_rate) == '0' ? 'checked' : '' }}>
+              <span class="ml-2 text-sm text-gray-700">VAT 0% (ยกเว้นภาษี)</span>
+            </label>
+            <label class="inline-flex items-center">
+              <input type="radio" name="vat_rate" value="7" onchange="calculateTotal()" class="form-radio text-blue-600 focus:ring-blue-500" {{ old('vat_rate', $sale->vat_rate) == '7' ? 'checked' : '' }}>
+              <span class="ml-2 text-sm text-gray-700">VAT 7% (มาตรฐาน)</span>
+            </label>
+            <label class="inline-flex items-center">
+              <input type="radio" name="vat_rate" value="10" onchange="calculateTotal()" class="form-radio text-blue-600 focus:ring-blue-500" {{ old('vat_rate', $sale->vat_rate) == '10' ? 'checked' : '' }}>
+              <span class="ml-2 text-sm text-gray-700">VAT 10% (กรณีพิเศษ)</span>
+            </label>
+          </div>
+          @error('vat_rate')
+            <p class="text-red-500 text-xs mt-2">{{ $message }}</p>
+          @enderror
         </div>
 
+        {{-- สรุปยอด --}}
         <div class="bg-blue-600 p-6 rounded-3xl shadow-xl text-white relative overflow-hidden font-kanit">
           <div class="absolute -right-4 -top-4 opacity-10 text-8xl">
             <i class="fas fa-calculator"></i>
@@ -168,7 +252,7 @@
               <span id="display-subtotal">0.00</span>
             </div>
             <div class="flex justify-between text-sm opacity-80">
-              <span>ภาษีมูลค่าเพิ่ม (VAT 7%)</span>
+              <span id="vat-label">ภาษีมูลค่าเพิ่ม (VAT {{ old('vat_rate', $sale->vat_rate) }}%)</span>
               <span id="display-vat">0.00</span>
             </div>
             <div class="border-t border-blue-400/50 pt-4 flex justify-between items-end">
@@ -180,23 +264,30 @@
             </div>
           </div>
         </div>
-
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider font-kanit">หมายเหตุ (Note)</label>
-          <textarea name="note" rows="2" class="w-full rounded-xl border-gray-200 text-sm" placeholder="ระบุหมายเหตุแนบท้ายเอกสาร...">{{ $sale->note }}</textarea>
-        </div>
       </div>
     </div>
   </form>
 
   <script>
-    // 1. เริ่มต้น rowCount จากจำนวนรายการที่มีอยู่จริงใน Blade
-    let rowCount = {{ $sale->items->count() }};
+    let rowCount = {{ count($items) }};
 
+    // อัปเดตข้อมูลลูกค้า (เลขผู้เสียภาษี, ที่อยู่, บริษัท, สาขา)
     function updateCustomerInfo(select) {
       const selectedOption = select.options[select.selectedIndex];
+
       document.getElementById('tax_id').value = selectedOption.getAttribute('data-tax') || '';
       document.getElementById('address').value = selectedOption.getAttribute('data-address') || '';
+
+      const companyName = selectedOption.getAttribute('data-company') || '';
+      const companyId = selectedOption.getAttribute('data-company-id') || '';
+      document.getElementById('company_name').value = companyName;
+      document.getElementById('company_id').value = companyId;
+
+      const branchId = selectedOption.getAttribute('data-branch-id');
+      const branchSelect = document.getElementById('branch_select');
+      if (branchSelect) {
+        branchSelect.value = branchId ? branchId : "";
+      }
     }
 
     function addRow() {
@@ -205,22 +296,22 @@
       newRow.className = "bg-white border border-gray-100 rounded-lg shadow-sm item-row";
 
       newRow.innerHTML = `
-            <td class="py-3 px-4">
-                <input type="text" name="items[${rowCount}][desc]" class="w-full border-none focus:ring-0 text-sm p-0 font-medium" placeholder="ชื่อสินค้าหรือบริการ...">
-            </td>
-            <td class="py-3 px-4">
-                <input type="number" name="items[${rowCount}][qty]" value="1" min="1" oninput="calculateTotal()" class="qty-input w-full border-none focus:ring-0 text-sm text-center p-0 font-bold">
-            </td>
-            <td class="py-3 px-4">
-                <input type="number" step="0.01" name="items[${rowCount}][price]" value="0.00" oninput="calculateTotal()" class="price-input w-full border-none focus:ring-0 text-sm text-right p-0 font-bold text-blue-600">
-            </td>
-            <td class="py-3 px-4 text-right text-sm font-bold text-gray-700 row-total">0.00</td>
-            <td class="py-3 text-center">
-                <button type="button" onclick="removeRow(this)" class="text-gray-300 hover:text-red-500 transition-colors">
-                    <i class="fas fa-trash-alt text-xs"></i>
-                </button>
-            </td>
-        `;
+        <td class="py-3 px-4">
+            <input type="text" name="items[${rowCount}][desc]" class="w-full border-none focus:ring-0 text-sm p-0 font-medium" placeholder="ชื่อสินค้าหรือบริการ...">
+        </td>
+        <td class="py-3 px-4">
+            <input type="number" name="items[${rowCount}][qty]" value="1" min="1" oninput="calculateTotal()" class="qty-input w-full border-none focus:ring-0 text-sm text-center p-0 font-bold">
+        </td>
+        <td class="py-3 px-4">
+            <input type="number" step="0.01" name="items[${rowCount}][price]" value="0.00" oninput="calculateTotal()" class="price-input w-full border-none focus:ring-0 text-sm text-right p-0 font-bold text-blue-600">
+        </td>
+        <td class="py-3 px-4 text-right text-sm font-bold text-gray-700 row-total">0.00</td>
+        <td class="py-3 text-center">
+            <button type="button" onclick="removeRow(this)" class="text-gray-300 hover:text-red-500 transition-colors">
+                <i class="fas fa-trash-alt text-xs"></i>
+            </button>
+        </td>
+      `;
       tbody.appendChild(newRow);
       rowCount++;
       calculateTotal();
@@ -233,7 +324,7 @@
         reIndexRows();
         calculateTotal();
       } else {
-        alert('อย่างน้อยต้องมี 1 รายการครับ');
+        alert('กรุณามีสินค้าอย่างน้อย 1 รายการ');
       }
     }
 
@@ -247,7 +338,6 @@
       rowCount = rows.length;
     }
 
-    // --- ส่วนที่แก้ไขให้ VAT ทำงานแน่นอน ---
     function calculateTotal() {
       let subtotal = 0;
       const rows = document.querySelectorAll('.item-row');
@@ -257,40 +347,31 @@
         const price = parseFloat(row.querySelector('.price-input').value) || 0;
         const total = qty * price;
 
-        // อัปเดตช่อง "รวมเงิน" ของแต่ละบรรทัด
-        row.querySelector('.row-total').innerText = total.toLocaleString(undefined, {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
-        });
+        row.querySelector('.row-total').innerText = total.toLocaleString(undefined, { minimumFractionDigits: 2 });
         subtotal += total;
       });
 
-      // ดึงค่าจาก Toggle (ตรวจสอบว่า Checked หรือไม่)
-      const vatToggle = document.getElementById('vat_toggle');
-      const isVatEnabled = vatToggle && vatToggle.checked;
+      const selectedRadio = document.querySelector('input[name="vat_rate"]:checked');
+      let vatPercent = 0;
+      if (selectedRadio) {
+        vatPercent = parseFloat(selectedRadio.value);
+      }
+      const vatRate = vatPercent / 100;
+      const vat = subtotal * vatRate;
+      const grandTotal = subtotal + vat;
 
-      const vatRate = isVatEnabled ? 0.07 : 0;
-      const vatAmount = subtotal * vatRate;
-      const grandTotal = subtotal + vatAmount;
-
-      // แสดงผลใน Side Panel
-      document.getElementById('display-subtotal').innerText = subtotal.toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
-      document.getElementById('display-vat').innerText = vatAmount.toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
-      document.getElementById('display-total').innerText = grandTotal.toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
+      document.getElementById('vat-label').innerHTML = `ภาษีมูลค่าเพิ่ม (VAT ${vatPercent}%)`;
+      document.getElementById('display-subtotal').innerText = subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 });
+      document.getElementById('display-vat').innerText = vat.toLocaleString(undefined, { minimumFractionDigits: 2 });
+      document.getElementById('display-total').innerText = grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 });
     }
 
-    // ใช้ DOMContentLoaded แทน window.onload เพื่อความชัวร์ในการจับ Element
-    document.addEventListener('DOMContentLoaded', function() {
+    window.onload = function() {
       calculateTotal();
-    });
+      const customerSelect = document.querySelector('select[name="customer_id"]');
+      if (customerSelect && customerSelect.value) {
+        updateCustomerInfo(customerSelect);
+      }
+    };
   </script>
 </x-app-layout>
