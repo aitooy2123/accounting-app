@@ -21,15 +21,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [AccountingController::class, 'index'])->name('dashboard');
 
     // --- ระบบงานขาย (Sales) ---
-    Route::get('/sales', [AccountingController::class, 'sales'])->name('pages.sales');
-    Route::get('/sales/create', [AccountingController::class, 'sales_create'])->name('pages.sales_create');
-    Route::post('/sales', [AccountingController::class, 'sales_store'])->name('pages.sales_store');
-    Route::get('/sales/{id}/edit', [AccountingController::class, 'sales_edit'])->name('pages.sales_edit');
-    Route::put('/sales/{id}', [AccountingController::class, 'sales_update'])->name('pages.sales_update');
-    Route::delete('/sales/{id}', [AccountingController::class, 'sales_destroy'])->name('pages.sales_destroy');
+    Route::resource('sales', SalesController::class)->except('show');
 
-    Route::get('/sales/{id}/pdf', [AccountingController::class, 'sales_pdf'])->name('pages.sales_pdf');
-    Route::get('/sales/export', [SalesController::class, 'exportExcel'])->name('pages.sales_export');
+    Route::get('/sales/{id}/pdf', [SalesController::class, 'pdf'])->name('sales.pdf');
+    // Route::get('/sales/export', [SalesController::class, 'exportExcel'])->name('pages.sales_export');
+
     // --- ระบบงานซื้อ (Purchases) ---
     Route::get('/purchases', function () {
         return view('pages.purchases');

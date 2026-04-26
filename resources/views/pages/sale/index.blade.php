@@ -15,13 +15,13 @@
     {{-- <a href="{{ route('pages.sales_export', request()->query()) }}" class="inline-flex items-center px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-xl transition-all shadow-sm shadow-green-200 font-kanit">
       <i class="fas fa-file-excel mr-2"></i> ส่งออก Excel
     </a> --}}
-    <a href="{{ route('pages.sales_create') }}" class="inline-flex items-center px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-all shadow-sm shadow-blue-200 font-kanit">
+    <a href="{{ route('sales.create') }}" class="inline-flex items-center px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-all shadow-sm shadow-blue-200 font-kanit">
       <i class="fas fa-plus-circle mr-2"></i> สร้างเอกสารใหม่
     </a>
   </div>
 
   <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-6">
-    <form action="{{ route('pages.sales') }}" method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <form action="{{ route('sales.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div class="md:col-span-2 relative">
         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
           <i class="fas fa-search"></i>
@@ -39,7 +39,7 @@
         <button type="submit" class="flex-1 bg-gray-900 hover:bg-black text-white px-4 py-2.5 rounded-xl text-sm font-bold transition-all font-kanit">
           กรองข้อมูล
         </button>
-        <a href="{{ route('pages.sales') }}" class="px-4 py-2.5 bg-gray-100 text-gray-500 hover:bg-gray-200 rounded-xl transition-all flex items-center justify-center">
+        <a href="{{ route('sales.index') }}" class="px-4 py-2.5 bg-gray-100 text-gray-500 hover:bg-gray-200 rounded-xl transition-all flex items-center justify-center">
           <i class="fas fa-undo"></i>
         </a>
       </div>
@@ -80,15 +80,15 @@
               <td class="px-6 py-4 text-right">
                 <div class="flex justify-end items-center space-x-1">
                   {{-- ปุ่มดู PDF --}}
-                  <a href="{{ route('pages.sales_pdf', $item->id) }}" target="_blank" class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="พิมพ์ PDF">
+                  <a href="{{ route('sales.pdf', $item->id) }}" target="_blank" class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="พิมพ์ PDF">
                     <i class="fas fa-file-pdf text-xs"></i>
                   </a>
 
-                  <a href="{{ route('pages.sales_edit', $item->id) }}" class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="แก้ไข">
+                  <a href="{{ route('sales.edit', $item->id) }}" class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="แก้ไข">
                     <i class="fas fa-pencil-alt text-xs"></i>
                   </a>
 
-                  <form action="{{ route('pages.sales_destroy', $item->id) }}" method="POST" onsubmit="return confirm('ยืนยันการลบเอกสาร {{ $item->doc_no }}?')">
+                  <form action="{{ route('sales.destroy', $item->id) }}" method="POST" onsubmit="return confirm('ยืนยันการลบเอกสาร {{ $item->doc_no }}?')">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="ลบ">
@@ -104,7 +104,7 @@
                 <div class="flex flex-col items-center">
                   <i class="fas fa-file-invoice text-5xl mb-4 opacity-20"></i>
                   <span class="font-kanit text-sm">ยังไม่มีรายการขายในระบบ</span>
-                  <a href="{{ route('pages.sales_create') }}" class="mt-4 text-blue-600 text-xs font-bold hover:underline">สร้างเอกสารใบแรกของคุณที่นี่</a>
+                  <a href="{{ route('sales.create') }}" class="mt-4 text-blue-600 text-xs font-bold hover:underline">สร้างเอกสารใบแรกของคุณที่นี่</a>
                 </div>
               </td>
             </tr>

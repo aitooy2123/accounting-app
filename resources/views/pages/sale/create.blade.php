@@ -15,8 +15,9 @@
     </div>
   @endif
 
-  <form action="{{ route('pages.sales_store') }}" method="POST" id="salesForm">
+  <form action="{{ route('sales.store') }}" method="POST" id="salesForm">
     @csrf
+    @method('PUT')
 
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 space-y-4 md:space-y-0">
       <div>
@@ -24,7 +25,7 @@
         <p class="text-sm text-gray-500 font-kanit">ออกเอกสารการขายใหม่ระบุตามสาขาและลูกค้า</p>
       </div>
       <div class="flex space-x-3">
-        <a href="{{ route('pages.sales') }}" class="px-5 py-2.5 bg-white border border-gray-200 text-gray-600 text-sm font-bold rounded-xl hover:bg-gray-50 transition-all">ยกเลิก</a>
+        <a href="{{ route('sales.index') }}" class="px-5 py-2.5 bg-white border border-gray-200 text-gray-600 text-sm font-bold rounded-xl hover:bg-gray-50 transition-all">ยกเลิก</a>
         <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-all shadow-sm shadow-blue-200 font-kanit">
           <i class="fas fa-save mr-2"></i> บันทึกเอกสาร
         </button>

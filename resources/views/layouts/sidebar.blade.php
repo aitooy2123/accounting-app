@@ -13,7 +13,7 @@
       ภาพรวม (Dashboard)
     </x-sidebar-link>
 
-    <x-sidebar-link :href="route('pages.sales')" :active="request()->routeIs('pages.sales')" icon="fas fa-file-invoice-dollar">
+    <x-sidebar-link :href="route('sales.index')" :active="request()->routeIs('sales.*')" icon="fas fa-file-invoice-dollar">
       ขาย (Sales)
     </x-sidebar-link>
 
