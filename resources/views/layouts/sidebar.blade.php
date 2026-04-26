@@ -33,7 +33,7 @@
 
     <div class="pt-4 pb-2 px-3 text-xs font-semibold text-gray-400 uppercase">ฐานข้อมูล</div>
 
-    <x-sidebar-link :href="route('customers')" :active="request()->routeIs('customers')" icon="fas fa-users">
+    <x-sidebar-link :href="route('customers.index')" :active="request()->routeIs('customers.*')" icon="fas fa-users">
       รายชื่อลูกค้า (Customers)
     </x-sidebar-link>
 

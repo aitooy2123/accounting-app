@@ -5,6 +5,7 @@ use App\Http\Controllers\AccountingController;
 use App\Http\Controllers\SalesController; // <--- เช็คว่ามีบรรทัดนี้ไหม
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\BranchController;
+use App\Http\Controllers\CustomerController;
 
 
 /*
@@ -56,6 +57,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     Route::resource('branches', BranchController::class);
+
+    Route::resource('customers', CustomerController::class);
 });
 
 // ดึง Route สำหรับระบบ Auth (Login, Register, Forgot Password) ที่ Breeze สร้างให้
