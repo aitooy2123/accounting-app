@@ -80,7 +80,7 @@
                                 <form action="{{ route('customers.destroy', $customer) }}" method="POST" style="display: inline;">
     @csrf
     @method('DELETE')
-    <button type="submit" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="ลบ" onclick="return confirm('ยืนยันการลบ')">
+    <button type="submit" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="ลบ")">
         <i class="fas fa-trash-alt text-xs"></i>
     </button>
 </form>
@@ -145,3 +145,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endpush
+@session('scripts')
+  @include('scripts.sweetalert2')
+@endsession
