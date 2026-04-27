@@ -18,7 +18,7 @@
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                     <i class="fas fa-search"></i>
                 </div>
-                <input type="text" name="search" value="{{ request('search') }}" class="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="ค้นหารหัส ชื่อลูกค้า อีเมล หรือเบอร์โทร...">
+                <input type="text" name="search" value="{{ request('search') }}" class="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="ค้นหารหัส ชื่อลูกค้า อีเมล เบอร์โทร บริษัท หรือสาขา...">
             </div>
 
             <select name="status" class="block w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 transition-all font-kanit">
@@ -59,14 +59,13 @@
                         </td>
                         <td class="px-6 py-4">
                             <div>{{ $customer->name }}</div>
-<div style="color: red;">เลขผู้เสียภาษี: {{ $customer->tax_id ?? '-' }}</div>
+                            <div class="text-xs text-gray-400">เลขผู้เสียภาษี: {{ $customer->tax_id ?? '-' }}</div>
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-600">{{ $customer->phone ?? '-' }}</td>
                         <td class="px-6 py-4 text-sm text-gray-600">
-<div>{{ $customer->company->name ?? '-' }}</div>
-<div>{{ $customer->branch->name ?? '-' }}</div>
-
-                            </td>
+                            <div>{{ $customer->company->name ?? '-' }}</div>
+                            <div class="text-xs text-gray-400">{{ $customer->branch->name ?? '-' }}</div>
+                        </td>
                         <td class="px-6 py-4 text-center">
                             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold {{ $customer->is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' }}">
                                 <i class="fas {{ $customer->is_active ? 'fa-check-circle' : 'fa-ban' }} mr-1 text-xs"></i>
@@ -78,19 +77,19 @@
                                 <a href="{{ route('customers.edit', $customer) }}" class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="แก้ไข">
                                     <i class="fas fa-pencil-alt text-xs"></i>
                                 </a>
-                                <form action="{{ route('customers.destroy', $customer) }}" method="POST" class="delete-form" data-name="{{ $customer->name }}" style="display: inline;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="button" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all delete-btn" title="ลบ">
-                                        <i class="fas fa-trash-alt text-xs"></i>
-                                    </button>
-                                </form>
+                                <form action="{{ route('customers.destroy', $customer) }}" method="POST" style="display: inline;">
+    @csrf
+    @method('DELETE')
+    <button type="submit" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="ลบ" onclick="return confirm('ยืนยันการลบ')">
+        <i class="fas fa-trash-alt text-xs"></i>
+    </button>
+</form>
                             </div>
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9" class="px-6 py-20 text-center text-gray-400">
+                        <td colspan="6" class="px-6 py-20 text-center text-gray-400">
                             <div class="flex flex-col items-center">
                                 <i class="fas fa-users text-5xl mb-4 opacity-20"></i>
                                 <span class="font-kanit text-sm">ยังไม่มีข้อมูลลูกค้าในระบบ</span>
@@ -110,8 +109,39 @@
         @endif
     </div>
 </div>
-@session('scripts')
-  @include('scripts.sweetalert2')
-@endsession
-
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // เลือกทุกปุ่มลบ
+    const deleteButtons = document.querySelectorAll('.delete-btn');
+
+    console.log('พบปุ่มลบจำนวน:', deleteButtons.length); // เช็คว่าพบปุ่มหรือไม่
+
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const form = this.closest('.delete-form');
+            const customerName = form.dataset.name;
+
+            Swal.fire({
+                title: 'ยืนยันการลบ',
+                text: `คุณต้องการลบลูกค้า "${customerName}" ใช่หรือไม่?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'ใช่, ลบเลย!',
+                cancelButtonText: 'ยกเลิก'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+    });
+});
+</script>
+@endpush

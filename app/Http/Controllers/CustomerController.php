@@ -97,18 +97,15 @@ class CustomerController extends Controller
             ->with('success', 'อัปเดตลูกค้า "' . $customer->name . '" เรียบร้อยแล้ว');
     }
 
-    public function destroy(Customer $customer)
-    {
-        // Check if customer has related sales documents
-        if ($customer->sales()->count() > 0) {
-            return redirect()->route('customers.index')
-                ->with('error', 'ไม่สามารถลบลูกค้าได้เนื่องจากมีเอกสารขายที่เกี่ยวข้องอยู่');
-        }
-
-        $customerName = $customer->name;
+  public function destroy(Customer $customer)
+{
+    try {
         $customer->delete();
-
         return redirect()->route('customers.index')
-            ->with('success', 'ลบลูกค้า "' . $customerName . '" เรียบร้อยแล้ว');
+            ->with('success', 'ลบลูกค้าเรียบร้อยแล้ว');
+    } catch (\Exception $e) {
+        return redirect()->route('customers.index')
+            ->with('error', 'ไม่สามารถลบลูกค้าได้: ' . $e->getMessage());
     }
+}
 }
