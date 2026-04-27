@@ -11,15 +11,39 @@ class CustomerController extends Controller
 {
     public function index()
     {
-        $customers = Customer::with(['branch', 'company'])->orderBy('code')->paginate(10);
+        $customers = Customer::with(['branch', 'company'])
+            ->when(request('search'), function($query) {
+                $query->where('code', 'like', '%'.request('search').'%')
+                      ->orWhere('name', 'like', '%'.request('search').'%')
+                      ->orWhere('email', 'like', '%'.request('search').'%')
+                      ->orWhere('phone', 'like', '%'.request('search').'%');
+            })
+            ->when(request('status') !== null, function($query) {
+                $query->where('is_active', request('status'));
+            })
+            ->orderBy('code')
+            ->paginate(10);
+
         return view('pages.customer.index', compact('customers'));
     }
 
     public function create()
     {
+        // Auto generate customer code
+        $lastCustomer = Customer::orderBy('id', 'desc')->first();
+        if ($lastCustomer && $lastCustomer->code) {
+            // Extract number from code (e.g., CUS-00001 -> 00001)
+            $lastNumber = intval(substr($lastCustomer->code, -5));
+            $newNumber = str_pad($lastNumber + 1, 5, '0', STR_PAD_LEFT);
+            $autoCode = 'CUS-' . $newNumber;
+        } else {
+            $autoCode = 'CUS-00001';
+        }
+
         $branches = Branch::orderBy('name')->get();
         $companies = Company::orderBy('name')->get();
-        return view('pages.customer.create', compact('branches', 'companies'));
+
+        return view('pages.customer.create', compact('autoCode', 'branches', 'companies'));
     }
 
     public function store(Request $request)
@@ -41,7 +65,7 @@ class CustomerController extends Controller
         Customer::create($validated);
 
         return redirect()->route('customers.index')
-            ->with('success', 'เพิ่มลูกค้าเรียบร้อยแล้ว');
+            ->with('success', 'เพิ่มลูกค้า "' . $request->name . '" เรียบร้อยแล้ว');
     }
 
     public function edit(Customer $customer)
@@ -70,17 +94,21 @@ class CustomerController extends Controller
         $customer->update($validated);
 
         return redirect()->route('customers.index')
-            ->with('success', 'อัปเดตลุกค้าเรียบร้อยแล้ว');
+            ->with('success', 'อัปเดตลูกค้า "' . $customer->name . '" เรียบร้อยแล้ว');
     }
 
     public function destroy(Customer $customer)
     {
+        // Check if customer has related sales documents
         if ($customer->sales()->count() > 0) {
             return redirect()->route('customers.index')
-                ->with('error', 'ไม่สามารถลบลูกค้าได้เนื่องจากมีเอกสารขาย关联อยู่');
+                ->with('error', 'ไม่สามารถลบลูกค้าได้เนื่องจากมีเอกสารขายที่เกี่ยวข้องอยู่');
         }
+
+        $customerName = $customer->name;
         $customer->delete();
+
         return redirect()->route('customers.index')
-            ->with('success', 'ลบลูกค้าเรียบร้อยแล้ว');
+            ->with('success', 'ลบลูกค้า "' . $customerName . '" เรียบร้อยแล้ว');
     }
 }
