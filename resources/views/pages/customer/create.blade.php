@@ -222,27 +222,5 @@
     </form>
 </div>
 
-@session('scripts')
-    @include('scripts.sweetalert2')
-    <script>
-        @if(session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'สำเร็จ!',
-                text: '{{ session('success') }}',
-                showConfirmButton: false,
-                timer: 1500
-            });
-        @endif
 
-        @if(session('error'))
-            Swal.fire({
-                icon: 'error',
-                title: 'เกิดข้อผิดพลาด',
-                text: '{{ session('error') }}',
-                confirmButtonText: 'ตกลง'
-            });
-        @endif
-    </script>
-@endsession
 @endsection

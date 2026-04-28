@@ -236,11 +236,23 @@
               <span class="ml-2 text-sm text-gray-700">VAT 10% (กรณีพิเศษ)</span>
             </label>
           </div>
+
           @error('vat_rate')
             <p class="text-red-500 text-xs mt-2">{{ $message }}</p>
           @enderror
         </div>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 font-kanit">
 
+        <select name="status">
+    <option value="">ทุกสถานะการชำระ</option>
+    <option value="ชำระแล้ว" {{ request('status') == 'ชำระแล้ว' ? 'selected' : '' }}>
+        ชำระแล้ว
+    </option>
+    <option value="ค้างชำระ" {{ request('status') == 'ค้างชำระ' ? 'selected' : '' }}>
+        ค้างชำระ
+    </option>
+</select>
+        </div>
         {{-- สรุปยอด --}}
         <div class="bg-blue-600 p-6 rounded-3xl shadow-xl text-white relative overflow-hidden font-kanit">
           <div class="absolute -right-4 -top-4 opacity-10 text-8xl">

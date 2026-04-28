@@ -13,24 +13,36 @@ use Carbon\Carbon;
 
 class SalesController extends Controller
 {
-    public function index(Request $request)
-    {
-        $query = Sale::with(['customer', 'branch']);
+  public function index(Request $request)
+{
+    $query = Sale::with(['customer', 'branch']);
 
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('doc_no', 'like', "%{$search}%")
-                    ->orWhereHas('customer', function ($q2) use ($search) {
-                        $q2->where('name', 'like', "%{$search}%");
-                    });
-            });
-        }
-
-        $sales = $query->orderBy('created_at', 'desc')->paginate(10);
-        return view('pages.sale.index', compact('sales'));
+    // ค้นหา
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function ($q) use ($search) {
+            $q->where('doc_no', 'like', "%{$search}%")
+              ->orWhere('customer_id', 'like', "%{$search}%")
+              ->orWhereHas('customer', function ($q2) use ($search) {
+                  $q2->where('name', 'like', "%{$search}%")
+                     ->orWhere('phone', 'like', "%{$search}%");
+              });
+        });
     }
 
+    // กรองสถานะ
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+
+    // เรียงลำดับ
+    $query->orderBy('doc_date', 'desc');
+
+    $sales = $query->paginate(10);
+    $sales->appends($request->query());
+
+    return view('pages.sale.index', compact('sales'));
+}
     public function create()
     {
         $customers = Customer::with(['company', 'branch'])->orderBy('name')->get();
@@ -117,6 +129,7 @@ class SalesController extends Controller
             'credit_term' => 'required|integer|in:0,7,30',
             'vat_rate'    => 'required|in:0,7,10',
             'note'        => 'nullable|string',
+            'status' => 'nullable|in:ชำระแล้ว,ค้างชำระ',
             'items'       => 'required|array|min:1',
             'items.*.desc' => 'required|string',
             'items.*.qty' => 'required|numeric|min:0.01',
@@ -142,6 +155,7 @@ class SalesController extends Controller
                 'credit_term' => $request->credit_term,
                 'due_date'    => Carbon::parse($request->doc_date)->addDays($request->credit_term),
                 'vat_rate'    => $request->vat_rate,
+                'status' => $request->status ?? $sale->status,
                 'subtotal'    => $subtotal,
                 'vat'         => $vat,
                 'total'       => $total,

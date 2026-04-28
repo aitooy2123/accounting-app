@@ -109,7 +109,7 @@
         @endif
     </div>
 </div>
-@endsection
+
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -144,7 +144,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-@endpush
+
 @session('scripts')
   @include('scripts.sweetalert2')
+
 @endsession
+@endpush
+@endsection

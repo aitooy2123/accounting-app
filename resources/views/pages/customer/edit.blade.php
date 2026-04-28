@@ -2,82 +2,263 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-6">
-    <h1 class="text-2xl font-bold mb-4">แก้ไขลูกค้า</h1>
-    <form action="{{ route('customers.update', $customer) }}" method="POST" class="bg-white p-6 rounded shadow">
-        @csrf
-        @method('PUT')
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-                <label class="block text-gray-700">รหัสลูกค้า <span class="text-red-500">*</span></label>
-                <input type="text" name="code" value="{{ old('code', $customer->code) }}" class="w-full border rounded px-3 py-2" required>
-                @error('code') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-            </div>
-            <div>
-                <label class="block text-gray-700">ชื่อลูกค้า/บริษัท <span class="text-red-500">*</span></label>
-                <input type="text" name="name" value="{{ old('name', $customer->name) }}" class="w-full border rounded px-3 py-2" required>
-                @error('name') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-            </div>
-            <div>
-                <label class="block text-gray-700">อีเมล</label>
-                <input type="email" name="email" value="{{ old('email', $customer->email) }}" class="w-full border rounded px-3 py-2">
-            </div>
-            <div>
-                <label class="block text-gray-700">เบอร์โทรศัพท์</label>
-                <input type="text" name="phone" value="{{ old('phone', $customer->phone) }}" class="w-full border rounded px-3 py-2">
-            </div>
-            <div class="md:col-span-2">
-                <label class="block text-gray-700">ที่อยู่</label>
-                <textarea name="address" class="w-full border rounded px-3 py-2" rows="2">{{ old('address', $customer->address) }}</textarea>
-            </div>
-            <div>
-                <label class="block text-gray-700">เลขผู้เสียภาษี</label>
-                <input type="text" name="tax_id" value="{{ old('tax_id', $customer->tax_id) }}" class="w-full border rounded px-3 py-2">
-            </div>
-            <div>
-                <label class="block text-gray-700">ผู้ติดต่อ</label>
-                <input type="text" name="contact_person" value="{{ old('contact_person', $customer->contact_person) }}" class="w-full border rounded px-3 py-2">
-            </div>
-            <div>
-                <label class="block text-gray-700">เบอร์โทรผู้ติดต่อ</label>
-                <input type="text" name="contact_phone" value="{{ old('contact_phone', $customer->contact_phone) }}" class="w-full border rounded px-3 py-2">
-            </div>
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 space-y-4 md:space-y-0">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900 font-kanit">แก้ไขลูกค้า</h1>
+            <p class="text-sm text-gray-500 font-kanit">แก้ไขข้อมูลลูกค้า {{ $customer->name }}</p>
+        </div>
+        <div class="flex space-x-3">
+            <a href="{{ route('customers.index') }}" class="px-5 py-2.5 bg-white border border-gray-200 text-gray-600 text-sm font-bold rounded-xl hover:bg-gray-50 transition-all">ยกเลิก</a>
+            <button type="submit" form="customerForm" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-all shadow-sm shadow-blue-200 font-kanit">
+                <i class="fas fa-save mr-2"></i> บันทึกการเปลี่ยนแปลง
+            </button>
+        </div>
+    </div>
 
-            {{-- Branch and Company dropdowns with pre-selected values --}}
-            <div>
-                <label class="block text-gray-700">สังกัดสาขา</label>
-                <select name="branch_id" class="w-full border rounded px-3 py-2">
-                    <option value="">-- ไม่ระบุสาขา --</option>
-                    @foreach($branches as $branch)
-                        <option value="{{ $branch->id }}" {{ old('branch_id', $customer->branch_id) == $branch->id ? 'selected' : '' }}>
-                            {{ $branch->name }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div>
-                <label class="block text-gray-700">บริษัท</label>
-                <select name="company_id" class="w-full border rounded px-3 py-2">
-                    <option value="">-- ไม่ระบุบริษัท --</option>
-                    @foreach($companies as $company)
-                        <option value="{{ $company->id }}" {{ old('company_id', $customer->company_id) == $company->id ? 'selected' : '' }}>
-                            {{ $company->name }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div>
-                <label class="inline-flex items-center mt-4">
-                    <input type="checkbox" name="is_active" value="1" {{ old('is_active', $customer->is_active) ? 'checked' : '' }} class="mr-2">
-                    <span class="text-gray-700">เปิดใช้งาน</span>
-                </label>
+    @if ($errors->any())
+        <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl">
+            <div class="flex">
+                <i class="fas fa-exclamation-circle text-red-500 mt-1 mr-3"></i>
+                <div>
+                    <h3 class="text-sm font-bold text-red-800">เกิดข้อผิดพลาดในการบันทึก:</h3>
+                    <ul class="mt-1 text-xs text-red-700 list-disc list-inside">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
             </div>
         </div>
-        <div class="flex justify-end mt-6">
-            <a href="{{ route('customers.index') }}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded mr-2">ยกเลิก</a>
-            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded">อัปเดต</button>
+    @endif
+
+    <form id="customerForm" action="{{ route('customers.update', $customer) }}" method="POST" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        @csrf
+        @method('PUT')
+
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {{-- รหัสลูกค้า (Auto Generate / Readonly) --}}
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">รหัสลูกค้า <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <i class="fas fa-id-card text-xs"></i>
+                        </div>
+                        <input type="text" name="code" id="customer_code" value="{{ old('code', $customer->code) }}"
+                               class="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 text-gray-600"
+                               readonly>
+                    </div>
+                    <p class="text-[10px] text-gray-400 mt-1">รหัสลูกค้าไม่สามารถแก้ไขได้</p>
+                    @error('code')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- ชื่อลูกค้า/บริษัท --}}
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">ชื่อลูกค้า/บริษัท <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <i class="fas fa-building text-xs"></i>
+                        </div>
+                        <input type="text" name="name" value="{{ old('name', $customer->name) }}"
+                               class="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all @error('name') border-red-500 @enderror"
+                               placeholder="เช่น บริษัท เอ บี ซี จำกัด" required>
+                    </div>
+                    @error('name')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- อีเมล --}}
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">อีเมล</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <i class="fas fa-envelope text-xs"></i>
+                        </div>
+                        <input type="email" name="email" value="{{ old('email', $customer->email) }}"
+                               class="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all @error('email') border-red-500 @enderror"
+                               placeholder="example@company.com">
+                    </div>
+                    @error('email')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- เบอร์โทรศัพท์ --}}
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">เบอร์โทรศัพท์</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <i class="fas fa-phone text-xs"></i>
+                        </div>
+                        <input type="text" name="phone" value="{{ old('phone', $customer->phone) }}"
+                               class="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all @error('phone') border-red-500 @enderror"
+                               placeholder="0xx-xxx-xxxx">
+                    </div>
+                    @error('phone')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- ที่อยู่ --}}
+                <div class="md:col-span-2">
+                    <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">ที่อยู่</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-start pointer-events-none text-gray-400 pt-3">
+                            <i class="fas fa-map-marker-alt text-xs"></i>
+                        </div>
+                        <textarea name="address" rows="3"
+                                  class="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all @error('address') border-red-500 @enderror"
+                                  placeholder="เลขที่ หมู่ที่ ซอย ถนน ตำบล/แขวง อำเภอ/เขต จังหวัด รหัสไปรษณีย์">{{ old('address', $customer->address) }}</textarea>
+                    </div>
+                    @error('address')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- เลขผู้เสียภาษี --}}
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">เลขประจำตัวผู้เสียภาษี</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <i class="fas fa-file-invoice text-xs"></i>
+                        </div>
+                        <input type="text" name="tax_id" value="{{ old('tax_id', $customer->tax_id) }}"
+                               class="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all @error('tax_id') border-red-500 @enderror"
+                               placeholder="xxxxxxxxxxxxx">
+                    </div>
+                    @error('tax_id')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- ผู้ติดต่อ --}}
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">ผู้ติดต่อ</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <i class="fas fa-user text-xs"></i>
+                        </div>
+                        <input type="text" name="contact_person" value="{{ old('contact_person', $customer->contact_person) }}"
+                               class="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all @error('contact_person') border-red-500 @enderror"
+                               placeholder="ชื่อผู้ประสานงาน">
+                    </div>
+                    @error('contact_person')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- เบอร์โทรผู้ติดต่อ --}}
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">เบอร์โทรผู้ติดต่อ</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <i class="fas fa-phone-alt text-xs"></i>
+                        </div>
+                        <input type="text" name="contact_phone" value="{{ old('contact_phone', $customer->contact_phone) }}"
+                               class="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all @error('contact_phone') border-red-500 @enderror"
+                               placeholder="เบอร์โทรผู้ประสานงาน">
+                    </div>
+                    @error('contact_phone')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- สังกัดสาขา --}}
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">สังกัดสาขา</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <i class="fas fa-store text-xs"></i>
+                        </div>
+                        <select name="branch_id" class="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                            <option value="">-- ไม่ระบุสาขา --</option>
+                            @foreach($branches as $branch)
+                                <option value="{{ $branch->id }}" {{ old('branch_id', $customer->branch_id) == $branch->id ? 'selected' : '' }}>
+                                    {{ $branch->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @error('branch_id')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- บริษัท --}}
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">บริษัท</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <i class="fas fa-building text-xs"></i>
+                        </div>
+                        <select name="company_id" class="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                            <option value="">-- ไม่ระบุบริษัท --</option>
+                            @foreach($companies as $company)
+                                <option value="{{ $company->id }}" {{ old('company_id', $customer->company_id) == $company->id ? 'selected' : '' }}>
+                                    {{ $company->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @error('company_id')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- สถานะการใช้งาน --}}
+                <div class="md:col-span-2">
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="is_active" value="1" {{ old('is_active', $customer->is_active) ? 'checked' : '' }} class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                        <span class="ml-2 text-sm font-medium text-gray-700">เปิดใช้งานลูกค้า</span>
+                    </label>
+                    @error('is_active')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
         </div>
     </form>
 </div>
+
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // เลือกทุกปุ่มลบ
+    const deleteButtons = document.querySelectorAll('.delete-btn');
+
+    console.log('พบปุ่มลบจำนวน:', deleteButtons.length); // เช็คว่าพบปุ่มหรือไม่
+
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const form = this.closest('.delete-form');
+            const customerName = form.dataset.name;
+
+            Swal.fire({
+                title: 'ยืนยันการลบ',
+                text: `คุณต้องการลบลูกค้า "${customerName}" ใช่หรือไม่?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'ใช่, ลบเลย!',
+                cancelButtonText: 'ยกเลิก'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+    });
+});
+</script>
+@endpush
+@session('scripts')
+  @include('scripts.sweetalert2')
+@endsession
