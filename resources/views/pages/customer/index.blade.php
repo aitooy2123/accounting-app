@@ -110,8 +110,7 @@
     </div>
 </div>
 
-
+@endsection
 @session('scripts')
   @include('scripts.sweetalert2')
 @endsession
-@endsection
