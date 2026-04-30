@@ -111,43 +111,7 @@
 </div>
 
 
-@push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // เลือกทุกปุ่มลบ
-    const deleteButtons = document.querySelectorAll('.delete-btn');
-
-    console.log('พบปุ่มลบจำนวน:', deleteButtons.length); // เช็คว่าพบปุ่มหรือไม่
-
-    deleteButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            const form = this.closest('.delete-form');
-            const customerName = form.dataset.name;
-
-            Swal.fire({
-                title: 'ยืนยันการลบ',
-                text: `คุณต้องการลบลูกค้า "${customerName}" ใช่หรือไม่?`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'ใช่, ลบเลย!',
-                cancelButtonText: 'ยกเลิก'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
-        });
-    });
-});
-</script>
-
 @session('scripts')
   @include('scripts.sweetalert2')
-
 @endsession
-@endpush
 @endsection

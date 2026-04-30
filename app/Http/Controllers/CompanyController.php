@@ -7,11 +7,31 @@ use Illuminate\Http\Request;
 
 class CompanyController extends Controller
 {
-    public function index()
-    {
-        $companies = Company::orderBy('created_at', 'desc')->paginate(10);
-        return view('pages.company.index', compact('companies'));
+
+public function index(Request $request)
+{
+    $query = Company::query();
+
+    // 🔍 ค้นหา
+    if ($request->filled('search')) {
+        $query->where(function ($q) use ($request) {
+            $q->where('name', 'like', '%' . $request->search . '%')
+              ->orWhere('email', 'like', '%' . $request->search . '%')
+              ->orWhere('phone', 'like', '%' . $request->search . '%')
+              ->orWhere('tax_id', 'like', '%' . $request->search . '%');
+        });
     }
+
+    // ✅ filter สถานะ
+    if ($request->status !== null && $request->status !== '') {
+        $query->where('is_active', $request->status);
+    }
+
+    // 📄 pagination
+    $companies = $query->orderBy('created_at', 'desc')->paginate(10);
+
+    return view('pages.company.index', compact('companies'));
+}
 
     public function create()
     {
