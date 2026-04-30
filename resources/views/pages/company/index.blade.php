@@ -126,8 +126,36 @@
         @endif
     </div>
 </div>
-@endsection
 
-@session('scripts')
-  @include('scripts.sweetalert2')
-@endsession
+@push('scripts')
+    @include('scripts.sweetalert2')
+@endpush
+<!-- เรียกใช้ Library SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // แจ้งเตือนกรณีสำเร็จ
+        @if(session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'สำเร็จ!',
+                text: "{{ session('success') }}",
+                timer: 3000,
+                showConfirmButton: false,
+                fontFamily: 'Kanit'
+            });
+        @endif
+
+        // แจ้งเตือนกรณีมีข้อผิดพลาด
+        @if(session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด!',
+                text: "{{ session('error') }}",
+                confirmButtonText: 'ตกลง'
+            });
+        @endif
+    });
+</script>
+@endsection
