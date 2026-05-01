@@ -7,15 +7,44 @@ use Illuminate\Http\Request;
 
 class BranchController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $branches = Branch::orderBy('code')->paginate(10);
+        // เพิ่ม Filter การค้นหาและสถานะเพื่อให้สอดคล้องกับหน้า Index ที่มีตัวกรอง
+        $query = Branch::query();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('code', 'like', "%{$search}%")
+                  ->orWhere('manager', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('is_active', $request->status);
+        }
+
+        $branches = $query->orderBy('code', 'asc')->paginate(10);
+
         return view('pages.branch.index', compact('branches'));
     }
 
     public function create()
     {
-        return view('pages.branch.create');
+        // --- Logic สำหรับรันรหัส BR-0001 อัตโนมัติ ---
+        $lastBranch = Branch::orderBy('id', 'desc')->first();
+
+        if (!$lastBranch) {
+            $autoCode = 'BR-0001';
+        } else {
+            // ดึงเฉพาะตัวเลขออกมาจาก BR-XXXX
+            $lastNumber = (int) str_replace('BR-', '', $lastBranch->code);
+            $nextNumber = $lastNumber + 1;
+            $autoCode = 'BR-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+        }
+
+        return view('pages.branch.create', compact('autoCode'));
     }
 
     public function store(Request $request)
@@ -27,12 +56,16 @@ class BranchController extends Controller
             'phone' => 'nullable|string|max:20',
             'email' => 'nullable|email',
             'manager' => 'nullable|string|max:255',
-            'is_active' => 'boolean',
+            'is_active' => 'nullable|boolean',
         ]);
 
+        // จัดการค่า checkbox (ถ้าไม่ได้ติ๊กให้เป็น false)
+        $validated['is_active'] = $request->has('is_active');
+
         Branch::create($validated);
+
         return redirect()->route('branches.index')
-            ->with('success', 'เพิ่มสาขาเรียบร้อยแล้ว');
+            ->with('success', 'เพิ่มข้อมูลสาขาใหม่เรียบร้อยแล้ว');
     }
 
     public function edit(Branch $branch)
@@ -49,18 +82,26 @@ class BranchController extends Controller
             'phone' => 'nullable|string|max:20',
             'email' => 'nullable|email',
             'manager' => 'nullable|string|max:255',
-            'is_active' => 'boolean',
+            'is_active' => 'nullable|boolean',
         ]);
 
+        $validated['is_active'] = $request->has('is_active');
+
         $branch->update($validated);
+
         return redirect()->route('branches.index')
-            ->with('success', 'อัปเดตสาขาเรียบร้อยแล้ว');
+            ->with('success', 'อัปเดตข้อมูลสาขาเรียบร้อยแล้ว');
     }
 
     public function destroy(Branch $branch)
     {
-        $branch->delete();
-        return redirect()->route('branches.index')
-            ->with('success', 'ลบสาขาเรียบร้อยแล้ว');
+        try {
+            $branch->delete();
+            return redirect()->route('branches.index')
+                ->with('success', 'ลบข้อมูลสาขาเรียบร้อยแล้ว');
+        } catch (\Exception $e) {
+            return redirect()->route('branches.index')
+                ->with('error', 'ไม่สามารถลบข้อมูลนี้ได้ เนื่องจากมีการใช้งานอยู่ในส่วนอื่น');
+        }
     }
 }
