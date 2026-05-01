@@ -119,7 +119,7 @@
       </div>
     @endif
   </div>
-</x-app-layout>
+</x-app-layout> 
 
 @session('scripts')
   @include('scripts.sweetalert2')
