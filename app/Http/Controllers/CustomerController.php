@@ -135,8 +135,8 @@ public function import(Request $request)
 public function downloadTemplate()
 {
     $data = [
-        ['name', 'phone', 'email', 'tax_id'],
-        ['บริษัท ตัวอย่าง จำกัด', '0812345678', 'test@example.com', '0105551234567'],
+        ['name', 'phone', 'address', 'email','tax_id'],
+        ['บริษัท ตัวอย่าง จำกัด', 'ddddddd','0812345678', 'test@example.com', '0105551234567'],
     ];
 
     return Excel::download(

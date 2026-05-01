@@ -27,6 +27,7 @@ class CustomersImport implements ToModel, WithHeadingRow
                 'code'   => $code,
                 'name'   => $row['name'] ?? null,
                 'phone'  => $row['phone'] ?? null,
+                'address' => $row['address'] ?? null,
                 'email'  => $row['email'] ?? null,
                 'tax_id' => $row['tax_id'] ?? null,
             ]);
