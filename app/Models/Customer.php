@@ -43,4 +43,16 @@ class Customer extends Model
     {
         return $this->belongsTo(Company::class);
     }
+    public static function generateCode()
+{
+    $last = self::orderBy('id', 'desc')->first();
+
+    if ($last && $last->code) {
+        $num = intval(substr($last->code, -5));
+        $next = str_pad($num + 1, 5, '0', STR_PAD_LEFT);
+        return 'CUS-' . $next;
+    }
+
+    return 'CUS-00001';
+}
 }

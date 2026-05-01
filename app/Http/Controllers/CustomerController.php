@@ -135,22 +135,25 @@ public function import(Request $request)
 public function downloadTemplate()
 {
     $data = [
-        ['code', 'name', 'phone', 'email', 'tax_id'],
-        ['C001', 'บริษัท ตัวอย่าง จำกัด', '0812345678', 'test@example.com', '0105551234567'],
+        ['name', 'phone', 'email', 'tax_id'],
+        ['บริษัท ตัวอย่าง จำกัด', '0812345678', 'test@example.com', '0105551234567'],
     ];
 
-    return Excel::download(new class($data) implements \Maatwebsite\Excel\Concerns\FromArray {
-        protected $data;
+    return Excel::download(
+        new class($data) implements \Maatwebsite\Excel\Concerns\FromArray {
+            protected $data;
 
-        public function __construct($data)
-        {
-            $this->data = $data;
-        }
+            public function __construct($data)
+            {
+                $this->data = $data;
+            }
 
-        public function array(): array
-        {
-            return $this->data;
-        }
-    }, 'customer_import_template.xlsx');
+            public function array(): array
+            {
+                return $this->data;
+            }
+        },
+        'customer_import_template.xlsx'
+    );
 }
 }
