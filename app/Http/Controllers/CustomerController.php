@@ -6,6 +6,8 @@ use App\Models\Customer;
 use App\Models\Branch;
 use App\Models\Company;
 use Illuminate\Http\Request;
+    use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\CustomersImport;
 
 class CustomerController extends Controller
 {
@@ -111,4 +113,44 @@ class CustomerController extends Controller
         return redirect()->route('customers.index')
             ->with('success', 'ลบลูกค้า "' . $customerName . '" เรียบร้อยแล้ว');
     }
+
+
+public function import(Request $request)
+{
+    $request->validate([
+        'file' => 'required|mimes:xlsx,xls,csv'
+    ]);
+
+    try {
+        Excel::import(new CustomersImport, $request->file('file'));
+
+        return back()->with('success', 'นำเข้าข้อมูลสำเร็จ');
+    } catch (\Exception $e) {
+        return back()->with('error', 'Import ไม่สำเร็จ: ' . $e->getMessage());
+    }
+}
+
+
+
+public function downloadTemplate()
+{
+    $data = [
+        ['code', 'name', 'phone', 'email', 'tax_id'],
+        ['C001', 'บริษัท ตัวอย่าง จำกัด', '0812345678', 'test@example.com', '0105551234567'],
+    ];
+
+    return Excel::download(new class($data) implements \Maatwebsite\Excel\Concerns\FromArray {
+        protected $data;
+
+        public function __construct($data)
+        {
+            $this->data = $data;
+        }
+
+        public function array(): array
+        {
+            return $this->data;
+        }
+    }, 'customer_import_template.xlsx');
+}
 }

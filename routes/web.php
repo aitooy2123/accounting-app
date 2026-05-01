@@ -58,6 +58,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::resource('branches', BranchController::class);
 
+    
+
+Route::get('/customers/template', [CustomerController::class, 'downloadTemplate'])
+    ->name('customers.template');
+    Route::post('/customers/import', [CustomerController::class, 'import'])
+    ->name('customers.import');
     Route::resource('customers', CustomerController::class);
 });
 

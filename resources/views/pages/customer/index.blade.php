@@ -7,10 +7,27 @@
             <h1 class="text-2xl font-bold text-gray-900 font-kanit">จัดการลูกค้า</h1>
             <p class="text-sm text-gray-500 font-kanit">จัดการข้อมูลลูกค้าและติดตามสถานะการใช้งาน</p>
         </div>
-        <a href="{{ route('customers.create') }}" class="inline-flex items-center px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-all shadow-sm shadow-blue-200 font-kanit">
-            <i class="fas fa-plus-circle mr-2"></i> เพิ่มลูกค้าใหม่
-        </a>
+
+      <div class="flex space-x-2">
+    <a href="{{ route('customers.create') }}"
+       class="inline-flex items-center px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-all shadow-sm shadow-blue-200 font-kanit">
+        <i class="fas fa-plus-circle mr-2"></i> เพิ่มลูกค้าใหม่
+    </a>
+
+    <!-- ปุ่ม Import -->
+    <button onclick="openImportModal()"
+        class="inline-flex items-center px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-xl transition-all shadow-sm shadow-green-200 font-kanit">
+        <i class="fas fa-file-excel mr-2"></i> Import Excel
+
+    </button>
+    <a href="{{ route('customers.template') }}"
+   class="inline-flex items-center px-5 py-2.5 bg-gray-600 hover:bg-gray-700 text-white text-sm font-bold rounded-xl transition-all shadow-sm font-kanit">
+    <i class="fas fa-download mr-2"></i> ดาวน์โหลด Template
+</a>
+</div>
+
     </div>
+
 
     <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-6">
         <form action="{{ route('customers.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -140,4 +157,38 @@
         @endif
     });
 </script>
+<script>
+function openImportModal() {
+    document.getElementById('importModal').classList.remove('hidden');
+    document.getElementById('importModal').classList.add('flex');
+}
+
+function closeImportModal() {
+    document.getElementById('importModal').classList.add('hidden');
+}
+</script>
+
+<!-- Modal Import -->
+
+<div id="importModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+    <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl">
+        <h2 class="text-lg font-bold mb-4 font-kanit">นำเข้าข้อมูลลูกค้า</h2>
+
+        <form action="{{ route('customers.import') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+
+            <input type="file" name="file"
+                class="w-full border border-gray-200 rounded-xl p-2 mb-4"
+                accept=".xlsx,.xls,.csv" required>
+
+            <div class="flex justify-end space-x-2">
+                <button type="button" onclick="closeImportModal()"
+                    class="px-4 py-2 bg-gray-100 rounded-lg">ยกเลิก</button>
+
+                <button type="submit"
+                    class="px-4 py-2 bg-green-600 text-white rounded-lg">อัปโหลด</button>
+            </div>
+        </form>
+    </div>
+</div>
 @endsection
