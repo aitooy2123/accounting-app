@@ -27,7 +27,7 @@
       ธนาคาร (Banking)
     </x-sidebar-link>
 
-    <x-sidebar-link :href="route('accounting')" :active="request()->routeIs('accounting')" icon="fas fa-book">
+    <x-sidebar-link :href="route('accounts.index')" :active="request()->routeIs('accounts')" icon="fas fa-book">
       บัญชี (Accounting)
     </x-sidebar-link>
 

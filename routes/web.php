@@ -6,7 +6,7 @@ use App\Http\Controllers\SalesController; // <--- เช็คว่ามีบ
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\CustomerController;
-
+use App\Http\Controllers\AccountController;
 
 /*
 |--------------------------------------------------------------------------
@@ -55,10 +55,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::resource('companies', CompanyController::class);
 
-
+    Route::resource('accounts', AccountController::class);
     Route::resource('branches', BranchController::class);
 
-    
+
 
 Route::get('/customers/template', [CustomerController::class, 'downloadTemplate'])
     ->name('customers.template');
