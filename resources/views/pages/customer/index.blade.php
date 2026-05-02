@@ -17,7 +17,8 @@
     <!-- ปุ่ม Import -->
     <button onclick="openImportModal()"
         class="inline-flex items-center px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-xl transition-all shadow-sm shadow-green-200 font-kanit">
-        <i class="fas fa-file-excel mr-2"></i> Import Excel
+        <i class="fas fa-file-excel mr-2"></i> นำเข้าข้อมูลลูกค้า
+
 
     </button>
     <a href="{{ route('customers.template') }}"
