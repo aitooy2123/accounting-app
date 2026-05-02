@@ -9,6 +9,8 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\AccountController;
     use App\Exports\SaleExport;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Http\Controllers\ReportController; // Ensure you have this controller
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -66,13 +68,21 @@ Route::get('sales/{id}/export', function ($id) {
     Route::resource('branches', BranchController::class);
 
 
-
+//ลูกค้า
 Route::get('/customers/template', [CustomerController::class, 'downloadTemplate'])
     ->name('customers.template');
     Route::post('/customers/import', [CustomerController::class, 'import'])
     ->name('customers.import');
     Route::resource('customers', CustomerController::class);
+    Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
 });
 
+
+Route::prefix('reports')->name('reports.')->group(function () {
+    Route::get('/journal/{customer_id}', [ReportController::class, 'journal'])->name('journal');
+    Route::get('/ledger/{customer_id}', [ReportController::class, 'ledger'])->name('ledger');
+    Route::get('/trial-balance/{customer_id}', [ReportController::class, 'trialBalance'])->name('trial-balance');
+    Route::get('/pnl/{customer_id}', [ReportController::class, 'pnl'])->name('pnl');
+});
 // ดึง Route สำหรับระบบ Auth (Login, Register, Forgot Password) ที่ Breeze สร้างให้
 require __DIR__ . '/auth.php';

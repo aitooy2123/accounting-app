@@ -156,4 +156,12 @@ public function downloadTemplate()
         'customer_import_template.xlsx'
     );
 }
+
+public function show(Customer $customer)
+{
+    // โหลดข้อมูล sales และ purchases มาพร้อมกับ customer เลย
+    $customer->load(['sales', 'purchases']);
+
+    return view('pages.customer.show', compact('customer'));
+}
 }

@@ -28,10 +28,20 @@ class Customer extends Model
         'is_active' => 'boolean',
     ];
 
-    // ความสัมพันธ์กับ Sales (ถ้ามี)
+    /**
+     * Relationships
+     */
+
+    // รายการขาย (Sales)
     public function sales()
     {
         return $this->hasMany(Sale::class);
+    }
+
+    // รายการซื้อ (Purchases) - เพิ่มส่วนนี้เข้าไป
+    public function purchases()
+    {
+        return $this->hasMany(Purchase::class);
     }
 
     public function branch()
@@ -43,16 +53,20 @@ class Customer extends Model
     {
         return $this->belongsTo(Company::class);
     }
+
+    /**
+     * Helper Functions
+     */
     public static function generateCode()
-{
-    $last = self::orderBy('id', 'desc')->first();
+    {
+        $last = self::orderBy('id', 'desc')->first();
 
-    if ($last && $last->code) {
-        $num = intval(substr($last->code, -5));
-        $next = str_pad($num + 1, 5, '0', STR_PAD_LEFT);
-        return 'CUS-' . $next;
+        if ($last && $last->code) {
+            $num = intval(substr($last->code, -5));
+            $next = str_pad($num + 1, 5, '0', STR_PAD_LEFT);
+            return 'CUS-' . $next;
+        }
+
+        return 'CUS-00001';
     }
-
-    return 'CUS-00001';
-}
 }

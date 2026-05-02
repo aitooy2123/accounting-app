@@ -90,20 +90,25 @@
                                 {{ $customer->is_active ? 'เปิดใช้งาน' : 'ปิดใช้งาน' }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 text-right">
-                            <div class="flex justify-end items-center space-x-1">
-                                <a href="{{ route('customers.edit', $customer) }}" class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="แก้ไข">
-                                    <i class="fas fa-pencil-alt text-xs"></i>
-                                </a>
-                                <form action="{{ route('customers.destroy', $customer) }}" method="POST" style="display: inline;">
-    @csrf
-    @method('DELETE')
-    <button type="submit" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="ลบ")">
-        <i class="fas fa-trash-alt text-xs"></i>
-    </button>
-</form>
-                            </div>
-                        </td>
+                       <td class="px-6 py-4 text-right">
+    <div class="flex justify-end items-center space-x-1">
+        <a href="{{ route('customers.show', $customer) }}" class="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all" title="รายละเอียด">
+            <i class="fas fa-eye text-xs"></i>
+        </a>
+
+        <a href="{{ route('customers.edit', $customer) }}" class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="แก้ไข">
+            <i class="fas fa-pencil-alt text-xs"></i>
+        </a>
+
+        <form action="{{ route('customers.destroy', $customer) }}" method="POST" style="display: inline;" onsubmit="return confirm('ยืนยันการลบข้อมูล?')">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="ลบ">
+                <i class="fas fa-trash-alt text-xs"></i>
+            </button>
+        </form>
+    </div>
+</td>
                     </tr>
                     @empty
                     <tr>
