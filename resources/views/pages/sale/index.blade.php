@@ -66,7 +66,8 @@
               </td>
               <td class="px-6 py-4">
                 <span class="text-sm font-bold text-blue-600">{{ $item->doc_no }}</span>
-                <div class="text-[10px] text-gray-400">ID ลูกค้า: #{{ $item->customer_id }}</div>
+                <div class="text-[10px] text-gray-400">    ID ลูกค้า:  {{ $item->customer->name ?? 'ไม่มีข้อมูล' }}
+</div>
               </td>
               <td class="px-6 py-4 text-sm font-bold text-gray-900 text-right">
                 ฿ {{ number_format($item->total, 2) }}
@@ -119,7 +120,7 @@
       </div>
     @endif
   </div>
-</x-app-layout> 
+</x-app-layout>
 
 @session('scripts')
   @include('scripts.sweetalert2')
