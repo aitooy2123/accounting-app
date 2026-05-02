@@ -28,7 +28,7 @@
     </x-sidebar-link>
 
     <x-sidebar-link :href="route('accounts.index')" :active="request()->routeIs('accounts')" icon="fas fa-book">
-      บัญชี (Accounting)
+      ผังบัญชี (Accounting)
     </x-sidebar-link>
 
     <div class="pt-4 pb-2 px-3 text-xs font-semibold text-gray-400 uppercase">ฐานข้อมูล</div>
