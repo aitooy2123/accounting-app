@@ -7,7 +7,8 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\AccountController;
-
+    use App\Exports\SaleExport;
+use Maatwebsite\Excel\Facades\Excel;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -27,6 +28,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // --- ระบบงานขาย (Sales) ---
     Route::resource('sales', SalesController::class)->except('show');
+
+
+Route::get('sales/{id}/export', function ($id) {
+    $sale = App\Models\Sale::findOrFail($id);
+    return Excel::download(new SaleExport($id), 'Invoice-' . $sale->doc_no . '.xlsx');
+})->name('sales.export');
 
     Route::get('/sales/{id}/pdf', [SalesController::class, 'pdf'])->name('sales.pdf');
     // Route::get('/sales/export', [SalesController::class, 'exportExcel'])->name('pages.sales_export');

@@ -25,11 +25,16 @@
         <p class="text-sm text-gray-500 font-kanit">แก้ไขเอกสารการขาย #{{ $sale->doc_no }}</p>
       </div>
       <div class="flex space-x-3">
-        <a href="{{ route('sales.index') }}" class="px-5 py-2.5 bg-white border border-gray-200 text-gray-600 text-sm font-bold rounded-xl hover:bg-gray-50 transition-all">ยกเลิก</a>
-        <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-all shadow-sm shadow-blue-200 font-kanit">
-          <i class="fas fa-save mr-2"></i> อัปเดตเอกสาร
-        </button>
-      </div>
+       <a href="{{ route('sales.index') }}" class="px-5 py-2.5 bg-white border border-gray-200 text-gray-600 text-sm font-bold rounded-xl hover:bg-gray-50 transition-all">ยกเลิก</a>
+
+  <a href="{{ route('sales.export', $sale->id) }}" class="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-xl transition-all shadow-sm shadow-green-200 font-kanit">
+    <i class="fas fa-file-excel mr-2"></i> Export Excel
+  </a>
+
+  <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-all shadow-sm shadow-blue-200 font-kanit">
+    <i class="fas fa-save mr-2"></i> อัปเดตเอกสาร
+  </button>
+</div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
