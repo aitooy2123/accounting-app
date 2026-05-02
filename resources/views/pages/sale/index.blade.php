@@ -81,9 +81,9 @@
               <td class="px-6 py-4 text-right">
                 <div class="flex justify-end items-center space-x-1">
                   {{-- ปุ่มดู PDF --}}
-                  <a href="{{ route('sales.pdf', $item->id) }}" target="_blank" class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="พิมพ์ PDF">
+                  {{-- <a href="{{ route('sales.pdf', $item->id) }}" target="_blank" class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="พิมพ์ PDF">
                     <i class="fas fa-file-pdf text-xs"></i>
-                  </a>
+                  </a> --}}
 
                   <a href="{{ route('sales.edit', $item->id) }}" class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="แก้ไข">
                     <i class="fas fa-pencil-alt text-xs"></i>
