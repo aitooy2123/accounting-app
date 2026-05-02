@@ -10,12 +10,14 @@ use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use Maatwebsite\Excel\Concerns\WithCustomStartCell;
+use Maatwebsite\Excel\Concerns\WithProperties;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 
-class SaleExport implements FromQuery, WithHeadings, WithMapping, WithStyles, ShouldAutoSize, WithColumnFormatting, WithCustomStartCell
+class SaleExport implements FromQuery, WithHeadings, WithMapping, WithStyles, ShouldAutoSize, WithColumnFormatting, WithCustomStartCell, WithProperties
 {
     protected $id;
     protected $itemCount = 0;
@@ -23,24 +25,34 @@ class SaleExport implements FromQuery, WithHeadings, WithMapping, WithStyles, Sh
 
     public function __construct($id) {
         $this->id = $id;
-        // ดึงข้อมูลหลักเตรียมไว้สำหรับส่วนหัว
         $this->saleData = Sale::with(['customer', 'branch'])->find($id);
+    }
+
+    public function properties(): array {
+        return [
+            'creator' => 'Your Company Name',
+            'lastModifiedBy' => 'Your Company Name',
+            'title' => 'Invoice',
+            'description' => 'Sales Invoice',
+            'subject' => 'Invoice',
+            'keywords' => 'invoice,sales,tax',
+            'category' => 'Invoice',
+            'manager' => 'Manager',
+            'company' => 'Your Company Name',
+        ];
     }
 
     public function query() {
         return Sale::with(['items'])->where('id', $this->id);
     }
 
-    /**
-     * กำหนดให้ข้อมูลตารางเริ่มที่ Row 7 เพื่อเว้นที่ว่างให้หัวเอกสาร
-     */
     public function startCell(): string {
         return 'A7';
     }
 
     public function headings(): array {
         return [
-            ['ลำดับ', 'รายการสินค้า', 'จำนวน', 'หน่วยละ', 'ส่วนลด', 'จำนวนเงิน']
+            'ลำดับ', 'รายการสินค้า', 'จำนวน', 'หน่วยละ', 'ส่วนลด', 'จำนวนเงิน'
         ];
     }
 
@@ -58,7 +70,7 @@ class SaleExport implements FromQuery, WithHeadings, WithMapping, WithStyles, Sh
                 $item->description,
                 $item->quantity,
                 $item->unit_price,
-                0, // ส่วนลด (ถ้ามี)
+                0,
                 $lineTotal,
             ];
         }
@@ -84,39 +96,228 @@ class SaleExport implements FromQuery, WithHeadings, WithMapping, WithStyles, Sh
     public function styles(Worksheet $sheet) {
         $sale = $this->saleData;
 
-        // --- การจัดวางส่วนหัว (Header Section) ---
-        $sheet->mergeCells('A1:F1');
-        $sheet->setCellValue('A1', 'ใบกำกับภาษี / ใบแจ้งหนี้ (TAX INVOICE / INVOICE)');
+        if (!$sale) {
+            return [];
+        }
 
-        // ข้อมูลลูกค้า (ฝั่งซ้าย)
-        $sheet->setCellValue('A3', 'ชื่อลูกค้า: ' . $sale->customer->name);
+        // --- Page Setup for A4 Portrait ---
+        $sheet->getPageSetup()
+            ->setPaperSize(PageSetup::PAPERSIZE_A4)
+            ->setOrientation(PageSetup::ORIENTATION_PORTRAIT)
+            ->setFitToWidth(1)
+            ->setFitToHeight(0)
+            ->setHorizontalCentered(true)
+            ->setVerticalCentered(false);
+
+        // Set margins (in inches)
+        $sheet->getPageMargins()
+            ->setTop(0.75)
+            ->setBottom(0.75)
+            ->setLeft(0.7)
+            ->setRight(0.7)
+            ->setHeader(0.3)
+            ->setFooter(0.3);
+
+        // Set print area to fit content
+        $dataEndRow = 7 + $this->itemCount + 3 + 5; // +5 for footer
+        $sheet->getPageSetup()->setPrintArea("A1:F{$dataEndRow}");
+
+        // Set header and footer
+        $sheet->getHeaderFooter()->setOddHeader('&C&B&16ใบเสร็จรับเงิน / ใบกำกับภาษี');
+        $sheet->getHeaderFooter()->setOddFooter('&Rหน้า &P จาก &N');
+
+        // Scale to fit
+        $sheet->getPageSetup()->setScale(85); // Slightly reduce to ensure everything fits
+
+        // --- Header Section ---
+        // Row 1: Main Title
+        $sheet->mergeCells('A1:F1');
+        $sheet->setCellValue('A1', 'ใบเสร็จรับเงิน / ใบกำกับภาษี');
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A1')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+        $sheet->getRowDimension(1)->setRowHeight(30);
+
+        // Add spacing row
+        $sheet->getRowDimension(2)->setRowHeight(5);
+
+        // Row 3-5: Customer Info (Left) and Document Info (Right)
+        $sheet->setCellValue('A3', 'ชื่อลูกค้า: ' . ($sale->customer->name ?? '-'));
         $sheet->setCellValue('A4', 'ที่อยู่: ' . ($sale->customer->address ?? '-'));
         $sheet->setCellValue('A5', 'เลขประจำตัวผู้เสียภาษี: ' . ($sale->customer->tax_id ?? '-'));
 
-        // ข้อมูลเลขที่เอกสาร (ฝั่งขวา)
-        $sheet->setCellValue('E3', 'เลขที่:'); $sheet->setCellValue('F3', $sale->doc_no);
-        $sheet->setCellValue('E4', 'วันที่:'); $sheet->setCellValue('F4', \Carbon\Carbon::parse($sale->doc_date)->format('d/m/Y'));
-        $sheet->setCellValue('E5', 'สาขา:'); $sheet->setCellValue('F5', $sale->branch->name ?? 'สำนักงานใหญ่');
+        $sheet->setCellValue('D3', 'เลขที่เอกสาร: ' . ($sale->invoice_no ?? '-'));
+        $sheet->setCellValue('D4', 'วันที่: ' . ($sale->created_at ? $sale->created_at->format('d/m/Y') : '-'));
 
-        // --- การตกแต่ง (Styling) ---
-        $lastRow = 7 + $this->itemCount + 2; // + หัวตาราง + จำนวนสินค้า + 3 แถวสรุป
+        if ($sale->branch) {
+            $sheet->setCellValue('D5', 'สาขา: ' . ($sale->branch->name ?? '-'));
+        }
 
-        // จัดกึ่งกลางหัวเรื่องใหญ่
-        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
-        $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        // Style info text
+        $sheet->getStyle('A3:A5')->getFont()->setSize(10);
+        $sheet->getStyle('D3:D5')->getFont()->setSize(10);
+        $sheet->getStyle('A3:A5')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+        $sheet->getStyle('D3:D5')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
 
-        // หัวตารางรายการสินค้า (Row 7)
-        $sheet->getStyle('A7:F7')->applyFromArray([
-            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
-            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '4A4A4A']],
-            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+        $sheet->getRowDimension(3)->setRowHeight(18);
+        $sheet->getRowDimension(4)->setRowHeight(18);
+        $sheet->getRowDimension(5)->setRowHeight(18);
+
+        // Add spacing before table
+        $sheet->getRowDimension(6)->setRowHeight(10);
+
+        // --- Table Styling ---
+        $dataStartRow = 7;
+        $dataEndRow = $dataStartRow + $this->itemCount + 3; // +3 for summary rows
+
+        // Table Header (Row 7)
+        $sheet->getStyle("A{$dataStartRow}:F{$dataStartRow}")->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 11],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '2C3E50']],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER
+            ],
         ]);
 
-        // ใส่เส้นขอบเฉพาะส่วนตารางรายการ
-        $sheet->getStyle("A7:F$lastRow")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        // Set row height for header
+        $sheet->getRowDimension($dataStartRow)->setRowHeight(22);
 
-        // จัดชิดขวาตัวเลข
-        $sheet->getStyle("C8:F$lastRow")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+        // Apply borders to the entire table range
+        $borderRange = "A{$dataStartRow}:F{$dataEndRow}";
+        $sheet->getStyle($borderRange)->applyFromArray([
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['rgb' => 'CCCCCC']
+                ],
+                'outline' => [
+                    'borderStyle' => Border::BORDER_MEDIUM,
+                    'color' => ['rgb' => '333333']
+                ]
+            ]
+        ]);
+
+        // Style for data rows
+        $dataRowsRange = "A" . ($dataStartRow + 1) . ":F" . ($dataEndRow - 3);
+        if ($this->itemCount > 0) {
+            $sheet->getStyle($dataRowsRange)->applyFromArray([
+                'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
+                'font' => ['size' => 10]
+            ]);
+
+            // Zebra striping for better readability
+            for ($i = 0; $i < $this->itemCount; $i++) {
+                $rowNum = $dataStartRow + 1 + $i;
+                if ($i % 2 == 1) {
+                    $sheet->getStyle("A{$rowNum}:F{$rowNum}")->applyFromArray([
+                        'fill' => [
+                            'fillType' => Fill::FILL_SOLID,
+                            'startColor' => ['rgb' => 'F9F9F9']
+                        ]
+                    ]);
+                }
+                $sheet->getRowDimension($rowNum)->setRowHeight(18);
+            }
+        }
+
+        // Align numbers right for columns C, D, F
+        $numberColumns = ['C', 'D', 'F'];
+        foreach ($numberColumns as $column) {
+            $sheet->getStyle("{$column}{$dataStartRow}:{$column}{$dataEndRow}")
+                  ->getAlignment()
+                  ->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+        }
+
+        // Center align column A (ลำดับ)
+        $sheet->getStyle("A{$dataStartRow}:A{$dataEndRow}")
+              ->getAlignment()
+              ->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        // Style for summary rows
+        $summaryStartRow = $dataStartRow + $this->itemCount + 1;
+
+        // Add top border for summary section
+        if ($this->itemCount > 0) {
+            $sheet->getStyle("E{$summaryStartRow}:F{$summaryStartRow}")
+                  ->getBorders()
+                  ->getTop()
+                  ->setBorderStyle(Border::BORDER_THIN);
+        }
+
+        // Bold and style summary rows
+        for ($i = 0; $i < 3; $i++) {
+            $currentRow = $summaryStartRow + $i;
+            $sheet->getStyle("E{$currentRow}:F{$currentRow}")->getFont()->setBold(true);
+            $sheet->getStyle("E{$currentRow}:F{$currentRow}")->getFont()->setSize(10);
+            $sheet->getRowDimension($currentRow)->setRowHeight(18);
+
+            // Add background color for total row
+            if ($i == 2) {
+                $sheet->getStyle("E{$currentRow}:F{$currentRow}")->applyFromArray([
+                    'fill' => [
+                        'fillType' => Fill::FILL_SOLID,
+                        'startColor' => ['rgb' => 'FFE5CC']
+                    ]
+                ]);
+            }
+        }
+
+        // Align text right for column E in summary rows
+        $sheet->getStyle("E{$summaryStartRow}:E" . ($summaryStartRow + 2))
+              ->getAlignment()
+              ->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+
+        // Format currency for summary values (column F)
+        $sheet->getStyle("F{$summaryStartRow}:F" . ($summaryStartRow + 2))
+              ->getNumberFormat()
+              ->setFormatCode('#,##0.00');
+
+        // Set column widths for A4 fit (adjusted to fit within A4 width)
+        $sheet->getColumnDimension('A')->setWidth(7);   // ลำดับ
+        $sheet->getColumnDimension('B')->setWidth(45);  // รายการสินค้า
+        $sheet->getColumnDimension('C')->setWidth(10);  // จำนวน
+        $sheet->getColumnDimension('D')->setWidth(13);  // หน่วยละ
+        $sheet->getColumnDimension('E')->setWidth(13);  // ส่วนลด
+        $sheet->getColumnDimension('F')->setWidth(16);  // จำนวนเงิน
+
+        // Auto-wrap text for description column
+        $sheet->getStyle("B" . ($dataStartRow + 1) . ":B" . ($dataEndRow - 3))
+              ->getAlignment()
+              ->setWrapText(true);
+
+        // --- Footer Section ---
+        $footerStartRow = $dataEndRow + 2;
+
+        // Add company signature lines
+        $sheet->setCellValue("A{$footerStartRow}", "ผู้รับเงิน_________________________");
+        $sheet->setCellValue("D{$footerStartRow}", "ผู้จ่ายเงิน_________________________");
+        $sheet->setCellValue("A" . ($footerStartRow + 1), "(__________________________)");
+        $sheet->setCellValue("D" . ($footerStartRow + 1), "(__________________________)");
+        $sheet->setCellValue("A" . ($footerStartRow + 2), "วันที่_________________________");
+        $sheet->setCellValue("D" . ($footerStartRow + 2), "วันที่_________________________");
+
+        $sheet->getStyle("A{$footerStartRow}:F" . ($footerStartRow + 2))
+              ->getFont()
+              ->setSize(9);
+
+        $sheet->getStyle("A{$footerStartRow}:F" . ($footerStartRow + 2))
+              ->getAlignment()
+              ->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        $sheet->getStyle("A{$footerStartRow}:F" . ($footerStartRow + 2))
+              ->getAlignment()
+              ->setVertical(Alignment::VERTICAL_CENTER);
+
+        for ($i = 0; $i < 3; $i++) {
+            $sheet->getRowDimension($footerStartRow + $i)->setRowHeight(20);
+        }
+
+        // Freeze panes to keep header visible when scrolling
+        $sheet->freezePane("A" . ($dataStartRow + 1));
+
+        // Repeat header rows on each page
+        $sheet->getPageSetup()->setRowsToRepeatAtTopByStartAndEnd($dataStartRow, $dataStartRow);
 
         return [];
     }
