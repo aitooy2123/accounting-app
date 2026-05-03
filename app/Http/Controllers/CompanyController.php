@@ -6,7 +6,6 @@ use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
-
 class CompanyController extends Controller
 {
     public function index(Request $request)

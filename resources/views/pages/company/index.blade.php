@@ -62,6 +62,7 @@
           </a>
         </div>
       </form>
+<<<<<<< HEAD
     </div>
 
     {{-- SELECTED COUNT BAR --}}
@@ -75,6 +76,8 @@
               class="text-sm text-blue-600 hover:text-blue-800 font-kanit underline">
         ยกเลิกการเลือก
       </button>
+=======
+>>>>>>> 43610c3827147c52462d473f7724958d3309d0ad
     </div>
 
     {{-- TABLE --}}
@@ -253,13 +256,19 @@
       const companyCheckboxes = document.querySelectorAll('.company-checkbox');
       const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
       const bulkDeleteText = document.getElementById('bulkDeleteText');
+<<<<<<< HEAD
       const selectionBar = document.getElementById('selectionBar');
       const selectedCountDisplay = document.getElementById('selectedCountDisplay');
 
+=======
+
+      // Update UI based on selection
+>>>>>>> 43610c3827147c52462d473f7724958d3309d0ad
       function updateSelectionUI() {
         const checkedCheckboxes = document.querySelectorAll('.company-checkbox:checked');
         const count = checkedCheckboxes.length;
 
+<<<<<<< HEAD
         // Update selected count display
         selectedCountDisplay.textContent = count;
 
@@ -271,6 +280,14 @@
         } else {
           bulkDeleteBtn.classList.add('hidden');
           selectionBar.classList.add('hidden');
+=======
+        // Show/hide bulk delete button
+        if (count > 0) {
+          bulkDeleteBtn.classList.remove('hidden');
+          bulkDeleteText.textContent = `ลบที่เลือก (${count})`;
+        } else {
+          bulkDeleteBtn.classList.add('hidden');
+>>>>>>> 43610c3827147c52462d473f7724958d3309d0ad
         }
 
         // Update select all checkbox state
@@ -280,6 +297,7 @@
         selectAllCheckbox.indeterminate = count > 0 && count < allCheckboxes.length;
       }
 
+<<<<<<< HEAD
       // Clear all selections
       window.clearSelection = function() {
         companyCheckboxes.forEach(checkbox => {
@@ -290,6 +308,8 @@
         updateSelectionUI();
       };
 
+=======
+>>>>>>> 43610c3827147c52462d473f7724958d3309d0ad
       // Select All / Deselect All
       selectAllCheckbox.addEventListener('change', function() {
         const isChecked = this.checked;
@@ -500,6 +520,10 @@
   </script>
 
   <style>
+<<<<<<< HEAD
+=======
+    /* Custom Checkbox Styling */
+>>>>>>> 43610c3827147c52462d473f7724958d3309d0ad
     input[type="checkbox"] {
       cursor: pointer;
     }
@@ -509,10 +533,18 @@
       border-color: #3B82F6;
     }
 
+<<<<<<< HEAD
+=======
+    /* Row selection highlight */
+>>>>>>> 43610c3827147c52462d473f7724958d3309d0ad
     tr:has(.company-checkbox:checked) {
       background-color: #EFF6FF;
     }
 
+<<<<<<< HEAD
+=======
+    /* Custom Toggle Switch Animation */
+>>>>>>> 43610c3827147c52462d473f7724958d3309d0ad
     .toggle-status + div {
       transition: all 0.3s ease;
     }
@@ -521,6 +553,10 @@
       box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
     }
 
+<<<<<<< HEAD
+=======
+    /* SweetAlert2 Custom Styling */
+>>>>>>> 43610c3827147c52462d473f7724958d3309d0ad
     .swal2-popup {
       border-radius: 1rem !important;
       padding: 2rem !important;
@@ -534,7 +570,12 @@
       font-family: 'Kanit', sans-serif !important;
     }
 
+<<<<<<< HEAD
     #bulkDeleteBtn, #selectionBar {
+=======
+    /* Smooth transitions */
+    #bulkDeleteBtn {
+>>>>>>> 43610c3827147c52462d473f7724958d3309d0ad
       transition: all 0.3s ease-in-out;
     }
   </style>

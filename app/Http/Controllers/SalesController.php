@@ -214,6 +214,7 @@ class SalesController extends Controller
         }
         return 'INV-' . $year . '-' . $newNo;
     }
+<<<<<<< HEAD
 
     public function bulkDelete(Request $request)
     {
@@ -258,4 +259,50 @@ class SalesController extends Controller
             ], 500);
         }
     }
+=======
+    public function bulkDelete(Request $request)
+{
+    $request->validate([
+        'ids' => 'required|array|min:1',
+        'ids.*' => 'required|integer|exists:sales,id'
+    ], [
+        'ids.required' => 'กรุณาเลือกรายการอย่างน้อย 1 รายการ',
+        'ids.array' => 'รูปแบบข้อมูลไม่ถูกต้อง',
+        'ids.min' => 'กรุณาเลือกรายการอย่างน้อย 1 รายการ',
+        'ids.*.exists' => 'ไม่พบรายการที่เลือกในระบบ'
+    ]);
+
+    try {
+        DB::beginTransaction();
+
+        $sales = Sale::whereIn('id', $request->ids)->get();
+        $count = $sales->count();
+
+        // Optional: Add business logic checks
+        // foreach ($sales as $sale) {
+        //     if ($sale->payments()->exists()) {
+        //         throw new \Exception("เอกสาร {$sale->doc_no} มีรายการชำระเงินอยู่ ไม่สามารถลบได้");
+        //     }
+        // }
+
+        Sale::whereIn('id', $request->ids)->delete();
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => "ลบเอกสาร {$count} รายการเรียบร้อยแล้ว",
+            'deleted_count' => $count
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+
+        return response()->json([
+            'success' => false,
+            'message' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()
+        ], 500);
+    }
+}
+>>>>>>> 43610c3827147c52462d473f7724958d3309d0ad
 }

@@ -6,6 +6,9 @@ use App\Models\Branch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
+use Illuminate\Support\Facades\DB;
+
+
 class BranchController extends Controller
 {
     public function index(Request $request)
@@ -106,6 +109,32 @@ class BranchController extends Controller
         }
     }
 
+<<<<<<< HEAD
+=======
+
+    public function toggleStatus(Branch $branch, Request $request)
+    {
+        try {
+            $branch->update([
+                'is_active' => $request->is_active
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'อัปเดตสถานะเรียบร้อย'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'ไม่สามารถอัปเดตสถานะได้: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Bulk delete branches
+     */
+>>>>>>> 43610c3827147c52462d473f7724958d3309d0ad
     public function bulkDelete(Request $request)
     {
         $request->validate([
@@ -141,6 +170,10 @@ class BranchController extends Controller
                 'message' => "ลบสาขา {$count} รายการเรียบร้อยแล้ว",
                 'deleted_count' => $count
             ]);
+<<<<<<< HEAD
+=======
+
+>>>>>>> 43610c3827147c52462d473f7724958d3309d0ad
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -150,6 +183,7 @@ class BranchController extends Controller
             ], 500);
         }
     }
+<<<<<<< HEAD
 
      public function toggleStatus(Branch $branch, Request $request)
     {
@@ -169,4 +203,7 @@ class BranchController extends Controller
             ], 500);
         }
     }
+=======
+>>>>>>> 43610c3827147c52462d473f7724958d3309d0ad
 }
+

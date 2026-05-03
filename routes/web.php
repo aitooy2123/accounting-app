@@ -45,6 +45,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('sales.export');
 
     Route::get('/sales/{id}/pdf', [SalesController::class, 'pdf'])->name('sales.pdf');
+    Route::post('/sales/bulk-delete', [SalesController::class, 'bulkDelete'])
+        ->name('sales.bulk-delete');
     // Route::get('/sales/export', [SalesController::class, 'exportExcel'])->name('pages.sales_export');
     Route::post('/sales/bulk-delete', [SalesController::class, 'bulkDelete'])->name('sales.bulk-delete');
 
@@ -88,18 +90,36 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/companies/{company}/toggle-status', [CompanyController::class, 'toggleStatus']);
     Route::post('/companies/bulk-delete', [CompanyController::class, 'bulkDelete'])->name('companies.bulk-delete');
 
+    //ผังบัญชี
     Route::resource('accounts', AccountController::class);
+    // Toggle status route
+    Route::post('/accounts/{account}/toggle-status', [AccountController::class, 'toggleStatus'])
+        ->name('accounts.toggle-status');
+
+    // Bulk delete route
+    Route::post('/accounts/bulk-delete', [AccountController::class, 'bulkDelete'])
+        ->name('accounts.bulk-delete');
+
+    // สาขา
     Route::resource('branches', BranchController::class);
+    // Bulk Delete สำหรับสาขา
+    // Toggle status route
+    Route::post('/branches/{branch}/toggle-status', [BranchController::class, 'toggleStatus'])
+        ->name('branches.toggle-status');
 
-
-    //ลูกค้า
-    Route::get('/customers/template', [CustomerController::class, 'downloadTemplate'])
-        ->name('customers.template');
-    Route::post('/customers/import', [CustomerController::class, 'import'])
-        ->name('customers.import');
-    Route::resource('customers', CustomerController::class);
-    Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
+    // Bulk delete route
+    Route::post('/branches/bulk-delete', [BranchController::class, 'bulkDelete'])
+        ->name('branches.bulk-delete');
 });
+
+
+//ลูกค้า
+Route::get('/customers/template', [CustomerController::class, 'downloadTemplate'])
+    ->name('customers.template');
+Route::post('/customers/import', [CustomerController::class, 'import'])
+    ->name('customers.import');
+Route::resource('customers', CustomerController::class);
+Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
 
 
 Route::prefix('reports')->name('reports.')->group(function () {
