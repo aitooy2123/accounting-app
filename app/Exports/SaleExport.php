@@ -229,10 +229,24 @@ class SaleExport implements FromQuery, WithHeadings, WithMapping, WithStyles, Sh
                   ->setHorizontal(Alignment::HORIZONTAL_RIGHT);
         }
 
-        // Center align column A (ลำดับ)
+        // Center align and adjust column A (ลำดับ)
         $sheet->getStyle("A{$dataStartRow}:A{$dataEndRow}")
               ->getAlignment()
               ->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        // Set column A width to optimal size (adjusted for better spacing)
+        // Dynamic width based on number of items
+        $maxNumber = $this->itemCount;
+        if ($maxNumber < 10) {
+            $columnAWidth = 5;  // Width for 1-9 items
+        } elseif ($maxNumber < 100) {
+            $columnAWidth = 6;  // Width for 10-99 items
+        } elseif ($maxNumber < 1000) {
+            $columnAWidth = 7;  // Width for 100-999 items
+        } else {
+            $columnAWidth = 8;  // Width for 1000+ items
+        }
+        $sheet->getColumnDimension('A')->setWidth($columnAWidth);
 
         // Style for summary rows
         $summaryStartRow = $dataStartRow + $this->itemCount + 1;
@@ -274,7 +288,6 @@ class SaleExport implements FromQuery, WithHeadings, WithMapping, WithStyles, Sh
               ->setFormatCode('#,##0.00');
 
         // Set column widths for A4 fit (adjusted to fit within A4 width)
-        $sheet->getColumnDimension('A')->setWidth(7);   // ลำดับ
         $sheet->getColumnDimension('B')->setWidth(45);  // รายการสินค้า
         $sheet->getColumnDimension('C')->setWidth(10);  // จำนวน
         $sheet->getColumnDimension('D')->setWidth(13);  // หน่วยละ

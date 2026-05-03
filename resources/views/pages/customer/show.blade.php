@@ -157,7 +157,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                <h3 class="font-bold text-gray-800 italic text-sm">LATEST SALES</h3>
+                <h3 class="font-bold text-gray-800 italic text-sm">ข้อมูลรายการขาย</h3>
                 <a href="#" class="text-xs font-bold text-blue-600 hover:underline">ดูทั้งหมด</a>
             </div>
             <div class="overflow-x-auto">
@@ -200,7 +200,7 @@
 
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                <h3 class="font-bold text-gray-800 italic text-sm">LATEST PURCHASES</h3>
+                <h3 class="font-bold text-gray-800 italic text-sm">ข้อมูลรายการซื้อ</h3>
                 <a href="#" class="text-xs font-bold text-purple-600 hover:underline">ดูทั้งหมด</a>
             </div>
             <div class="overflow-x-auto">
