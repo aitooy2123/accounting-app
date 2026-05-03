@@ -141,18 +141,25 @@ class PurchaseController extends Controller
     }
 
     /**
-     * Remove the specified purchase (Soft Delete).
+     * Remove the specified purchase (Hard Delete).
      */
     public function destroy(Purchase $purchase)
     {
         try {
+            DB::beginTransaction();
+
             $docNo = $purchase->doc_no;
-            $purchase->delete(); // Soft delete
+
+            // 🔥 ลบจริง (Hard Delete)
+            $purchase->forceDelete();
+
+            DB::commit();
 
             return redirect()
                 ->route('purchases.index')
                 ->with('success', 'ลบเอกสารซื้อ ' . $docNo . ' เรียบร้อยแล้ว');
         } catch (\Exception $e) {
+            DB::rollBack();
             return redirect()
                 ->back()
                 ->with('error', 'เกิดข้อผิดพลาดในการลบเอกสาร: ' . $e->getMessage());
@@ -160,43 +167,25 @@ class PurchaseController extends Controller
     }
 
     /**
-     * Restore a soft-deleted purchase.
+     * Remove methods that are not needed if you only want hard delete
+     * Comment out or remove restore() and forceDelete() methods
      */
-    public function restore($id)
-    {
-        try {
-            $purchase = Purchase::withTrashed()->findOrFail($id);
-            $purchase->restore();
 
-            return redirect()
-                ->route('purchases.index')
-                ->with('success', 'กู้คืนเอกสารซื้อ ' . $purchase->doc_no . ' เรียบร้อยแล้ว');
-        } catch (\Exception $e) {
-            return redirect()
-                ->back()
-                ->with('error', 'เกิดข้อผิดพลาดในการกู้คืนเอกสาร');
-        }
-    }
+    // /**
+    //  * Restore a soft-deleted purchase.
+    //  */
+    // public function restore($id)
+    // {
+    //     // ไม่ต้องใช้ถ้าลบจริง
+    // }
 
-    /**
-     * Force delete a purchase.
-     */
-    public function forceDelete($id)
-    {
-        try {
-            $purchase = Purchase::withTrashed()->findOrFail($id);
-            $docNo = $purchase->doc_no;
-            $purchase->forceDelete();
-
-            return redirect()
-                ->route('purchases.index')
-                ->with('success', 'ลบเอกสารซื้อ ' . $docNo . ' แบบถาวรเรียบร้อยแล้ว');
-        } catch (\Exception $e) {
-            return redirect()
-                ->back()
-                ->with('error', 'เกิดข้อผิดพลาดในการลบเอกสารแบบถาวร');
-        }
-    }
+    // /**
+    //  * Force delete a purchase.
+    //  */
+    // public function forceDelete($id)
+    // {
+    //     // ไม่ต้องใช้แยกเพราะ destroy ทำ forceDelete แล้ว
+    // }
 
     /**
      * Toggle purchase status.
@@ -223,60 +212,35 @@ class PurchaseController extends Controller
     }
 
     /**
-     * Bulk delete purchases (Soft Delete).
+     * Bulk delete purchases (Hard Delete).
      */
     public function bulkDelete(Request $request)
     {
         $request->validate([
             'ids' => 'required|array|min:1',
-            'ids.*' => 'required|integer|exists:purchases,id'
-        ], [
-            'ids.required' => 'กรุณาเลือกเอกสารอย่างน้อย 1 รายการ',
-            'ids.min' => 'กรุณาเลือกเอกสารอย่างน้อย 1 รายการ',
-            'ids.*.exists' => 'ไม่พบเอกสารที่เลือกในระบบ',
+            'ids.*' => 'required|integer|exists:purchases,id',
         ]);
 
         try {
             DB::beginTransaction();
 
-            $purchases = Purchase::whereIn('id', $request->ids)->get();
-            $count = $purchases->count();
-            $failedDocs = [];
-
-            foreach ($purchases as $purchase) {
-                try {
-                    $purchase->delete(); // Soft delete
-                } catch (\Exception $e) {
-                    $failedDocs[] = $purchase->doc_no;
-                }
-            }
-
-            $deletedCount = $count - count($failedDocs);
+            // 🔥 ลบจริงทั้งหมด
+            $deletedCount = Purchase::whereIn('id', $request->ids)->forceDelete();
 
             DB::commit();
 
-            if ($deletedCount > 0 && count($failedDocs) === 0) {
-                return response()->json([
-                    'success' => true,
-                    'message' => "ลบเอกสารซื้อ {$deletedCount} รายการเรียบร้อยแล้ว",
-                    'deleted_count' => $deletedCount
-                ]);
-            } elseif ($deletedCount > 0) {
-                return response()->json([
-                    'success' => true,
-                    'message' => "ลบเอกสาร {$deletedCount} รายการ แต่มี " . count($failedDocs) . " รายการที่ไม่สามารถลบได้",
-                    'deleted_count' => $deletedCount,
-                    'failed' => $failedDocs
-                ]);
-            } else {
-                throw new \Exception("ไม่สามารถลบเอกสารที่เลือกได้");
-            }
+            return response()->json([
+                'success' => true,
+                'message' => "ลบเอกสาร {$deletedCount} รายการเรียบร้อยแล้ว",
+                'deleted_count' => $deletedCount
+            ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
-                'message' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()
+                'message' => 'เกิดข้อผิดพลาดในการลบเอกสาร: ' . $e->getMessage()
             ], 500);
         }
     }
