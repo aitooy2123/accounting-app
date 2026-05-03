@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-
+use Illuminate\Support\Facades\DB;
 class CompanyController extends Controller
 {
     public function index(Request $request)
@@ -103,5 +103,60 @@ private function generateCompanyCode()
 
         return redirect()->route('companies.index')
             ->with('success', 'Company deleted successfully.');
+    }
+    public function toggleStatus(Company $company, Request $request)
+{
+    $company->update(['is_active' => $request->is_active]);
+    return response()->json(['success' => true]);
+}
+
+  public function bulkDelete(Request $request)
+    {
+        // Validate request
+        $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'required|integer|exists:companies,id'
+        ], [
+            'ids.required' => 'กรุณาเลือกบริษัทอย่างน้อย 1 รายการ',
+            'ids.array' => 'รูปแบบข้อมูลไม่ถูกต้อง',
+            'ids.min' => 'กรุณาเลือกบริษัทอย่างน้อย 1 รายการ',
+            'ids.*.exists' => 'ไม่พบบริษัทที่เลือกในระบบ'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Get companies to delete
+            $companies = Company::whereIn('id', $request->ids)->get();
+            $count = $companies->count();
+
+            // Optional: Check if companies can be deleted (e.g., no related records)
+            foreach ($companies as $company) {
+                // Add your business logic checks here
+                // Example: Check if company has employees, projects, etc.
+                // if ($company->employees()->exists()) {
+                //     throw new \Exception("บริษัท {$company->name} มีพนักงานอยู่ ไม่สามารถลบได้");
+                // }
+            }
+
+            // Delete companies
+            Company::whereIn('id', $request->ids)->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "ลบบริษัท {$count} รายการเรียบร้อยแล้ว",
+                'deleted_count' => $count
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

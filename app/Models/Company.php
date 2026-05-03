@@ -10,7 +10,7 @@ class Company extends Model
     use HasFactory;
 
     protected $fillable = [
-        'code', 'name', 'email', 'phone', 'address', 'tax_id'
+        'code', 'name', 'email', 'phone', 'address', 'tax_id','is_active'
     ];
 
     // Method สำหรับสร้าง Auto Code

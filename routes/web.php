@@ -38,6 +38,8 @@ Route::get('sales/{id}/export', function ($id) {
 })->name('sales.export');
 
     Route::get('/sales/{id}/pdf', [SalesController::class, 'pdf'])->name('sales.pdf');
+    Route::post('/sales/bulk-delete', [SalesController::class, 'bulkDelete'])
+    ->name('sales.bulk-delete');
     // Route::get('/sales/export', [SalesController::class, 'exportExcel'])->name('pages.sales_export');
 
     // --- ระบบงานซื้อ (Purchases) ---
@@ -63,9 +65,25 @@ Route::get('sales/{id}/export', function ($id) {
 
 
     Route::resource('companies', CompanyController::class);
+Route::post('/companies/{company}/toggle-status', [CompanyController::class, 'toggleStatus']);
+// Bulk delete route
+Route::post('/companies/bulk-delete', [CompanyController::class, 'bulkDelete'])
+    ->name('companies.bulk-delete');
+
 
     Route::resource('accounts', AccountController::class);
+
+    // สาขา
     Route::resource('branches', BranchController::class);
+        // Bulk Delete สำหรับสาขา
+   // Toggle status route
+Route::post('/branches/{branch}/toggle-status', [BranchController::class, 'toggleStatus'])
+    ->name('branches.toggle-status');
+
+// Bulk delete route
+Route::post('/branches/bulk-delete', [BranchController::class, 'bulkDelete'])
+    ->name('branches.bulk-delete');
+});
 
 
 //ลูกค้า
@@ -75,7 +93,6 @@ Route::get('/customers/template', [CustomerController::class, 'downloadTemplate'
     ->name('customers.import');
     Route::resource('customers', CustomerController::class);
     Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
-});
 
 
 Route::prefix('reports')->name('reports.')->group(function () {
