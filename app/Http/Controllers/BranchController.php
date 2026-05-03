@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Branch;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class BranchController extends Controller
 {
@@ -14,10 +15,10 @@ class BranchController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('code', 'like', "%{$search}%")
-                  ->orWhere('manager', 'like', "%{$search}%");
+                    ->orWhere('code', 'like', "%{$search}%")
+                    ->orWhere('manager', 'like', "%{$search}%");
             });
         }
 
@@ -102,6 +103,70 @@ class BranchController extends Controller
         } catch (\Exception $e) {
             return redirect()->route('branches.index')
                 ->with('error', 'ไม่สามารถลบข้อมูลนี้ได้ เนื่องจากมีการใช้งานอยู่ในส่วนอื่น');
+        }
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'required|integer|exists:branches,id'
+        ], [
+            'ids.required' => 'กรุณาเลือกสาขาอย่างน้อย 1 รายการ',
+            'ids.array' => 'รูปแบบข้อมูลไม่ถูกต้อง',
+            'ids.min' => 'กรุณาเลือกสาขาอย่างน้อย 1 รายการ',
+            'ids.*.exists' => 'ไม่พบสาขาที่เลือกในระบบ'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $branches = Branch::whereIn('id', $request->ids)->get();
+            $count = $branches->count();
+
+            // Optional: Add business logic checks before deletion
+            // foreach ($branches as $branch) {
+            //     if ($branch->employees()->exists()) {
+            //         throw new \Exception("สาขา {$branch->name} มีพนักงานอยู่ ไม่สามารถลบได้");
+            //     }
+            // }
+
+            // Delete branches
+            Branch::whereIn('id', $request->ids)->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "ลบสาขา {$count} รายการเรียบร้อยแล้ว",
+                'deleted_count' => $count
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+     public function toggleStatus(Branch $branch, Request $request)
+    {
+        try {
+            $branch->update([
+                'is_active' => $request->is_active
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'อัปเดตสถานะเรียบร้อย'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'ไม่สามารถอัปเดตสถานะได้: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

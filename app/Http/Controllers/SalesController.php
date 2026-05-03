@@ -13,36 +13,36 @@ use Carbon\Carbon;
 
 class SalesController extends Controller
 {
-  public function index(Request $request)
-{
-    $query = Sale::with(['customer', 'branch']);
+    public function index(Request $request)
+    {
+        $query = Sale::with(['customer', 'branch']);
 
-    // ค้นหา
-    if ($request->filled('search')) {
-        $search = $request->search;
-        $query->where(function ($q) use ($search) {
-            $q->where('doc_no', 'like', "%{$search}%")
-              ->orWhere('customer_id', 'like', "%{$search}%")
-              ->orWhereHas('customer', function ($q2) use ($search) {
-                  $q2->where('name', 'like', "%{$search}%")
-                     ->orWhere('phone', 'like', "%{$search}%");
-              });
-        });
+        // ค้นหา
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('doc_no', 'like', "%{$search}%")
+                    ->orWhere('customer_id', 'like', "%{$search}%")
+                    ->orWhereHas('customer', function ($q2) use ($search) {
+                        $q2->where('name', 'like', "%{$search}%")
+                            ->orWhere('phone', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        // กรองสถานะ
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // เรียงลำดับ
+        $query->orderBy('doc_date', 'desc');
+
+        $sales = $query->paginate(10);
+        $sales->appends($request->query());
+
+        return view('pages.sale.index', compact('sales'));
     }
-
-    // กรองสถานะ
-    if ($request->filled('status')) {
-        $query->where('status', $request->status);
-    }
-
-    // เรียงลำดับ
-    $query->orderBy('doc_date', 'desc');
-
-    $sales = $query->paginate(10);
-    $sales->appends($request->query());
-
-    return view('pages.sale.index', compact('sales'));
-}
     public function create()
     {
         $customers = Customer::with(['company', 'branch'])->orderBy('name')->get();
@@ -213,5 +213,49 @@ class SalesController extends Controller
             $newNo = '00001';
         }
         return 'INV-' . $year . '-' . $newNo;
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'required|integer|exists:sales,id'
+        ], [
+            'ids.required' => 'กรุณาเลือกรายการอย่างน้อย 1 รายการ',
+            'ids.array' => 'รูปแบบข้อมูลไม่ถูกต้อง',
+            'ids.min' => 'กรุณาเลือกรายการอย่างน้อย 1 รายการ',
+            'ids.*.exists' => 'ไม่พบรายการที่เลือกในระบบ'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $sales = Sale::whereIn('id', $request->ids)->get();
+            $count = $sales->count();
+
+            // Optional: Add business logic checks
+            // foreach ($sales as $sale) {
+            //     if ($sale->payments()->exists()) {
+            //         throw new \Exception("เอกสาร {$sale->doc_no} มีรายการชำระเงินอยู่ ไม่สามารถลบได้");
+            //     }
+            // }
+
+            Sale::whereIn('id', $request->ids)->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "ลบเอกสาร {$count} รายการเรียบร้อยแล้ว",
+                'deleted_count' => $count
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

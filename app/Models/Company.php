@@ -10,7 +10,13 @@ class Company extends Model
     use HasFactory;
 
     protected $fillable = [
-        'code', 'name', 'email', 'phone', 'address', 'tax_id'
+        'code',
+        'name',
+        'email',
+        'phone',
+        'address',
+        'tax_id',
+        'is_active'
     ];
 
     // Method สำหรับสร้าง Auto Code
@@ -22,8 +28,8 @@ class Company extends Model
 
         // ดึงลำดับล่าสุด
         $lastCompany = self::whereYear('created_at', $year)
-                           ->orderBy('id', 'desc')
-                           ->first();
+            ->orderBy('id', 'desc')
+            ->first();
 
         if ($lastCompany) {
             $lastCode = $lastCompany->code;
@@ -35,5 +41,18 @@ class Company extends Model
 
         return $prefix . $year . $month . $newNumber;
         // ตัวอย่าง: CMP2024010001
+    }
+
+    public function branches()
+    {
+        return $this->hasMany(Branch::class);
+    }
+
+    /**
+     * Get the customers for the company.
+     */
+    public function customers()
+    {
+        return $this->hasMany(Customer::class);
     }
 }
