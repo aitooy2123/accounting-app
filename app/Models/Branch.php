@@ -17,6 +17,7 @@ class Branch extends Model
         'email',
         'manager',
         'is_active',
+        'copany_id',
     ];
 
     protected $casts = [
