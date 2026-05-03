@@ -77,4 +77,6 @@ class Company extends Model
         $this->is_active = !$this->is_active;
         return $this->save();
     }
+
+    
 }

@@ -17,7 +17,7 @@
       ขาย (Sales)
     </x-sidebar-link>
 
-    <x-sidebar-link :href="route('purchases')" :active="request()->routeIs('purchases')" icon="fas fa-shopping-cart">
+    <x-sidebar-link :href="route('purchases.index')" :active="request()->routeIs('purchases.*')" icon="fas fa-shopping-cart">
       ซื้อ (Purchases)
     </x-sidebar-link>
 

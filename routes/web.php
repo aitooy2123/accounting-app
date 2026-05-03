@@ -11,6 +11,8 @@ use App\Http\Controllers\DashboardController;
 use App\Exports\SaleExport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\ReportController; // Ensure you have this controller
+use App\Http\Controllers\PurchaseController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -51,9 +53,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/sales/bulk-delete', [SalesController::class, 'bulkDelete'])->name('sales.bulk-delete');
 
     // --- ระบบงานซื้อ (Purchases) ---
-    Route::get('/purchases', function () {
-        return view('pages.purchases');
-    })->name('purchases');
+    // Route::get('/purchases', function () {
+    //     return view('pages.purchase.index');
+    // })->name('purchases');
+
+    // Purchase Resource
+    Route::resource('purchases', PurchaseController::class);
+    Route::post('/purchases/{purchase}/toggle-status', [PurchaseController::class, 'toggleStatus'])->name('purchases.toggle-status');
+    Route::post('/purchases/bulk-delete', [PurchaseController::class, 'bulkDelete'])->name('purchases.bulk-delete');
+    // Restore (Soft Delete)
+    Route::post('/purchases/{id}/restore', [PurchaseController::class, 'restore'])
+        ->name('purchases.restore');
+
+    // Force Delete
+    Route::delete('/purchases/{id}/force-delete', [PurchaseController::class, 'forceDelete'])
+        ->name('purchases.force-delete');
 
     // --- สินค้า & สต็อก (Inventory) ---
     Route::get('/inventory', function () {

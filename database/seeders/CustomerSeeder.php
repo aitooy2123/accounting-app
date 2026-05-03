@@ -362,7 +362,7 @@ class CustomerSeeder extends Seeder
                 'is_active' => true,
             ],
 
-            // ==================== ลูกค้าเพิ่มเติม (21 รายการ) ====================
+            // ==================== ลูกค้าเพิ่มเติม (20 รายการ) ====================
             [
                 'code' => 'CUS-00031',
                 'name' => 'ร้านขายยา ฟาร์มาซี',
@@ -585,22 +585,36 @@ class CustomerSeeder extends Seeder
             ],
         ];
 
-        $count = 0;
+        $created = 0;
+        $updated = 0;
+
         foreach ($customers as $customer) {
-            // กำหนด branch_id และ company_id ถ้ามี
+            // ✅ กำหนด branch_id และ company_id
+            $attributes = $customer;
+
+            // เพิ่ม branch_id และ company_id (เฉพาะตอนสร้างใหม่)
             if ($branches->isNotEmpty()) {
-                $customer['branch_id'] = $branches->random()->id;
+                $attributes['branch_id'] = $branches->random()->id;
             }
 
             if ($companies->isNotEmpty()) {
-                $customer['company_id'] = $companies->random()->id;
+                $attributes['company_id'] = $companies->random()->id;
             }
 
-            Customer::create($customer);
-            $count++;
+            // ✅ ใช้ updateOrCreate โดยค้นหาจาก code (unique key)
+            $result = Customer::updateOrCreate(
+                ['code' => $customer['code']], // ค้นหาจาก code
+                $attributes // ข้อมูลที่ต้องการเพิ่ม/อัปเดต
+            );
+
+            if ($result->wasRecentlyCreated) {
+                $created++;
+            } else {
+                $updated++;
+            }
         }
 
-        $this->command->info("✅ CustomerSeeder: เพิ่มข้อมูลลูกค้า {$count} รายการเรียบร้อยแล้ว");
+        $this->command->info("✅ CustomerSeeder: เพิ่มข้อมูลลูกค้าใหม่ {$created} รายการ, อัปเดต {$updated} รายการ");
 
         // แสดงสรุป
         $this->command->table(

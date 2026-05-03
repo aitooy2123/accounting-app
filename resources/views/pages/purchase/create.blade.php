@@ -1,0 +1,219 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="container mx-auto px-4 py-6 max-w-3xl">
+
+    {{-- HEADER --}}
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-gray-900 font-kanit">สร้างเอกสารซื้อใหม่</h1>
+        <p class="text-sm text-gray-500 font-kanit mt-1">กรอกข้อมูลเอกสารซื้อให้ครบถ้วน</p>
+    </div>
+
+    {{-- FORM --}}
+    <form action="{{ route('purchases.store') }}" method="POST" id="purchaseForm">
+        @csrf
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+            {{-- SECTION: ข้อมูลเอกสาร --}}
+            <div class="mb-6">
+                <h2 class="text-sm font-bold text-purple-600 uppercase tracking-wider mb-4 font-kanit">
+                    <i class="fas fa-file-invoice mr-2"></i>ข้อมูลเอกสาร
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {{-- เลขที่เอกสาร --}}
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1 font-kanit">
+                            เลขที่เอกสาร <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="doc_no" value="{{ old('doc_no', $autoDocNo) }}" readonly
+                               class="w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-sm font-mono font-bold text-purple-600">
+                        @error('doc_no')
+                            <p class="text-red-500 text-xs mt-1 font-kanit">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- วันที่เอกสาร --}}
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1 font-kanit">
+                            วันที่เอกสาร <span class="text-red-500">*</span>
+                        </label>
+                        <input type="date" name="doc_date"
+                               value="{{ old('doc_date', now()->format('Y-m-d')) }}" required
+                               class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all @error('doc_date') border-red-300 @enderror">
+                        @error('doc_date')
+                            <p class="text-red-500 text-xs mt-1 font-kanit">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- เจ้าหนี้/ผู้ขาย --}}
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1 font-kanit">
+                            เจ้าหนี้/ผู้ขาย <span class="text-red-500">*</span>
+                        </label>
+                        <select name="supplier_id" required
+                                class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm font-kanit focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all @error('supplier_id') border-red-300 @enderror">
+                            <option value="">-- เลือกเจ้าหนี้ --</option>
+                            @foreach($suppliers as $supplier)
+                                <option value="{{ $supplier->id }}" {{ old('supplier_id') == $supplier->id ? 'selected' : '' }}>
+                                    {{ $supplier->code }} - {{ $supplier->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('supplier_id')
+                            <p class="text-red-500 text-xs mt-1 font-kanit">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- สาขา --}}
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1 font-kanit">
+                            สาขา <span class="text-red-500">*</span>
+                        </label>
+                        <select name="branch_id" required
+                                class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm font-kanit focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all @error('branch_id') border-red-300 @enderror">
+                            <option value="">-- เลือกสาขา --</option>
+                            @foreach($branches as $branch)
+                                <option value="{{ $branch->id }}" {{ old('branch_id') == $branch->id ? 'selected' : '' }}>
+                                    {{ $branch->code }} - {{ $branch->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('branch_id')
+                            <p class="text-red-500 text-xs mt-1 font-kanit">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- วันที่ครบกำหนด --}}
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1 font-kanit">
+                            วันที่ครบกำหนด <span class="text-red-500">*</span>
+                        </label>
+                        <input type="date" name="due_date"
+                               value="{{ old('due_date', now()->addDays(30)->format('Y-m-d')) }}" required
+                               class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all @error('due_date') border-red-300 @enderror">
+                        @error('due_date')
+                            <p class="text-red-500 text-xs mt-1 font-kanit">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+            </div>
+
+            {{-- SECTION: ข้อมูลการเงิน --}}
+            <div class="mb-6">
+                <h2 class="text-sm font-bold text-purple-600 uppercase tracking-wider mb-4 font-kanit">
+                    <i class="fas fa-calculator mr-2"></i>ข้อมูลการเงิน
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {{-- ยอดเงินก่อนภาษี --}}
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1 font-kanit">
+                            ยอดเงินก่อนภาษี (฿) <span class="text-red-500">*</span>
+                        </label>
+                        <input type="number" name="subtotal" id="subtotal" step="0.01" min="0"
+                               value="{{ old('subtotal', 0) }}" required
+                               class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all @error('subtotal') border-red-300 @enderror"
+                               onchange="calculateTotal()">
+                        @error('subtotal')
+                            <p class="text-red-500 text-xs mt-1 font-kanit">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- อัตราภาษี --}}
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1 font-kanit">
+                            อัตราภาษี (%) <span class="text-red-500">*</span>
+                        </label>
+                        <input type="number" name="vat_rate" id="vat_rate" step="0.01" min="0" max="100"
+                               value="{{ old('vat_rate', 7) }}" required
+                               class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all @error('vat_rate') border-red-300 @enderror"
+                               onchange="calculateTotal()">
+                        @error('vat_rate')
+                            <p class="text-red-500 text-xs mt-1 font-kanit">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- ยอดรวม (แสดงผลอัตโนมัติ) --}}
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1 font-kanit">
+                            ยอดรวมสุทธิ (฿)
+                        </label>
+                        <div id="totalDisplay" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-purple-50 text-sm font-bold text-purple-700 font-mono">
+                            ฿ 0.00
+                        </div>
+                    </div>
+                </div>
+
+                {{-- สรุปภาษี --}}
+                <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div class="bg-gray-50 rounded-xl p-3">
+                        <span class="text-gray-500 font-kanit">ภาษีมูลค่าเพิ่ม:</span>
+                        <span id="vatDisplay" class="font-bold text-gray-700 font-mono ml-2">฿ 0.00</span>
+                    </div>
+                    <div class="bg-purple-50 rounded-xl p-3">
+                        <span class="text-purple-600 font-kanit font-bold">รวมทั้งสิ้น:</span>
+                        <span id="grandTotalDisplay" class="font-bold text-purple-700 font-mono ml-2 text-lg">฿ 0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            {{-- SECTION: หมายเหตุ --}}
+            <div class="mb-6">
+                <h2 class="text-sm font-bold text-purple-600 uppercase tracking-wider mb-4 font-kanit">
+                    <i class="fas fa-sticky-note mr-2"></i>หมายเหตุ
+                </h2>
+
+                <textarea name="note" rows="3"
+                          class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all font-kanit @error('note') border-red-300 @enderror"
+                          placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)">{{ old('note') }}</textarea>
+                @error('note')
+                    <p class="text-red-500 text-xs mt-1 font-kanit">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
+
+        {{-- BUTTONS --}}
+        <div class="flex justify-end space-x-3">
+            <a href="{{ route('purchases.index') }}"
+               class="px-6 py-2.5 bg-gray-100 text-gray-600 rounded-xl text-sm font-bold font-kanit hover:bg-gray-200 transition-all">
+                <i class="fas fa-times mr-2"></i>ยกเลิก
+            </a>
+            <button type="submit" id="submitBtn"
+                    class="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-xl text-sm font-bold font-kanit transition-all shadow-lg shadow-purple-200/50">
+                <i class="fas fa-save mr-2"></i>บันทึกเอกสารซื้อ
+            </button>
+        </div>
+    </form>
+</div>
+
+@push('scripts')
+<script>
+    // คำนวณภาษีและยอดรวมอัตโนมัติ
+    function calculateTotal() {
+        const subtotal = parseFloat(document.getElementById('subtotal').value) || 0;
+        const vatRate = parseFloat(document.getElementById('vat_rate').value) || 0;
+
+        const vat = subtotal * (vatRate / 100);
+        const total = subtotal + vat;
+
+        // แสดงผล
+        document.getElementById('vatDisplay').textContent = '฿ ' + vat.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('totalDisplay').textContent = '฿ ' + total.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('grandTotalDisplay').textContent = '฿ ' + total.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    // คำนวณตอนโหลดหน้า
+    document.addEventListener('DOMContentLoaded', function() {
+        calculateTotal();
+    });
+
+    // ป้องกันการ submit ซ้ำ
+    document.getElementById('purchaseForm').addEventListener('submit', function() {
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>กำลังบันทึก...';
+    });
+</script>
+@endpush
+@endsection

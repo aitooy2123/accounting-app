@@ -101,6 +101,7 @@ class SalesController extends Controller
                     'quantity'    => $item['qty'],
                     'unit_price'  => $item['price'],
                     'total_price' => $item['qty'] * $item['price'],
+                    'total'       => ($item['qty'] * $item['price']) + ($item['qty'] * $item['price'] * ($request->vat_rate / 100)),
                 ]);
             }
 

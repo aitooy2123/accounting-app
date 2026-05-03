@@ -44,10 +44,12 @@ class SaleSeeder extends Seeder
             null,
         ];
 
-        $sales = [];
         $docPrefix = 'INV-' . date('Ym') . '-';
         $startDate = Carbon::now()->subMonths(6);
         $endDate = Carbon::now();
+
+        $created = 0;
+        $updated = 0;
 
         for ($i = 1; $i <= 100; $i++) {
             $customer = $customers->random();
@@ -63,46 +65,40 @@ class SaleSeeder extends Seeder
             $vat = round($subtotal * ($vatRate / 100), 2);
             $total = $subtotal + $vat;
 
-            // สุ่มสถานะ (ปลายงวดมีโอกาสค้างชำระน้อยกว่า)
+            // สุ่มสถานะ
             $statusIndex = rand(0, 4);
             if ($docDate->diffInDays(Carbon::now()) > 90) {
                 $statusIndex = rand(0, 1); // เก่าแล้ว มีโอกาสชำระแล้วมากกว่า
             }
 
-            $sales[] = [
-                'doc_no' => $docPrefix . str_pad($i, 4, '0', STR_PAD_LEFT),
-                'customer_id' => $customer->id,
-                'branch_id' => $branch->id,
-                'doc_date' => $docDate->format('Y-m-d'),
-                'due_date' => $dueDate->format('Y-m-d'),
-                'subtotal' => $subtotal,
-                'vat' => $vat,
-                'total' => $total,
-                'vat_rate' => $vatRate,
-                'note' => $notes[array_rand($notes)],
-                'status' => $statuses[$statusIndex],
-                'created_at' => $docDate,
-                'updated_at' => $docDate,
-            ];
+            // สร้าง doc_no
+            $docNo = $docPrefix . str_pad($i, 4, '0', STR_PAD_LEFT);
+
+            // ✅ ใช้ updateOrCreate โดยค้นหาจาก doc_no (unique key)
+            $result = Sale::updateOrCreate(
+                ['doc_no' => $docNo], // ค้นหาจาก doc_no
+                [
+                    'customer_id' => $customer->id,
+                    'branch_id' => $branch->id,
+                    'doc_date' => $docDate->format('Y-m-d'),
+                    'due_date' => $dueDate->format('Y-m-d'),
+                    'subtotal' => $subtotal,
+                    'vat' => $vat,
+                    'total' => $total,
+                    'vat_rate' => $vatRate,
+                    'note' => $notes[array_rand($notes)],
+                    'status' => $statuses[$statusIndex],
+                ]
+            );
+
+            if ($result->wasRecentlyCreated) {
+                $created++;
+            } else {
+                $updated++;
+            }
         }
 
-        // เรียงตามวันที่
-        usort($sales, function ($a, $b) {
-            return strcmp($a['doc_date'], $b['doc_date']);
-        });
-
-        // อัปเดต doc_no ให้เรียงตามวันที่
-        foreach ($sales as $index => &$sale) {
-            $saleOrder = $index + 1;
-            $sale['doc_no'] = $docPrefix . str_pad($saleOrder, 4, '0', STR_PAD_LEFT);
-        }
-
-        // Batch insert
-        foreach (array_chunk($sales, 50) as $chunk) {
-            Sale::insert($chunk);
-        }
-
-        $this->command->info('✅ SaleSeeder: เพิ่มข้อมูลการขาย ' . count($sales) . ' รายการเรียบร้อยแล้ว');
+        $this->command->info("✅ SaleSeeder: เพิ่มข้อมูลการขายใหม่ {$created} รายการ, อัปเดต {$updated} รายการ");
 
         // แสดงสรุป
         $this->command->table(

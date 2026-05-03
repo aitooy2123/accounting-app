@@ -23,7 +23,8 @@ class DatabaseSeeder extends Seeder
             BranchSeeder::class,
             ChartOfAccountSeeder::class,
             CustomerSeeder::class,
-            SaleSeeder::class
+            SaleSeeder::class,
+             PurchaseSeeder::class,
         ]);
     }
 }
