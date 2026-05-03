@@ -11,7 +11,7 @@
       </div>
 
       <div class="flex items-center space-x-3">
-        {{-- BULK DELETE BUTTON - ซ่อนไว้ก่อนจนกว่าจะมีการเลือก --}}
+        {{-- BULK DELETE BUTTON --}}
         <button type="button"
                 id="bulkDeleteBtn"
                 class="hidden inline-flex items-center px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-xl transition-all duration-300 shadow-lg shadow-red-200/50 font-kanit"
@@ -62,10 +62,9 @@
           </a>
         </div>
       </form>
-<<<<<<< HEAD
     </div>
 
-    {{-- SELECTED COUNT BAR --}}
+    {{-- SELECTION BAR --}}
     <div id="selectionBar" class="hidden bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4 flex items-center justify-between">
       <div class="flex items-center text-blue-700 font-kanit">
         <i class="fas fa-check-circle mr-2"></i>
@@ -76,8 +75,6 @@
               class="text-sm text-blue-600 hover:text-blue-800 font-kanit underline">
         ยกเลิกการเลือก
       </button>
-=======
->>>>>>> 43610c3827147c52462d473f7724958d3309d0ad
     </div>
 
     {{-- TABLE --}}
@@ -86,7 +83,7 @@
         <table class="w-full text-left font-kanit">
           <thead class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
             <tr>
-              {{-- CHECKBOX COLUMN HEADER --}}
+              {{-- CHECKBOX --}}
               <th class="px-6 py-4 w-12">
                 <div class="flex items-center">
                   <input type="checkbox"
@@ -94,7 +91,7 @@
                          class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer">
                 </div>
               </th>
-              <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">#</th>
+              <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">รหัส</th>
               <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">ชื่อบริษัท</th>
               <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">ข้อมูลติดต่อ</th>
               <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">เลขผู้เสียภาษี</th>
@@ -105,18 +102,19 @@
           <tbody class="divide-y divide-gray-100">
             @forelse($companies as $company)
               <tr class="hover:bg-blue-50/30 transition-all duration-200 group {{ $company->is_active ? '' : 'opacity-60' }}">
-                {{-- CHECKBOX COLUMN --}}
+                {{-- CHECKBOX --}}
                 <td class="px-6 py-4">
                   <div class="flex items-center">
                     <input type="checkbox"
                            class="company-checkbox w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer"
                            value="{{ $company->id }}"
-                           data-company-id="{{ $company->id }}">
+                           data-company-id="{{ $company->id }}"
+                           data-company-name="{{ $company->name }}">
                   </div>
                 </td>
                 <td class="px-6 py-4">
                   <span class="text-sm font-bold text-blue-600 font-mono bg-blue-50 px-2 py-1 rounded-lg">
-                    {{ $loop->iteration }}
+                    {{ $company->code ?? 'N/A' }}
                   </span>
                 </td>
                 <td class="px-6 py-4">
@@ -256,23 +254,15 @@
       const companyCheckboxes = document.querySelectorAll('.company-checkbox');
       const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
       const bulkDeleteText = document.getElementById('bulkDeleteText');
-<<<<<<< HEAD
       const selectionBar = document.getElementById('selectionBar');
       const selectedCountDisplay = document.getElementById('selectedCountDisplay');
 
-=======
-
-      // Update UI based on selection
->>>>>>> 43610c3827147c52462d473f7724958d3309d0ad
       function updateSelectionUI() {
         const checkedCheckboxes = document.querySelectorAll('.company-checkbox:checked');
         const count = checkedCheckboxes.length;
 
-<<<<<<< HEAD
-        // Update selected count display
         selectedCountDisplay.textContent = count;
 
-        // Show/hide bulk delete button and selection bar
         if (count > 0) {
           bulkDeleteBtn.classList.remove('hidden');
           selectionBar.classList.remove('hidden');
@@ -280,25 +270,14 @@
         } else {
           bulkDeleteBtn.classList.add('hidden');
           selectionBar.classList.add('hidden');
-=======
-        // Show/hide bulk delete button
-        if (count > 0) {
-          bulkDeleteBtn.classList.remove('hidden');
-          bulkDeleteText.textContent = `ลบที่เลือก (${count})`;
-        } else {
-          bulkDeleteBtn.classList.add('hidden');
->>>>>>> 43610c3827147c52462d473f7724958d3309d0ad
         }
 
-        // Update select all checkbox state
         const allCheckboxes = document.querySelectorAll('.company-checkbox');
         const allChecked = allCheckboxes.length > 0 && checkedCheckboxes.length === allCheckboxes.length;
         selectAllCheckbox.checked = allChecked;
         selectAllCheckbox.indeterminate = count > 0 && count < allCheckboxes.length;
       }
 
-<<<<<<< HEAD
-      // Clear all selections
       window.clearSelection = function() {
         companyCheckboxes.forEach(checkbox => {
           checkbox.checked = false;
@@ -308,9 +287,6 @@
         updateSelectionUI();
       };
 
-=======
->>>>>>> 43610c3827147c52462d473f7724958d3309d0ad
-      // Select All / Deselect All
       selectAllCheckbox.addEventListener('change', function() {
         const isChecked = this.checked;
         companyCheckboxes.forEach(checkbox => {
@@ -319,33 +295,42 @@
         updateSelectionUI();
       });
 
-      // Individual checkbox change
       companyCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', updateSelectionUI);
       });
 
-      // Bulk Delete Function
       window.bulkDelete = function() {
         const checkedCheckboxes = document.querySelectorAll('.company-checkbox:checked');
         const selectedIds = Array.from(checkedCheckboxes).map(cb => cb.value);
+        const selectedNames = Array.from(checkedCheckboxes).map(cb => cb.dataset.companyName);
 
         if (selectedIds.length === 0) {
           Swal.fire({
             icon: 'warning',
             title: 'กรุณาเลือกบริษัท',
             text: 'คุณต้องเลือกอย่างน้อย 1 รายการเพื่อลบ',
-            customClass: {
-              popup: 'font-kanit'
-            }
+            customClass: { popup: 'font-kanit' }
           });
           return;
         }
+
+        const nameListHtml = selectedNames.slice(0, 5).map(name =>
+          `<li class="text-sm"><i class="fas fa-building mr-2 text-red-400"></i>${name}</li>`
+        ).join('');
+        const moreCount = selectedNames.length > 5 ?
+          `<li class="text-sm text-gray-400 italic">...และอีก ${selectedNames.length - 5} รายการ</li>` : '';
 
         Swal.fire({
           title: 'ยืนยันการลบหลายรายการ',
           html: `
             <div class="text-left">
               <p class="mb-3">คุณต้องการลบบริษัททั้งหมด <strong>${selectedIds.length} รายการ</strong> ใช่หรือไม่?</p>
+              <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-3">
+                <ul class="space-y-1">
+                  ${nameListHtml}
+                  ${moreCount}
+                </ul>
+              </div>
               <div class="bg-red-50 border border-red-200 rounded-lg p-3">
                 <p class="text-red-600 text-sm font-bold mb-2">
                   <i class="fas fa-exclamation-triangle mr-2"></i>คำเตือน
@@ -372,20 +357,14 @@
           }
         }).then((result) => {
           if (result.isConfirmed) {
-            // Show loading state
             Swal.fire({
               title: 'กำลังดำเนินการ...',
               html: 'กำลังลบบริษัทที่เลือก กรุณารอสักครู่',
               allowOutsideClick: false,
-              didOpen: () => {
-                Swal.showLoading();
-              },
-              customClass: {
-                popup: 'font-kanit'
-              }
+              didOpen: () => { Swal.showLoading(); },
+              customClass: { popup: 'font-kanit' }
             });
 
-            // Send bulk delete request
             fetch('{{ route("companies.bulk-delete") }}', {
               method: 'POST',
               headers: {
@@ -401,17 +380,12 @@
                 Swal.fire({
                   icon: 'success',
                   title: 'ลบสำเร็จ!',
-                  text: data.message || `ลบบริษัท ${selectedIds.length} รายการเรียบร้อยแล้ว`,
+                  text: data.message,
                   timer: 3000,
                   showConfirmButton: false,
-                  customClass: {
-                    popup: 'font-kanit'
-                  }
+                  customClass: { popup: 'font-kanit' }
                 });
-                // Reload page after success
-                setTimeout(() => {
-                  window.location.reload();
-                }, 1500);
+                setTimeout(() => { window.location.reload(); }, 1500);
               } else {
                 throw new Error(data.message || 'เกิดข้อผิดพลาดในการลบ');
               }
@@ -420,18 +394,16 @@
               Swal.fire({
                 icon: 'error',
                 title: 'เกิดข้อผิดพลาด!',
-                text: error.message || 'ไม่สามารถลบบริษัทได้ กรุณาลองใหม่อีกครั้ง',
+                text: error.message,
                 confirmButtonText: 'ตกลง',
-                customClass: {
-                  popup: 'font-kanit'
-                }
+                customClass: { popup: 'font-kanit' }
               });
             });
           }
         });
       };
 
-      // ============= TOGGLE STATUS FUNCTIONALITY =============
+      // ============= TOGGLE STATUS =============
 
       document.querySelectorAll('.toggle-status').forEach(toggle => {
         toggle.addEventListener('change', function() {
@@ -454,9 +426,7 @@
                 title: 'อัปเดตสถานะเรียบร้อย',
                 showConfirmButton: false,
                 timer: 1500,
-                customClass: {
-                  popup: 'font-kanit'
-                }
+                customClass: { popup: 'font-kanit' }
               });
               setTimeout(() => location.reload(), 1600);
             }
@@ -468,15 +438,13 @@
               icon: 'error',
               title: 'เกิดข้อผิดพลาด',
               text: 'ไม่สามารถอัปเดตสถานะได้',
-              customClass: {
-                popup: 'font-kanit'
-              }
+              customClass: { popup: 'font-kanit' }
             });
           });
         });
       });
 
-      // ============= SINGLE DELETE FUNCTIONALITY =============
+      // ============= SINGLE DELETE =============
 
       document.querySelectorAll('.delete-company').forEach(button => {
         button.addEventListener('click', function() {
@@ -485,7 +453,8 @@
 
           Swal.fire({
             title: 'ยืนยันการลบบริษัท?',
-            html: `คุณต้องการลบบริษัท <strong>${companyName}</strong> ใช่หรือไม่?<br><span class="text-red-500 text-sm">การกระทำนี้ไม่สามารถย้อนกลับได้</span>`,
+            html: `คุณต้องการลบบริษัท <strong>${companyName}</strong> ใช่หรือไม่?<br>
+                   <span class="text-red-500 text-sm">การกระทำนี้ไม่สามารถย้อนกลับได้</span>`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#EF4444',
@@ -520,10 +489,6 @@
   </script>
 
   <style>
-<<<<<<< HEAD
-=======
-    /* Custom Checkbox Styling */
->>>>>>> 43610c3827147c52462d473f7724958d3309d0ad
     input[type="checkbox"] {
       cursor: pointer;
     }
@@ -533,18 +498,10 @@
       border-color: #3B82F6;
     }
 
-<<<<<<< HEAD
-=======
-    /* Row selection highlight */
->>>>>>> 43610c3827147c52462d473f7724958d3309d0ad
     tr:has(.company-checkbox:checked) {
       background-color: #EFF6FF;
     }
 
-<<<<<<< HEAD
-=======
-    /* Custom Toggle Switch Animation */
->>>>>>> 43610c3827147c52462d473f7724958d3309d0ad
     .toggle-status + div {
       transition: all 0.3s ease;
     }
@@ -553,10 +510,6 @@
       box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
     }
 
-<<<<<<< HEAD
-=======
-    /* SweetAlert2 Custom Styling */
->>>>>>> 43610c3827147c52462d473f7724958d3309d0ad
     .swal2-popup {
       border-radius: 1rem !important;
       padding: 2rem !important;
@@ -570,13 +523,14 @@
       font-family: 'Kanit', sans-serif !important;
     }
 
-<<<<<<< HEAD
     #bulkDeleteBtn, #selectionBar {
-=======
-    /* Smooth transitions */
-    #bulkDeleteBtn {
->>>>>>> 43610c3827147c52462d473f7724958d3309d0ad
       transition: all 0.3s ease-in-out;
+    }
+
+    #selectAllCheckbox:indeterminate {
+      background-color: #3B82F6;
+      border-color: #3B82F6;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='white'%3E%3Cpath fill-rule='evenodd' d='M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z' clip-rule='evenodd'/%3E%3Csvg%3E");
     }
   </style>
 @endsection

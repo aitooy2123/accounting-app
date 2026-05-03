@@ -6,8 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\ChartOfAccount as Account;
 use Illuminate\Support\Facades\DB;
 use App\Models\ChartOfAccount;
-use Illuminate\Support\Facades\DB;
-use App\Models\ChartOfAccount as Account;
+
 
 
 class AccountController extends Controller
@@ -111,7 +110,6 @@ class AccountController extends Controller
             'is_active' => $request->has('is_active') ? true : false,
         ]);
 
-<<<<<<< HEAD
         return redirect()->route('accounts.index')
             ->with('success', 'อัปเดตข้อมูลบัญชีเรียบร้อยแล้ว');
     }
@@ -138,15 +136,6 @@ class AccountController extends Controller
     }
 
     public function toggleStatus(Account $account, Request $request)
-=======
-    return redirect()->route('accounts.index')
-        ->with('success', 'ลบรายการบัญชีเรียบร้อยแล้ว');
-}
-
-
-
-    public function toggleStatus(ChartOfAccount $account, Request $request)
->>>>>>> 43610c3827147c52462d473f7724958d3309d0ad
     {
         try {
             $account->update([
@@ -208,10 +197,6 @@ class AccountController extends Controller
                 'message' => "ลบบัญชี {$count} รายการเรียบร้อยแล้ว",
                 'deleted_count' => $count
             ]);
-<<<<<<< HEAD
-=======
-
->>>>>>> 43610c3827147c52462d473f7724958d3309d0ad
         } catch (\Exception $e) {
             DB::rollBack();
 

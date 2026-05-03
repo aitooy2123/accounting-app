@@ -55,4 +55,26 @@ class Company extends Model
     {
         return $this->hasMany(Customer::class);
     }
+
+      public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope a query to only include inactive companies.
+     */
+    public function scopeInactive($query)
+    {
+        return $query->where('is_active', false);
+    }
+
+    /**
+     * Toggle the active status.
+     */
+    public function toggleActive(): bool
+    {
+        $this->is_active = !$this->is_active;
+        return $this->save();
+    }
 }

@@ -6,36 +6,67 @@ use App\Models\Customer;
 use App\Models\Branch;
 use App\Models\Company;
 use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Imports\CustomersImport;
-use DB;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class CustomerController extends Controller
 {
-    public function index()
+    /**
+     * Display a listing of customers.
+     */
+    public function index(Request $request)
     {
-        $customers = Customer::with(['branch', 'company'])
-            ->when(request('search'), function ($query) {
-                $query->where('code', 'like', '%' . request('search') . '%')
-                    ->orWhere('name', 'like', '%' . request('search') . '%')
-                    ->orWhere('email', 'like', '%' . request('search') . '%')
-                    ->orWhere('phone', 'like', '%' . request('search') . '%');
-            })
-            ->when(request('status') !== null, function ($query) {
-                $query->where('is_active', request('status'));
-            })
-            ->orderBy('code')
-            ->paginate(10);
+        // กำหนดช่วงวันที่
+        $startDate = $request->start_date
+            ? Carbon::parse($request->start_date)->startOfDay()
+            : Carbon::now()->startOfMonth();
 
-        return view('pages.customer.index', compact('customers'));
+        $endDate = $request->end_date
+            ? Carbon::parse($request->end_date)->endOfDay()
+            : Carbon::now()->endOfMonth();
+
+        $query = Customer::query()->with(['company', 'branch']);
+
+        // ค้นหา
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('code', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%")
+                  ->orWhere('tax_id', 'like', "%{$search}%")
+                  ->orWhereHas('company', function ($q) use ($search) {
+                      $q->where('name', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('branch', function ($q) use ($search) {
+                      $q->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // กรองตามสถานะ
+        if ($request->filled('status')) {
+            $query->where('is_active', $request->status == '1');
+        }
+
+        $customers = $query->orderBy('code', 'asc')->paginate(15);
+
+        return view('pages.customer.index', compact(
+            'customers',
+            'startDate',
+            'endDate'
+        ));
     }
 
+    /**
+     * Show the form for creating a new customer.
+     */
     public function create()
     {
-        // Auto generate customer code
+        // ✅ Auto generate customer code
         $lastCustomer = Customer::orderBy('id', 'desc')->first();
         if ($lastCustomer && $lastCustomer->code) {
-            // Extract number from code (e.g., CUS-00001 -> 00001)
             $lastNumber = intval(substr($lastCustomer->code, -5));
             $newNumber = str_pad($lastNumber + 1, 5, '0', STR_PAD_LEFT);
             $autoCode = 'CUS-' . $newNumber;
@@ -43,135 +74,127 @@ class CustomerController extends Controller
             $autoCode = 'CUS-00001';
         }
 
-        $branches = Branch::orderBy('name')->get();
-        $companies = Company::orderBy('name')->get();
+        $companies = Company::where('is_active', true)->orderBy('name')->get();
+        $branches = Branch::where('is_active', true)->orderBy('name')->get();
 
-        return view('pages.customer.create', compact('autoCode', 'branches', 'companies'));
+        return view('pages.customer.create', compact('autoCode', 'companies', 'branches'));
     }
 
+    /**
+     * Store a newly created customer.
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'code'          => 'required|string|max:20|unique:customers',
-            'name' => 'required|string|max:255|unique:customers,name',
-            'email'         => 'nullable|email',
-            'phone'         => 'nullable|string|max:20',
-            'address'       => 'nullable|string',
-            'tax_id'        => 'nullable|string|max:50',
+            'code' => 'required|string|max:255|unique:customers,code',
+            'name' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'tax_id' => 'nullable|string|max:20',
+            'address' => 'nullable|string',
             'contact_person' => 'nullable|string|max:255',
             'contact_phone' => 'nullable|string|max:20',
-            'is_active'     => 'boolean',
-            'branch_id'     => 'nullable|exists:branches,id',
-            'company_id'    => 'nullable|exists:companies,id',
+            'company_id' => 'nullable|exists:companies,id',
+            'branch_id' => 'nullable|exists:branches,id',
+            'is_active' => 'boolean',
         ]);
+
+        $validated['is_active'] = $request->has('is_active');
 
         Customer::create($validated);
 
-        return redirect()->route('customers.index')
-            ->with('success', 'เพิ่มลูกค้า "' . $request->name . '" เรียบร้อยแล้ว');
+        return redirect()
+            ->route('customers.index')
+            ->with('success', 'เพิ่มลูกค้า ' . $validated['code'] . ' เรียบร้อยแล้ว');
     }
 
-    public function edit(Customer $customer)
-    {
-        $branches = Branch::orderBy('name')->get();
-        $companies = Company::orderBy('name')->get();
-        return view('pages.customer.edit', compact('customer', 'branches', 'companies'));
-    }
-
-    public function update(Request $request, Customer $customer)
-    {
-        $validated = $request->validate([
-            'code'          => 'required|string|max:20|unique:customers,code,' . $customer->id,
-            'name'          => 'required|string|max:255',
-            'email'         => 'nullable|email',
-            'phone'         => 'nullable|string|max:20',
-            'address'       => 'nullable|string',
-            'tax_id'        => 'nullable|string|max:50',
-            'contact_person' => 'nullable|string|max:255',
-            'contact_phone' => 'nullable|string|max:20',
-            'is_active'     => 'boolean',
-            'branch_id'     => 'nullable|exists:branches,id',
-            'company_id'    => 'nullable|exists:companies,id',
-        ]);
-
-        $customer->update($validated);
-
-        return redirect()->route('customers.index')
-            ->with('success', 'อัปเดตลูกค้า "' . $customer->name . '" เรียบร้อยแล้ว');
-    }
-
-    public function destroy(Customer $customer)
-    {
-        // Check if customer has related sales documents
-        if ($customer->sales()->count() > 0) {
-            return redirect()->route('customers.index')
-                ->with('error', 'ไม่สามารถลบลูกค้าได้เนื่องจากมีเอกสารขายที่เกี่ยวข้องอยู่');
-        }
-
-        $customerName = $customer->name;
-        $customer->delete();
-
-        return redirect()->route('customers.index')
-            ->with('success', 'ลบลูกค้า "' . $customerName . '" เรียบร้อยแล้ว');
-    }
-
-
-    public function import(Request $request)
-    {
-        $request->validate([
-            'file' => 'required|mimes:xlsx,xls,csv'
-        ]);
-
-        try {
-            Excel::import(new CustomersImport, $request->file('file'));
-
-            return back()->with('success', 'นำเข้าข้อมูลสำเร็จ');
-        } catch (\Exception $e) {
-            return back()->with('error', 'Import ไม่สำเร็จ: ' . $e->getMessage());
-        }
-    }
-
-
-
-    public function downloadTemplate()
-    {
-        $data = [
-            ['name', 'phone', 'address', 'email', 'tax_id'],
-            ['บริษัท ตัวอย่าง จำกัด', 'ddddddd', '0812345678', 'test@example.com', '0105551234567'],
-        ];
-
-        return Excel::download(
-            new class($data) implements \Maatwebsite\Excel\Concerns\FromArray {
-                protected $data;
-
-                public function __construct($data)
-                {
-                    $this->data = $data;
-                }
-
-                public function array(): array
-                {
-                    return $this->data;
-                }
-            },
-            'customer_import_template.xlsx'
-        );
-    }
-
+    /**
+     * Display the specified customer.
+     */
     public function show(Customer $customer)
     {
-        // โหลดข้อมูล sales และ purchases มาพร้อมกับ customer เลย
-        $customer->load(['sales', 'purchases']);
-
+        $customer->load(['company', 'branch']);
         return view('pages.customer.show', compact('customer'));
     }
 
     /**
-     * Toggle customer active status
+     * Show the form for editing the specified customer.
+     */
+    public function edit(Customer $customer)
+    {
+        $companies = Company::where('is_active', true)->orderBy('name')->get();
+        $branches = Branch::where('is_active', true)->orderBy('name')->get();
+
+        return view('pages.customer.edit', compact('customer', 'companies', 'branches'));
+    }
+
+    /**
+     * Update the specified customer.
+     */
+    public function update(Request $request, Customer $customer)
+    {
+        $validated = $request->validate([
+            'code' => 'required|string|max:255|unique:customers,code,' . $customer->id,
+            'name' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'tax_id' => 'nullable|string|max:20',
+            'address' => 'nullable|string',
+            'contact_person' => 'nullable|string|max:255',
+            'contact_phone' => 'nullable|string|max:20',
+            'company_id' => 'nullable|exists:companies,id',
+            'branch_id' => 'nullable|exists:branches,id',
+            'is_active' => 'boolean',
+        ]);
+
+        $validated['is_active'] = $request->has('is_active');
+
+        $customer->update($validated);
+
+        return redirect()
+            ->route('customers.index')
+            ->with('success', 'อัปเดตข้อมูลลูกค้า ' . $customer->code . ' เรียบร้อยแล้ว');
+    }
+
+    /**
+     * Remove the specified customer.
+     */
+    public function destroy(Customer $customer)
+    {
+        try {
+            DB::beginTransaction();
+
+            // ตรวจสอบว่ามีรายการขายผูกอยู่หรือไม่
+            if (method_exists($customer, 'sales') && $customer->sales()->count() > 0) {
+                return back()->with('error', 'ไม่สามารถลบลูกค้าได้เนื่องจากมีเอกสารขายที่เกี่ยวข้องอยู่');
+            }
+
+            $customerCode = $customer->code;
+            $customerName = $customer->name;
+            $customer->delete();
+
+            DB::commit();
+
+            return redirect()
+                ->route('customers.index')
+                ->with('success', 'ลบลูกค้า ' . $customerCode . ' เรียบร้อยแล้ว');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'เกิดข้อผิดพลาด: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Toggle customer active status.
      */
     public function toggleStatus(Customer $customer, Request $request)
     {
         try {
+            $request->validate([
+                'is_active' => 'required|boolean'
+            ]);
+
             $customer->update([
                 'is_active' => $request->is_active
             ]);
@@ -189,7 +212,7 @@ class CustomerController extends Controller
     }
 
     /**
-     * Bulk delete customers
+     * Bulk delete customers.
      */
     public function bulkDelete(Request $request)
     {
@@ -198,7 +221,6 @@ class CustomerController extends Controller
             'ids.*' => 'required|integer|exists:customers,id'
         ], [
             'ids.required' => 'กรุณาเลือกลูกค้าอย่างน้อย 1 รายการ',
-            'ids.array' => 'รูปแบบข้อมูลไม่ถูกต้อง',
             'ids.min' => 'กรุณาเลือกลูกค้าอย่างน้อย 1 รายการ',
             'ids.*.exists' => 'ไม่พบลูกค้าที่เลือกในระบบ'
         ]);
@@ -207,24 +229,39 @@ class CustomerController extends Controller
             DB::beginTransaction();
 
             $customers = Customer::whereIn('id', $request->ids)->get();
-            $count = $customers->count();
+            $deletedCount = 0;
+            $failedCustomers = [];
 
-            // Optional: Check if customers have related records
-            // foreach ($customers as $customer) {
-            //     if ($customer->sales()->exists()) {
-            //         throw new \Exception("ลูกค้า {$customer->code} มีรายการขายอยู่ ไม่สามารถลบได้");
-            //     }
-            // }
+            foreach ($customers as $customer) {
+                // ตรวจสอบว่ามีเอกสารขายหรือไม่
+                if (method_exists($customer, 'sales') && $customer->sales()->count() > 0) {
+                    $failedCustomers[] = "{$customer->code}: มีเอกสารขายที่เกี่ยวข้อง";
+                    continue;
+                }
 
-            Customer::whereIn('id', $request->ids)->delete();
+                $customer->delete();
+                $deletedCount++;
+            }
 
             DB::commit();
 
-            return response()->json([
-                'success' => true,
-                'message' => "ลบข้อมูลลูกค้า {$count} รายการเรียบร้อยแล้ว",
-                'deleted_count' => $count
-            ]);
+            if ($deletedCount > 0 && count($failedCustomers) === 0) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "ลบข้อมูลลูกค้า {$deletedCount} รายการเรียบร้อยแล้ว",
+                    'deleted_count' => $deletedCount
+                ]);
+            } elseif ($deletedCount > 0) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "ลบ {$deletedCount} รายการ แต่มี " . count($failedCustomers) . " รายการที่ไม่สามารถลบได้",
+                    'deleted_count' => $deletedCount,
+                    'failed' => $failedCustomers
+                ]);
+            } else {
+                throw new \Exception("ไม่สามารถลบรายการที่เลือกได้: " . implode(', ', $failedCustomers));
+            }
+
         } catch (\Exception $e) {
             DB::rollBack();
 
