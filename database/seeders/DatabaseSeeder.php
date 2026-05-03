@@ -24,7 +24,9 @@ class DatabaseSeeder extends Seeder
             ChartOfAccountSeeder::class,
             CustomerSeeder::class,
             SaleSeeder::class,
-             PurchaseSeeder::class,
+            PurchaseSeeder::class,
+            InvoiceSeeder::class,   // ✅ เพิ่ม
+            ExpenseSeeder::class,   // ✅ เพิ่ม
         ]);
     }
 }
