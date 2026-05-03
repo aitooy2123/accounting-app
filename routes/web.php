@@ -70,8 +70,15 @@ Route::post('/companies/{company}/toggle-status', [CompanyController::class, 'to
 Route::post('/companies/bulk-delete', [CompanyController::class, 'bulkDelete'])
     ->name('companies.bulk-delete');
 
-
+//ผังบัญชี
     Route::resource('accounts', AccountController::class);
+ // Toggle status route
+Route::post('/accounts/{account}/toggle-status', [AccountController::class, 'toggleStatus'])
+    ->name('accounts.toggle-status');
+
+// Bulk delete route
+Route::post('/accounts/bulk-delete', [AccountController::class, 'bulkDelete'])
+    ->name('accounts.bulk-delete');
 
     // สาขา
     Route::resource('branches', BranchController::class);
