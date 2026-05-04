@@ -145,12 +145,27 @@ public function downloadTemplate(ExcelService $excelService)
     /**
      * Display the specified customer.
      */
-    public function show(Customer $customer)
-    {
-        $customer->load(['company', 'branch']);
-        return view('pages.customer.show', compact('customer'));
-    }
+// ใน CustomerController.php หรือ Controller ที่ใช้แสดงหน้า show customer
 
+// ใน CustomerController.php
+public function show($id)
+{
+    $customer = Customer::with(['sales', 'purchases'])->findOrFail($id);
+
+    // ดึงข้อมูลรายการซื้อล่าสุดของผู้ขายรายนี้
+    $recentPurchases = $customer->purchases()
+        ->latest()
+        ->take(5)
+        ->get();
+
+    // ดึงข้อมูลรายการขายล่าสุด
+    $recentSales = $customer->sales()
+        ->latest()
+        ->take(5)
+        ->get();
+
+    return view('pages.customer.show', compact('customer', 'recentSales', 'recentPurchases'));
+}
     /**
      * Show the form for editing the specified customer.
      */
