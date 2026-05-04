@@ -268,7 +268,7 @@
                         <div class="w-7 h-7 bg-gray-100 rounded-md flex items-center justify-center">
                             <i class="fas fa-pen-alt text-gray-500 text-sm"></i>
                         </div>
-                        <h2 class="text-base font-medium text-gray-800">หมายเหตุเพิ่มเติม</h2>
+                        <h2 class="text-base font-medium text-gray-800">รายละเอียดเเพิ่มเติม</h2>
                     </div>
 
                     <div class="relative">

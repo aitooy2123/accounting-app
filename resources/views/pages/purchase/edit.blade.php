@@ -1,3 +1,4 @@
+{{-- resources/views/purchases/edit.blade.php --}}
 @extends('layouts.app')
 
 @section('content')
@@ -61,12 +62,10 @@
                         <div class="w-12 h-0.5 bg-gray-300"></div>
                         <div class="flex items-center text-gray-400">
                             <div class="bg-gray-300 text-gray-600 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">3</div>
-                            <span class="ml-2 text-sm font-medium">หมายเหตุ</span>
+                            <span class="ml-2 text-sm font-medium">รายละเอียด</span>
                         </div>
                     </div>
-                    <div class="text-xs text-gray-400">
-                        <i class="fas fa-keyboard mr-1"></i>Ctrl+S บันทึก
-                    </div>
+
                 </div>
             </div>
 
@@ -256,7 +255,8 @@
                 <div class="group">
                     <h2 class="text-lg font-bold text-gray-800 mb-4 font-kanit flex items-center gap-2 border-l-4 border-purple-500 pl-3">
                         <i class="fas fa-sticky-note text-purple-500"></i>
-                        หมายเหตุ
+รายละเอียดเเพิ่มเติม
+
                     </h2>
                     <div class="transform transition-all duration-200 hover:shadow-md">
                         <textarea name="note" rows="4"
@@ -320,7 +320,6 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    // [ใส่ JavaScript เหมือนเดิมทั้งหมด]
     // ฟังก์ชัน format ตัวเลขเป็นสกุลเงินไทย
     function formatThaiCurrency(value) {
         if (isNaN(value) || value === '') return '0.00';
@@ -366,19 +365,26 @@
         if (vatInput) vatInput.value = vat.toFixed(2);
         if (totalInput) totalInput.value = total.toFixed(2);
 
-        document.getElementById('vatDisplay').innerHTML = '฿ ' + formatThaiCurrency(vat);
-        document.getElementById('totalDisplay').innerHTML = '฿ ' + formatThaiCurrency(total);
-        document.getElementById('grandTotalDisplay').innerHTML = '฿ ' + formatThaiCurrency(total);
+        const vatDisplay = document.getElementById('vatDisplay');
+        const totalDisplay = document.getElementById('totalDisplay');
+        const grandTotalDisplay = document.getElementById('grandTotalDisplay');
+
+        if (vatDisplay) vatDisplay.innerHTML = '฿ ' + formatThaiCurrency(vat);
+        if (totalDisplay) totalDisplay.innerHTML = '฿ ' + formatThaiCurrency(total);
+        if (grandTotalDisplay) grandTotalDisplay.innerHTML = '฿ ' + formatThaiCurrency(total);
     }
 
     // ฟังก์ชันยืนยันการลบ
     window.confirmDelete = function() {
+        const docNoElement = document.querySelector('input[name="doc_no"]');
+        const docNo = docNoElement ? escapeHtml(docNoElement.value) : '';
+
         Swal.fire({
             title: '<span class="font-kanit">ยืนยันการลบ?</span>',
             html: `
                 <div class="font-kanit">
                     <p class="mb-2">คุณต้องการลบเอกสาร</p>
-                    <p class="font-bold text-purple-600 text-lg">${escapeHtml(document.querySelector('input[name="doc_no"]')?.value || '')}</p>
+                    <p class="font-bold text-purple-600 text-lg">${docNo}</p>
                     <p class="text-red-500 text-sm mt-3">⚠️ การลบไม่สามารถกู้คืนได้</p>
                     <p class="text-yellow-600 text-xs mt-2">⚠️ ข้อมูลที่เกี่ยวข้องจะถูกลบทั้งหมด</p>
                 </div>
