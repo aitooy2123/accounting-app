@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\Branch;
 use App\Models\Company;
+use App\Models\Sale;        // เพิ่มบรรทัดนี้
+use App\Models\Purchase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -148,21 +150,21 @@ public function downloadTemplate(ExcelService $excelService)
 // ใน CustomerController.php หรือ Controller ที่ใช้แสดงหน้า show customer
 
 // ใน CustomerController.php
+// ใน CustomerController หรือ Controller ที่เรียกใช้ view นี้
 public function show($id)
 {
-    $customer = Customer::with(['sales', 'purchases'])->findOrFail($id);
+    $customer = Customer::findOrFail($id);
 
-    // ดึงข้อมูลรายการซื้อล่าสุดของผู้ขายรายนี้
-    $recentPurchases = $customer->purchases()
-        ->latest()
-        ->take(5)
-        ->get();
+    $recentSales = Sale::where('customer_id', $customer->id)
+                        ->orderBy('created_at', 'desc')
+                        ->take(5)
+                        ->get();
 
-    // ดึงข้อมูลรายการขายล่าสุด
-    $recentSales = $customer->sales()
-        ->latest()
-        ->take(5)
-        ->get();
+    // เปลี่ยนจาก customer_id เป็น supplier_id
+    $recentPurchases = Purchase::where('supplier_id', $customer->id)
+                                ->orderBy('created_at', 'desc')
+                                ->take(5)
+                                ->get();
 
     return view('pages.customer.show', compact('customer', 'recentSales', 'recentPurchases'));
 }

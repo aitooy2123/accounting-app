@@ -25,6 +25,7 @@ class Purchase extends Model
         'vat_rate',
         'note',
         'status',
+        'customer_id',
     ];
 
     protected $casts = [
@@ -96,5 +97,23 @@ class Purchase extends Model
         }
 
         return $prefix . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
+    }
+    // ในไฟล์ App\Models\Purchase.php
+
+public function getRemainingAmountAttribute()
+{
+    return ($this->total_amount ?? 0) - ($this->paid_amount ?? 0);
+}
+
+public function getPaymentStatusAttribute()
+{
+    $remaining = $this->remaining_amount;
+    if ($remaining <= 0) return 'ชำระแล้ว';
+    if ($remaining < ($this->total_amount ?? 0)) return 'ชำระบางส่วน';
+    return 'ยังไม่ชำระ';
+}
+public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
     }
 }

@@ -57,7 +57,7 @@
     </div>
 
     {{-- Customer Detail --}}
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-8">
         <div class="px-6 py-4 border-b border-gray-50 bg-gray-50/30 flex justify-between items-center">
             <div class="flex items-center space-x-3">
                 <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">รหัสลูกค้า: <span class="text-blue-600 ml-1">{{ $customer->code }}</span></span>
@@ -156,143 +156,127 @@
         </div>
     </div>
 
+    {{-- Temporary Debug Section (Remove after fixing) --}}
+
+
     {{-- Sales & Purchases List --}}
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
         {{-- Recent Sales --}}
-        <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
-            <div class="p-4 border-b flex justify-between">
-                <h3 class="text-sm font-bold"><i class="fas fa-receipt text-blue-500 mr-2"></i>รายการขายล่าสุด</h3>
-                <a href="{{ route('sales.index') }}" class="text-xs text-blue-600">ดูทั้งหมด</a>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
+            <div class="p-4 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center">
+                <h3 class="text-sm font-bold text-gray-700">
+                    <i class="fas fa-receipt text-blue-500 mr-2"></i>รายการขายล่าสุด
+                </h3>
+                <a href="{{ route('sales.index', ['customer_id' => $customer->id]) }}"
+                   class="text-[11px] font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-2 py-1 rounded-lg transition-colors">
+                    ดูทั้งหมด <i class="fas fa-chevron-right ml-1 text-[9px]"></i>
+                </a>
             </div>
-            <table class="w-full text-sm">
-                <thead class="bg-gray-50 text-xs text-gray-500">
-                    <tr><th class="px-4 py-2">เลขที่</th><th class="px-4 py-2">ลูกค้า</th><th class="px-4 py-2 text-right">จำนวนเงิน</th><th class="px-4 py-2 text-center">สถานะ</th></tr>
-                </thead>
-                <tbody class="divide-y">
-                    @forelse($recentSales as $sale)
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-2 font-mono text-blue-600">{{ $sale->doc_no }}</td>
-                        <td class="px-4 py-2">{{ $sale->customer_name }}</td>
-                        <td class="px-4 py-2 text-right">฿ {{ number_format($sale->total, 2) }}</td>
-                        <td class="px-4 py-2 text-center">
-                            <span class="px-2 py-0.5 rounded-full text-[10px] {{ $sale->status == 'ชำระแล้ว' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700' }}">{{ $sale->status }}</span>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr><td colspan="4" class="text-center py-8 text-gray-400">ไม่มีรายการ</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
+
+            <div class="overflow-x-auto flex-1">
+                <table class="w-full text-sm">
+                    <thead class="bg-white text-[10px] text-gray-400 uppercase tracking-wider border-b border-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left font-bold">เลขที่เอกสาร</th>
+                            <th class="px-4 py-3 text-right font-bold">วันที่</th>
+                            <th class="px-4 py-3 text-right font-bold">จำนวนเงิน</th>
+                            <th class="px-4 py-3 text-center font-bold">สถานะ</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        @forelse($recentSales ?? [] as $sale)
+                        <tr class="hover:bg-blue-50/30 transition-colors group">
+                            <td class="px-4 py-3">
+                                <div class="font-mono text-blue-600 font-bold text-xs">{{ $sale->doc_no ?? 'SALE-'.$sale->id }}</div>
+                            </td>
+                            <td class="px-4 py-3 text-right">
+                                <div class="text-xs text-gray-600">{{ $sale->sale_date ? \Carbon\Carbon::parse($sale->sale_date)->format('d/m/Y') : $sale->created_at->format('d/m/Y') }}</div>
+                            </td>
+                            <td class="px-4 py-3 text-right">
+                                <span class="font-bold text-gray-800">฿{{ number_format($sale->total_amount ?? 0, 2) }}</span>
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                @php
+                                    $statusClass = ($sale->status == 'paid' || $sale->status == 'ชำระแล้ว') ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700';
+                                    $statusText = ($sale->status == 'paid' || $sale->status == 'ชำระแล้ว') ? 'ชำระแล้ว' : 'ยังไม่ชำระ';
+                                @endphp
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold {{ $statusClass }}">
+                                    {{ $statusText }}
+                                </span>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="4" class="text-center py-12">
+                                <div class="flex flex-col items-center">
+                                    <i class="fas fa-inbox text-3xl text-gray-100 mb-2"></i>
+                                    <p class="text-xs text-gray-400">ยังไม่มีประวัติการขาย</p>
+                                </div>
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         {{-- Recent Purchases --}}
-   <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
-    <div class="p-4 border-b flex justify-between items-center">
-        <h3 class="text-sm font-bold">
-            <i class="fas fa-shopping-cart text-purple-500 mr-2"></i>
-            รายการซื้อล่าสุด
+       <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
+    <div class="p-4 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center">
+        <h3 class="text-sm font-bold text-gray-700">
+            <i class="fas fa-shopping-cart text-purple-500 mr-2"></i>รายการซื้อล่าสุด
         </h3>
-        <a href="{{ route('purchases.index', ['supplier_id' => $customer->id ?? '']) }}" class="text-xs text-purple-600 hover:text-purple-800 transition">
-            ดูทั้งหมด →
+        <a href="{{ route('purchases.index', ['customer_id' => $customer->id]) }}"
+           class="text-[11px] font-bold text-purple-600 hover:text-purple-700 bg-purple-50 px-2 py-1 rounded-lg transition-colors">
+            ดูทั้งหมด <i class="fas fa-chevron-right ml-1 text-[9px]"></i>
         </a>
     </div>
 
-    @if(isset($recentPurchases) && $recentPurchases->count() > 0)
-    <div class="overflow-x-auto">
+    <div class="overflow-x-auto flex-1">
         <table class="w-full text-sm">
-            <thead class="bg-gray-50 text-xs text-gray-500 border-b">
+            <thead class="bg-white text-[10px] text-gray-400 uppercase tracking-wider border-b border-gray-50">
                 <tr>
-                    <th class="px-4 py-3 text-left">เลขที่เอกสาร</th>
-                    <th class="px-4 py-3 text-left">ผู้จำหน่าย</th>
-                    <th class="px-4 py-3 text-right">จำนวนเงิน</th>
-                    <th class="px-4 py-3 text-right">ชำระแล้ว</th>
-                    <th class="px-4 py-3 text-right">คงเหลือ</th>
-                    <th class="px-4 py-3 text-center">สถานะ</th>
-                    <th class="px-4 py-3 text-center">จัดการ</th>
+                    <th class="px-4 py-3 text-left font-bold">เลขที่เอกสาร</th>
+                    <th class="px-4 py-3 text-right font-bold">วันที่</th>
+                    <th class="px-4 py-3 text-right font-bold">จำนวนเงิน</th>
+                    <th class="px-4 py-3 text-center font-bold">สถานะ</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-100">
-                @forelse($recentPurchases as $purchase)
-                <tr class="hover:bg-purple-50/30 transition-colors">
+            <tbody class="divide-y divide-gray-50">
+                @forelse($recentPurchases ?? [] as $purchase)
+                @php
+                    $totalAmount = $purchase->total_amount ?? $purchase->total ?? 0;
+                    $paidAmount = $purchase->paid_amount ?? $purchase->paid ?? 0;
+                    $remaining = $totalAmount - $paidAmount;
+                    $status = $remaining <= 0 ? 'ชำระแล้ว' : 'ยังไม่ชำระ';
+                    $statusClass = $status == 'ชำระแล้ว' ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700';
+                @endphp
+                <tr class="hover:bg-purple-50/30 transition-colors group">
                     <td class="px-4 py-3">
-                        <div class="font-mono text-purple-600 font-semibold text-xs">
-                            {{ $purchase->po_no ?? $purchase->doc_no ?? 'PO-'.$purchase->id }}
-                        </div>
-                        <div class="text-[10px] text-gray-400 mt-0.5">
-                            {{ isset($purchase->created_at) ? $purchase->created_at->format('d/m/Y') : '-' }}
+                        <div class="font-mono text-purple-600 font-bold text-xs">
+                            {{ $purchase->doc_no ?? $purchase->document_no ?? 'PO-'.$purchase->id }}
                         </div>
                     </td>
-                    <td class="px-4 py-3">
-                        <div class="text-sm text-gray-800">{{ $purchase->supplier_name ?? $purchase->supplier->name ?? '-' }}</div>
-                        <div class="text-[10px] text-gray-400">รหัส: {{ $purchase->supplier_id ?? '-' }}</div>
+                    <td class="px-4 py-3 text-right">
+                        <div class="text-xs text-gray-600">
+                            {{ isset($purchase->purchase_date) ? \Carbon\Carbon::parse($purchase->purchase_date)->format('d/m/Y') : (isset($purchase->date) ? \Carbon\Carbon::parse($purchase->date)->format('d/m/Y') : $purchase->created_at->format('d/m/Y')) }}
+                        </div>
                     </td>
                     <td class="px-4 py-3 text-right">
-                        <span class="text-sm font-bold text-gray-800">
-                            {{ number_format($purchase->total_amount ?? $purchase->total ?? 0, 2) }}
-                        </span>
-                    </td>
-                    <td class="px-4 py-3 text-right">
-                        <span class="text-sm text-green-600">
-                            {{ number_format($purchase->paid_amount ?? 0, 2) }}
-                        </span>
-                    </td>
-                    <td class="px-4 py-3 text-right">
-                        @php
-                            $remaining = ($purchase->total_amount ?? $purchase->total ?? 0) - ($purchase->paid_amount ?? 0);
-                        @endphp
-                        <span class="text-sm font-semibold {{ $remaining > 0 ? 'text-red-500' : 'text-green-500' }}">
-                            {{ number_format($remaining, 2) }}
-                        </span>
+                        <span class="font-bold text-gray-800">฿{{ number_format($totalAmount, 2) }}</span>
                     </td>
                     <td class="px-4 py-3 text-center">
-                        @php
-                            $statusConfig = [
-                                'draft' => ['text' => 'ร่าง', 'class' => 'bg-gray-100 text-gray-600'],
-                                'pending' => ['text' => 'รอส่งของ', 'class' => 'bg-yellow-100 text-yellow-700'],
-                                'delivered' => ['text' => 'รับสินค้าแล้ว', 'class' => 'bg-blue-100 text-blue-700'],
-                                'paid' => ['text' => 'ชำระแล้ว', 'class' => 'bg-green-100 text-green-700'],
-                                'partial' => ['text' => 'ชำระบางส่วน', 'class' => 'bg-orange-100 text-orange-700'],
-                                'cancelled' => ['text' => 'ยกเลิก', 'class' => 'bg-red-100 text-red-700'],
-                            ];
-                            $status = $purchase->status ?? 'draft';
-                            $config = $statusConfig[$status] ?? ['text' => ucfirst($status), 'class' => 'bg-gray-100 text-gray-600'];
-                        @endphp
-                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold {{ $config['class'] }}">
-                            {{ $config['text'] }}
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold {{ $statusClass }}">
+                            {{ $status }}
                         </span>
-                    </td>
-                    <td class="px-4 py-3 text-center">
-                        <div class="flex items-center justify-center gap-1">
-                            <a href="{{ route('purchases.show', $purchase->id) }}"
-                               class="text-purple-500 hover:text-purple-700 transition"
-                               title="ดูรายละเอียด">
-                                <i class="fas fa-eye text-xs"></i>
-                            </a>
-                            <a href="{{ route('purchases.edit', $purchase->id) }}"
-                               class="text-blue-500 hover:text-blue-700 transition"
-                               title="แก้ไข">
-                                <i class="fas fa-edit text-xs"></i>
-                            </a>
-                            @if($remaining > 0)
-                            <button onclick="recordPayment({{ $purchase->id }})"
-                                    class="text-green-500 hover:text-green-700 transition"
-                                    title="บันทึกการชำระเงิน">
-                                <i class="fas fa-money-bill-wave text-xs"></i>
-                            </button>
-                            @endif
-                        </div>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="text-center py-12 text-gray-400">
-                        <i class="fas fa-shopping-bag text-3xl mb-2 block text-gray-200"></i>
-                        <span class="text-xs">ไม่มีรายการซื้อ</span>
-                        <div class="mt-2">
-                            <a href="{{ route('purchases.create', ['supplier_id' => $customer->id ?? '']) }}"
-                               class="text-xs text-purple-500 hover:text-purple-700">
-                                + สร้างรายการซื้อใหม่
-                            </a>
+                    <td colspan="4" class="text-center py-12">
+                        <div class="flex flex-col items-center">
+                            <i class="fas fa-shopping-bag text-3xl text-gray-100 mb-2"></i>
+                            <p class="text-xs text-gray-400">ยังไม่มีประวัติการซื้อ</p>
                         </div>
                     </td>
                 </tr>
@@ -300,55 +284,18 @@
             </tbody>
         </table>
     </div>
-
-    {{-- แสดงสรุปรายการซื้อ --}}
-    @if(isset($recentPurchases) && $recentPurchases->count() > 0)
-    <div class="p-3 bg-gray-50/50 border-t text-xs">
-        <div class="flex justify-between items-center">
-            <div class="text-gray-500">
-                <i class="fas fa-chart-line mr-1"></i> 5 รายการล่าสุด
-            </div>
-            <div class="flex gap-4">
-                <div>
-                    <span class="text-gray-500">ยอดรวม:</span>
-                    <span class="font-bold text-purple-600 ml-1">
-                        {{ number_format($recentPurchases->sum('total_amount'), 2) }}
-                    </span>
-                </div>
-                <div>
-                    <span class="text-gray-500">ชำระแล้ว:</span>
-                    <span class="font-bold text-green-600 ml-1">
-                        {{ number_format($recentPurchases->sum('paid_amount'), 2) }}
-                    </span>
-                </div>
-                <div>
-                    <span class="text-gray-500">คงเหลือ:</span>
-                    <span class="font-bold text-red-500 ml-1">
-                        {{ number_format($recentPurchases->sum('total_amount') - $recentPurchases->sum('paid_amount'), 2) }}
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
-    @endif
-    @else
-    <div class="p-8 text-center text-gray-400">
-        <i class="fas fa-shopping-cart text-4xl mb-3 block text-gray-200"></i>
-        <p class="text-sm">ไม่มีข้อมูลรายการซื้อ</p>
-        <p class="text-xs mt-1">ยังไม่มีรายการซื้อในระบบ</p>
-    </div>
-    @endif
 </div>
+    </div>
+</div>
+@endsection
 
-{{-- Modal สำหรับบันทึกการชำระเงิน (ถ้าต้องการ) --}}
 @push('scripts')
 <script>
 function recordPayment(purchaseId) {
-    // คุณสามารถเพิ่ม modal สำหรับบันทึกการชำระเงินได้ที่นี่
     Swal.fire({
         title: 'บันทึกการชำระเงิน',
         html: `
-            <input type="number" id="amount" class="swal2-input" placeholder="จำนวนเงิน">
+            <input type="number" id="amount" class="swal2-input" placeholder="จำนวนเงิน" step="0.01">
             <input type="date" id="payment_date" class="swal2-input" value="{{ date('Y-m-d') }}">
             <select id="payment_method" class="swal2-select">
                 <option value="cash">เงินสด</option>
@@ -360,32 +307,43 @@ function recordPayment(purchaseId) {
         cancelButtonText: 'ยกเลิก',
         showCancelButton: true,
         preConfirm: () => {
+            const amount = document.getElementById('amount').value;
+            if (!amount || amount <= 0) {
+                Swal.showValidationMessage('กรุณาระบุจำนวนเงินที่ถูกต้อง');
+                return false;
+            }
             return {
-                amount: document.getElementById('amount').value,
+                amount: amount,
                 payment_date: document.getElementById('payment_date').value,
                 payment_method: document.getElementById('payment_method').value
             }
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            // ส่งข้อมูลไปบันทึกที่ server
             fetch(`/purchases/${purchaseId}/payments`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify(result.value)
-            }).then(response => response.json())
-              .then(data => {
-                  if (data.success) {
-                      Swal.fire('สำเร็จ', 'บันทึกการชำระเงินเรียบร้อย', 'success')
-                          .then(() => location.reload());
-                  }
-              });
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire('สำเร็จ', 'บันทึกการชำระเงินเรียบร้อย', 'success')
+                        .then(() => location.reload());
+                } else {
+                    Swal.fire('ผิดพลาด', data.message || 'ไม่สามารถบันทึกการชำระเงินได้', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire('ผิดพลาด', 'เกิดข้อผิดพลาดในการบันทึกข้อมูล', 'error');
+            });
         }
     });
 }
 </script>
 @endpush
-@endsection
