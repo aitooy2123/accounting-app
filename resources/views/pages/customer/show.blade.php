@@ -160,65 +160,73 @@
 
 
     {{-- Sales & Purchases List --}}
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-        {{-- Recent Sales --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
-            <div class="p-4 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center">
-                <h3 class="text-sm font-bold text-gray-700">
-                    <i class="fas fa-receipt text-blue-500 mr-2"></i>รายการขายล่าสุด
-                </h3>
-                <a href="{{ route('sales.index', ['customer_id' => $customer->id]) }}"
-                   class="text-[11px] font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-2 py-1 rounded-lg transition-colors">
-                    ดูทั้งหมด <i class="fas fa-chevron-right ml-1 text-[9px]"></i>
-                </a>
-            </div>
-
-            <div class="overflow-x-auto flex-1">
-                <table class="w-full text-sm">
-                    <thead class="bg-white text-[10px] text-gray-400 uppercase tracking-wider border-b border-gray-50">
-                        <tr>
-                            <th class="px-4 py-3 text-left font-bold">เลขที่เอกสาร</th>
-                            <th class="px-4 py-3 text-right font-bold">วันที่</th>
-                            <th class="px-4 py-3 text-right font-bold">จำนวนเงิน</th>
-                            <th class="px-4 py-3 text-center font-bold">สถานะ</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-50">
-                        @forelse($recentSales ?? [] as $sale)
-                        <tr class="hover:bg-blue-50/30 transition-colors group">
-                            <td class="px-4 py-3">
-                                <div class="font-mono text-blue-600 font-bold text-xs">{{ $sale->doc_no ?? 'SALE-'.$sale->id }}</div>
-                            </td>
-                            <td class="px-4 py-3 text-right">
-                                <div class="text-xs text-gray-600">{{ $sale->sale_date ? \Carbon\Carbon::parse($sale->sale_date)->format('d/m/Y') : $sale->created_at->format('d/m/Y') }}</div>
-                            </td>
-                            <td class="px-4 py-3 text-right">
-                                <span class="font-bold text-gray-800">฿{{ number_format($sale->total_amount ?? 0, 2) }}</span>
-                            </td>
-                            <td class="px-4 py-3 text-center">
-                                @php
-                                    $statusClass = ($sale->status == 'paid' || $sale->status == 'ชำระแล้ว') ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700';
-                                    $statusText = ($sale->status == 'paid' || $sale->status == 'ชำระแล้ว') ? 'ชำระแล้ว' : 'ยังไม่ชำระ';
-                                @endphp
-                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold {{ $statusClass }}">
-                                    {{ $statusText }}
-                                </span>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="4" class="text-center py-12">
-                                <div class="flex flex-col items-center">
-                                    <i class="fas fa-inbox text-3xl text-gray-100 mb-2"></i>
-                                    <p class="text-xs text-gray-400">ยังไม่มีประวัติการขาย</p>
-                                </div>
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+    {{-- Recent Sales --}}
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
+        <div class="p-4 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center">
+            <h3 class="text-sm font-bold text-gray-700">
+                <i class="fas fa-receipt text-blue-500 mr-2"></i>รายการขายล่าสุด
+            </h3>
+            <a href="{{ route('sales.index', ['customer_id' => $customer->id]) }}"
+               class="text-[11px] font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-2 py-1 rounded-lg transition-colors">
+                ดูทั้งหมด <i class="fas fa-chevron-right ml-1 text-[9px]"></i>
+            </a>
         </div>
+
+        <div class="overflow-x-auto flex-1">
+            <table class="w-full text-sm">
+                <thead class="bg-white text-[10px] text-gray-400 uppercase tracking-wider border-b border-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left font-bold">เลขที่เอกสาร</th>
+                        <th class="px-4 py-3 text-right font-bold">วันที่</th>
+                        <th class="px-4 py-3 text-right font-bold">จำนวนเงิน</th>
+                        <th class="px-4 py-3 text-center font-bold">สถานะ</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    @forelse($recentSales ?? [] as $sale)
+                    <tr class="hover:bg-blue-50/30 transition-colors group">
+                        <td class="px-4 py-3">
+                            <div class="font-mono text-blue-600 font-bold text-xs">
+                                {{ $sale->doc_no ?? $sale->document_no ?? 'SALE-'.$sale->id }}
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 text-right">
+                            <div class="text-xs text-gray-600">
+                                {{ \Carbon\Carbon::parse($sale->sale_date ?? $sale->created_at)->format('d/m/Y') }}
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 text-right">
+                            <span class="font-bold text-gray-800">
+                                ฿{{ number_format(floatval($sale->total_amount ?? $sale->total ?? $sale->grand_total ?? 0), 2) }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            @php
+                                $statusValue = $sale->status ?? $sale->payment_status ?? '';
+                                $isPaid = in_array($statusValue, ['paid', 'ชำระแล้ว', 'completed', 'success']);
+                                $statusClass = $isPaid ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700';
+                                $statusText = $isPaid ? 'ชำระแล้ว' : 'ยังไม่ชำระ';
+                            @endphp
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold {{ $statusClass }}">
+                                {{ $statusText }}
+                            </span>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="4" class="text-center py-12">
+                            <div class="flex flex-col items-center">
+                                <i class="fas fa-inbox text-3xl text-gray-100 mb-2"></i>
+                                <p class="text-xs text-gray-400">ยังไม่มีประวัติการขาย</p>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
 
         {{-- Recent Purchases --}}
        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
