@@ -8,6 +8,9 @@ use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Services\ExcelService;
+use App\Imports\CustomersImport; // If using Laravel Excel package
 
 class CustomerController extends Controller
 {
@@ -58,7 +61,38 @@ class CustomerController extends Controller
             'endDate'
         ));
     }
+public function import(Request $request)
+{
+    try {
+        $file = $request->file('file');
 
+        // Test 1: เช็คว่าไฟล์ถูกอัพโหลดไหม
+        if (!$file->isValid()) {
+            throw new \Exception('File upload failed');
+        }
+
+        // Test 2: ลองอ่านไฟล์ raw
+        $content = file_get_contents($file->getPathname());
+        \Log::info('File content length: ' . strlen($content));
+
+        // Test 3: ลอง import
+        Excel::import(new CustomersImport, $file);
+
+        return back()->with('success', 'Import done!');
+
+    } catch (\Exception $e) {
+        return back()->with('error', 'Error: ' . $e->getMessage());
+    }
+}
+
+public function downloadTemplate(ExcelService $excelService)
+{
+    return response()->streamDownload(function () use ($excelService) {
+        $spreadsheet = $excelService->createCustomerTemplate();
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer->save('php://output');
+    }, 'customer_template.xlsx');
+}
     /**
      * Show the form for creating a new customer.
      */
@@ -270,5 +304,8 @@ class CustomerController extends Controller
                 'message' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()
             ], 500);
         }
+
+
+
     }
 }
