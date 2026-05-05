@@ -56,13 +56,13 @@
 
     {{-- จำนวนบิลทั้งหมด (ยอดขาย) --}}
     <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-        <p class="text-xs font-bold text-gray-400 uppercase">จำนวนบิลทั้งหมด</p>
+        <p class="text-xs font-bold text-gray-400 uppercase">รายการขายทั้งหมด</p>
         <p class="text-xl font-bold text-gray-900 mt-1">{{ $customer->sales->count() }} รายการ</p>
     </div>
 
     {{-- รายการซื้อ  --}}
     <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-        <p class="text-xs font-bold text-gray-400 uppercase">รายการซื้อ</p>
+        <p class="text-xs font-bold text-gray-400 uppercase">รายการซื้อทั้งหมด</p>
         <p class="text-xl font-bold text-gray-900 mt-1">{{ $customer->purchases->count() }} รายการ</p>
     </div>
 </div>
