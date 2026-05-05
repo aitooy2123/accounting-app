@@ -41,20 +41,31 @@
     </div>
 
     {{-- Summary Cards --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-            <p class="text-xs font-bold text-gray-400 uppercase">ยอดขายสะสม</p>
-            <p class="text-xl font-bold text-gray-900 mt-1">฿ {{ number_format($customer->sales->sum('total_amount'), 2) }}</p>
-        </div>
-        <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-            <p class="text-xs font-bold text-gray-400 uppercase text-red-500">ยอดค้างชำระ (AR)</p>
-            <p class="text-xl font-bold text-red-600 mt-1">฿ {{ number_format($customer->balance ?? 0, 2) }}</p>
-        </div>
-        <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-            <p class="text-xs font-bold text-gray-400 uppercase">จำนวนบิลทั้งหมด</p>
-            <p class="text-xl font-bold text-gray-900 mt-1">{{ $customer->sales->count() }} รายการ</p>
-        </div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+    {{-- ยอดขายสะสม --}}
+    <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+        <p class="text-xs font-bold text-gray-400 uppercase">ยอดขายสะสม</p>
+        <p class="text-xl font-bold text-gray-900 mt-1">฿ {{ number_format($customer->sales->sum('total_amount'), 2) }}</p>
     </div>
+
+    {{-- ยอดค้างชำระ (AR) --}}
+    <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+        <p class="text-xs font-bold text-gray-400 uppercase text-red-500">ยอดค้างชำระ (AR)</p>
+        <p class="text-xl font-bold text-red-600 mt-1">฿ {{ number_format($customer->balance ?? 0, 2) }}</p>
+    </div>
+
+    {{-- จำนวนบิลทั้งหมด (ยอดขาย) --}}
+    <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+        <p class="text-xs font-bold text-gray-400 uppercase">จำนวนบิลทั้งหมด</p>
+        <p class="text-xl font-bold text-gray-900 mt-1">{{ $customer->sales->count() }} รายการ</p>
+    </div>
+
+    {{-- รายการซื้อ  --}}
+    <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+        <p class="text-xs font-bold text-gray-400 uppercase">รายการซื้อ</p>
+        <p class="text-xl font-bold text-gray-900 mt-1">{{ $customer->purchases->count() }} รายการ</p>
+    </div>
+</div>
 
     {{-- Customer Detail --}}
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-8">

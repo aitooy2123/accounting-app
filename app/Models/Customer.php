@@ -39,11 +39,10 @@ class Customer extends Model
     }
 
     // รายการซื้อ (Purchases) - เพิ่มส่วนนี้เข้าไป
-    public function purchases()
-    {
-        return $this->hasMany(Purchase::class);
-    }
-
+public function purchases()
+{
+    return $this->hasMany(Purchase::class, 'supplier_id', 'id');
+}
     public function branch()
     {
         return $this->belongsTo(Branch::class);
