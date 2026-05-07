@@ -40,6 +40,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // --- ระบบงานขาย (Sales) ---
     Route::resource('sales', SalesController::class)->except('show');
 
+Route::get('/sales/{sale}', [SalesController::class, 'show'])->name('sale.show');
 
     Route::get('sales/{id}/export', function ($id) {
         $sale = App\Models\Sale::findOrFail($id);

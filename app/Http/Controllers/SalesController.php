@@ -259,4 +259,11 @@ class SalesController extends Controller
             ], 500);
         }
     }
+
+public function show(Sale $sale)
+{
+    $customers = Customer::active()->orderBy('name')->get();
+    $branches = Branch::active()->orderBy('name')->get();
+    return view('pages.sale.show', compact('sale', 'customers', 'branches'));
+}
 }

@@ -122,6 +122,12 @@
               </td>
               <td class="px-6 py-4 text-right">
                 <div class="flex justify-end items-center space-x-1">
+                          <div class="flex justify-end items-center space-x-1">
+                 <a href="{{ route('sale.show', $item->id) }}"
+                                   class="text-blue-600 hover:text-blue-900 transition-colors p-1"
+                                   title="ดูรายละเอียด">
+                                    <i class="fas fa-eye"></i>
+                                </a>
                   <a href="{{ route('sales.edit', $item->id) }}"
                      class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
                      title="แก้ไข">
