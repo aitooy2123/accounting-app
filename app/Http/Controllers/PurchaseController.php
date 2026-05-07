@@ -91,11 +91,6 @@ class PurchaseController extends Controller
     /**
      * Display the specified purchase.
      */
-    public function show(Purchase $purchase)
-    {
-        $purchase->load(['supplier', 'branch']);
-        return view('pages.purchase.show', compact('purchase'));
-    }
 
     /**
      * Show the form for editing the specified purchase.
@@ -106,6 +101,13 @@ class PurchaseController extends Controller
         $branches = Branch::active()->orderBy('name')->get();
 
         return view('pages.purchase.edit', compact('purchase', 'suppliers', 'branches'));
+    }
+      public function show (Purchase $purchase)
+    {
+        $suppliers = Customer::active()->orderBy('name')->get();
+        $branches = Branch::active()->orderBy('name')->get();
+
+        return view('pages.purchase.show', compact('purchase', 'suppliers', 'branches'));
     }
 
     /**

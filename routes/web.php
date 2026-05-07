@@ -57,6 +57,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     //     return view('pages.purchase.index');
     // })->name('purchases');
 
+
+
     // Purchase Resource
     Route::resource('purchases', PurchaseController::class);
     Route::post('/purchases/{purchase}/toggle-status', [PurchaseController::class, 'toggleStatus'])->name('purchases.toggle-status');
@@ -64,10 +66,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Restore (Soft Delete)
     Route::post('/purchases/{id}/restore', [PurchaseController::class, 'restore'])
         ->name('purchases.restore');
-
+Route::get('/purchases/{purchase}', [PurchaseController::class, 'show'])->name('purchases.show');
     // Force Delete
     Route::delete('/purchases/{id}/force-delete', [PurchaseController::class, 'forceDelete'])
         ->name('purchases.force-delete');
+
+
+
+
 
     // --- สินค้า & สต็อก (Inventory) ---
     Route::get('/inventory', function () {

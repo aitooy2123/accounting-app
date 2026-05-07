@@ -112,6 +112,9 @@
                         </td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex justify-end items-center space-x-1">
+                                <a href="{{ route('purchases.show', $purchase->id) }}" class="text-blue-600 hover:text-blue-900">
+    <i class="fas fa-eye"></i> 
+</a>
                                 <a href="{{ route('purchases.edit', $purchase) }}"
                                    class="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200"
                                    title="แก้ไข">
