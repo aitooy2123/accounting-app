@@ -6,29 +6,25 @@ use App\Models\Purchase;
 use App\Models\Customer;
 use App\Models\Branch;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\DB; // ย้ายมาไว้ตรงนี้ที่เดียว
 
 class PurchaseController extends Controller
 {
     /**
-     * Display a listing of purchases.
+     * รายการใบสั่งซื้อทั้งหมด
      */
     public function index(Request $request)
     {
-        $query = Purchase::query()
-            ->with(['supplier', 'branch']);
+        $query = Purchase::query()->with(['supplier', 'branch']);
 
-        // Search
         if ($request->filled('search')) {
             $query->search($request->search);
         }
 
-        // Status Filter
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        // Date Filter
         if ($request->filled('start_date')) {
             $query->whereDate('doc_date', '>=', $request->start_date);
         }
@@ -42,7 +38,7 @@ class PurchaseController extends Controller
     }
 
     /**
-     * Show the form for creating a new purchase.
+     * หน้าสร้างใบสั่งซื้อใหม่
      */
     public function create()
     {
@@ -54,7 +50,7 @@ class PurchaseController extends Controller
     }
 
     /**
-     * Store a newly created purchase.
+     * บันทึกใบสั่งซื้อใหม่
      */
     public function store(Request $request)
     {
@@ -64,54 +60,75 @@ class PurchaseController extends Controller
             'branch_id' => 'required|exists:branches,id',
             'doc_date' => 'required|date',
             'due_date' => 'required|date|after_or_equal:doc_date',
-            'subtotal' => 'required|numeric|min:0',
-            'vat_rate' => 'required|numeric|min:0|max:100',
-            'note' => 'nullable|string|max:1000',
-        ], [
-            'doc_no.unique' => 'เลขที่เอกสารนี้มีอยู่ในระบบแล้ว',
-            'supplier_id.required' => 'กรุณาเลือกเจ้าหนี้/ผู้ขาย',
-            'branch_id.required' => 'กรุณาเลือกสาขา',
-            'doc_date.required' => 'กรุณาระบุวันที่เอกสาร',
-            'due_date.required' => 'กรุณาระบุวันที่ครบกำหนด',
-            'due_date.after_or_equal' => 'วันที่ครบกำหนดต้องไม่ก่อนวันที่เอกสาร',
+            'subtotal' => 'required|numeric',
+            'vat_rate' => 'required|numeric',
+            'items' => 'required|array|min:1',
+            'items.*.desc' => 'required|string',
+            'items.*.qty' => 'required|numeric|min:0.01',
+            'items.*.price' => 'required|numeric|min:0',
         ]);
 
-        // Calculate VAT and Total
-        $validated['vat'] = round($validated['subtotal'] * ($validated['vat_rate'] / 100), 2);
-        $validated['total'] = $validated['subtotal'] + $validated['vat'];
-        $validated['status'] = 'ค้างชำระ';
+        try {
+            DB::beginTransaction();
 
-        Purchase::create($validated);
+            // 1. บันทึกหัวเอกสาร
+            $purchase = Purchase::create([
+                'doc_no' => $validated['doc_no'],
+                'supplier_id' => $validated['supplier_id'],
+                'branch_id' => $validated['branch_id'],
+                'doc_date' => $validated['doc_date'],
+                'due_date' => $validated['due_date'],
+                'subtotal' => $request->subtotal,
+                'vat' => $request->vat,
+                'total' => $request->total,
+                'vat_rate' => $validated['vat_rate'],
+                'note' => $request->note,
+                'status' => 'ค้างชำระ',
+            ]);
 
-        return redirect()
-            ->route('purchases.index')
-            ->with('success', 'สร้างเอกสารซื้อ ' . $validated['doc_no'] . ' เรียบร้อยแล้ว');
+            // 2. บันทึกรายการสินค้า
+            foreach ($request->items as $item) {
+                $purchase->items()->create([
+                    'desc' => $item['desc'],
+                    'qty' => $item['qty'],
+                    'price' => $item['price'],
+                    'total' => $item['qty'] * $item['price'],
+                ]);
+            }
+
+            DB::commit();
+            return redirect()->route('purchases.index')->with('success', 'บันทึกเอกสาร ' . $purchase->doc_no . ' เรียบร้อยแล้ว');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withInput()->with('error', 'เกิดข้อผิดพลาด: ' . $e->getMessage());
+        }
     }
 
     /**
-     * Display the specified purchase.
+     * แสดงรายละเอียดใบสั่งซื้อ
      */
+    public function show(Purchase $purchase)
+    {
+        // โหลดรายการสินค้ามาด้วยเพื่อให้หน้า Show แสดงตารางสินค้าได้
+        $purchase->load(['items', 'supplier', 'branch']);
+        return view('pages.purchase.show', compact('purchase'));
+    }
 
     /**
-     * Show the form for editing the specified purchase.
+     * หน้าแก้ไขใบสั่งซื้อ
      */
     public function edit(Purchase $purchase)
     {
         $suppliers = Customer::active()->orderBy('name')->get();
         $branches = Branch::active()->orderBy('name')->get();
+        $purchase->load('items'); // โหลด items มาแสดงในตารางแก้ไข
 
         return view('pages.purchase.edit', compact('purchase', 'suppliers', 'branches'));
     }
-      public function show (Purchase $purchase)
-    {
-        $suppliers = Customer::active()->orderBy('name')->get();
-        $branches = Branch::active()->orderBy('name')->get();
-
-        return view('pages.purchase.show', compact('purchase', 'suppliers', 'branches'));
-    }
 
     /**
-     * Update the specified purchase.
+     * อัปเดตใบสั่งซื้อ
      */
     public function update(Request $request, Purchase $purchase)
     {
@@ -125,96 +142,88 @@ class PurchaseController extends Controller
             'vat_rate' => 'required|numeric|min:0|max:100',
             'note' => 'nullable|string|max:1000',
             'status' => 'required|in:ชำระแล้ว,ค้างชำระ,ยกเลิก',
+            'items' => 'required|array|min:1',
+            'items.*.desc' => 'required|string',
+            'items.*.qty' => 'required|numeric|min:0.01',
+            'items.*.price' => 'required|numeric|min:0',
         ], [
             'doc_no.unique' => 'เลขที่เอกสารนี้มีอยู่ในระบบแล้ว',
-            'status.required' => 'กรุณาเลือกสถานะ',
-            'status.in' => 'สถานะไม่ถูกต้อง',
+            'items.required' => 'กรุณาระบุรายการสินค้าอย่างน้อย 1 รายการ',
         ]);
 
-        // Calculate VAT and Total
-        $validated['vat'] = round($validated['subtotal'] * ($validated['vat_rate'] / 100), 2);
-        $validated['total'] = $validated['subtotal'] + $validated['vat'];
+        try {
+            DB::beginTransaction();
 
-        $purchase->update($validated);
+            $vat = round($request->subtotal * ($request->vat_rate / 100), 2);
+            $total = $request->subtotal + $vat;
 
-        return redirect()
-            ->route('purchases.index')
-            ->with('success', 'อัปเดตเอกสารซื้อ ' . $purchase->doc_no . ' เรียบร้อยแล้ว');
+            // 1. อัปเดตหัวเอกสาร
+            $purchase->update([
+                'supplier_id' => $request->supplier_id,
+                'branch_id'   => $request->branch_id,
+                'doc_date'    => $request->doc_date,
+                'due_date'    => $request->due_date,
+                'subtotal'    => $request->subtotal,
+                'vat'         => $vat,
+                'vat_rate'    => $request->vat_rate,
+                'total'       => $total,
+                'note'        => $request->note,
+                'status'      => $request->status,
+            ]);
+
+            // 2. อัปเดตรายการสินค้า (ลบของเดิม สร้างใหม่)
+            $purchase->items()->delete();
+            foreach ($request->items as $item) {
+                $purchase->items()->create([
+                    'desc'  => $item['desc'],
+                    'qty'   => $item['qty'],
+                    'price' => $item['price'],
+                    'total' => $item['qty'] * $item['price'],
+                ]);
+            }
+
+            DB::commit();
+            return redirect()->route('purchases.index')->with('success', 'อัปเดตเอกสารซื้อ ' . $purchase->doc_no . ' เรียบร้อยแล้ว');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withInput()->with('error', 'เกิดข้อผิดพลาด: ' . $e->getMessage());
+        }
     }
 
     /**
-     * Remove the specified purchase (Hard Delete).
+     * ลบใบสั่งซื้อ (Hard Delete)
      */
     public function destroy(Purchase $purchase)
     {
         try {
-            DB::beginTransaction();
-
-            $docNo = $purchase->doc_no;
-
-            // 🔥 ลบจริง (Hard Delete)
+            // หมายเหตุ: เนื่องจากตั้ง cascade ใน Database หรือลบ manual
+            // รายการใน purchase_items จะถูกลบตามความสัมพันธ์
             $purchase->forceDelete();
 
-            DB::commit();
-
-            return redirect()
-                ->route('purchases.index')
-                ->with('success', 'ลบเอกสารซื้อ ' . $docNo . ' เรียบร้อยแล้ว');
+            return redirect()->route('purchases.index')->with('success', 'ลบเอกสารเรียบร้อยแล้ว');
         } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()
-                ->back()
-                ->with('error', 'เกิดข้อผิดพลาดในการลบเอกสาร: ' . $e->getMessage());
+            return back()->with('error', 'ลบไม่สำเร็จ: ' . $e->getMessage());
         }
     }
 
     /**
-     * Remove methods that are not needed if you only want hard delete
-     * Comment out or remove restore() and forceDelete() methods
-     */
-
-    // /**
-    //  * Restore a soft-deleted purchase.
-    //  */
-    // public function restore($id)
-    // {
-    //     // ไม่ต้องใช้ถ้าลบจริง
-    // }
-
-    // /**
-    //  * Force delete a purchase.
-    //  */
-    // public function forceDelete($id)
-    // {
-    //     // ไม่ต้องใช้แยกเพราะ destroy ทำ forceDelete แล้ว
-    // }
-
-    /**
-     * Toggle purchase status.
+     * เปลี่ยนสถานะผ่าน AJAX
      */
     public function toggleStatus(Purchase $purchase, Request $request)
     {
         try {
-            $request->validate([
-                'status' => 'required|in:ชำระแล้ว,ค้างชำระ,ยกเลิก',
-            ]);
-
+            $request->validate(['status' => 'required|in:ชำระแล้ว,ค้างชำระ,ยกเลิก']);
             $purchase->update(['status' => $request->status]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'อัปเดตสถานะเรียบร้อย'
-            ]);
+            return response()->json(['success' => true, 'message' => 'อัปเดตสถานะเรียบร้อย']);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'ไม่สามารถอัปเดตสถานะได้: ' . $e->getMessage()
-            ], 500);
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
 
     /**
-     * Bulk delete purchases (Hard Delete).
+     * ลบหลายรายการพร้อมกัน
      */
     public function bulkDelete(Request $request)
     {
@@ -225,25 +234,13 @@ class PurchaseController extends Controller
 
         try {
             DB::beginTransaction();
-
-            // 🔥 ลบจริงทั้งหมด
             $deletedCount = Purchase::whereIn('id', $request->ids)->forceDelete();
-
             DB::commit();
 
-            return response()->json([
-                'success' => true,
-                'message' => "ลบเอกสาร {$deletedCount} รายการเรียบร้อยแล้ว",
-                'deleted_count' => $deletedCount
-            ]);
-
+            return response()->json(['success' => true, 'message' => "ลบเอกสาร {$deletedCount} รายการเรียบร้อยแล้ว"]);
         } catch (\Exception $e) {
             DB::rollBack();
-
-            return response()->json([
-                'success' => false,
-                'message' => 'เกิดข้อผิดพลาดในการลบเอกสาร: ' . $e->getMessage()
-            ], 500);
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
 }

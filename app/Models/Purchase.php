@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Purchase extends Model
@@ -25,7 +26,7 @@ class Purchase extends Model
         'vat_rate',
         'note',
         'status',
-        'customer_id',
+        // 'customer_id', // โดยปกติใช้ supplier_id แทน แนะนำให้เลือกอย่างใดอย่างหนึ่ง
     ];
 
     protected $casts = [
@@ -38,9 +39,18 @@ class Purchase extends Model
         'deleted_at' => 'datetime',
     ];
 
+    // --- Relationships ---
 
     /**
-     * Get the supplier (customer) for this purchase.
+     * ดึงรายการสินค้าทั้งหมดในใบซื้อนี้
+     */
+    public function items(): HasMany
+    {
+        return $this->hasMany(PurchaseItem::class, 'purchase_id');
+    }
+
+    /**
+     * ดึงข้อมูลผู้จำหน่าย (Supplier)
      */
     public function supplier(): BelongsTo
     {
@@ -48,14 +58,15 @@ class Purchase extends Model
     }
 
     /**
-     * Get the branch for this purchase.
+     * ดึงข้อมูลสาขา
      */
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
     }
 
-    // Scopes
+    // --- Scopes สำหรับ Query ---
+
     public function scopePaid($query)
     {
         return $query->where('status', 'ชำระแล้ว');
@@ -79,9 +90,8 @@ class Purchase extends Model
         return $query;
     }
 
-    /**
-     * Generate document number.
-     */
+    // --- Logic การสร้างเลขที่เอกสาร ---
+
     public static function generateDocNo(): string
     {
         $prefix = 'PO-' . date('Ym') . '-';
@@ -97,23 +107,5 @@ class Purchase extends Model
         }
 
         return $prefix . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
-    }
-    // ในไฟล์ App\Models\Purchase.php
-
-public function getRemainingAmountAttribute()
-{
-    return ($this->total_amount ?? 0) - ($this->paid_amount ?? 0);
-}
-
-public function getPaymentStatusAttribute()
-{
-    $remaining = $this->remaining_amount;
-    if ($remaining <= 0) return 'ชำระแล้ว';
-    if ($remaining < ($this->total_amount ?? 0)) return 'ชำระบางส่วน';
-    return 'ยังไม่ชำระ';
-}
-public function customer(): BelongsTo
-    {
-        return $this->belongsTo(Customer::class);
     }
 }

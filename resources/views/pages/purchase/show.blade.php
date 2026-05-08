@@ -1,155 +1,182 @@
-{{-- resources/views/purchases/show.blade.php --}}
-@extends('layouts.app')
+<x-app-layout>
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 space-y-4 md:space-y-0">
+        <div>
+            <div class="flex items-center space-x-3">
+                <a href="{{ route('purchases.index') }}" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <i class="fas fa-chevron-left text-xl"></i>
+                </a>
+                <h1 class="text-2xl font-bold text-gray-900 font-kanit">รายละเอียดใบสั่งซื้อ</h1>
+            </div>
+            <p class="text-sm text-gray-500 font-kanit ml-8">เลขที่เอกสาร: <span class="font-bold text-blue-600">{{ $purchase->doc_no }}</span></p>
+        </div>
 
-@section('content')
-<div class="container mx-auto px-4 py-8 max-w-4xl">
-
-    {{-- ACTION BUTTONS TOP --}}
-    <div class="mb-6 flex justify-between items-center print:hidden">
-        <a href="{{ route('purchases.index') }}" class="flex items-center gap-2 text-gray-600 hover:text-purple-600 transition-all font-kanit">
-            <i class="fas fa-arrow-left"></i> กลับหน้ารายการ
-        </a>
-        <div class="flex gap-2">
-            <button onclick="window.print()" class="px-4 py-2 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 font-kanit transition-all flex items-center gap-2 shadow-sm">
-                <i class="fas fa-print"></i> พิมพ์เอกสาร
+        <div class="flex space-x-3 ml-8 md:ml-0">
+            <button onclick="window.print()" class="px-5 py-2.5 bg-white border border-gray-200 text-gray-600 text-sm font-bold rounded-xl hover:bg-gray-50 transition-all">
+                <i class="fas fa-print mr-2"></i> พิมพ์เอกสาร
             </button>
-            <a href="{{ route('purchases.edit', $purchase) }}" class="px-4 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 font-kanit transition-all flex items-center gap-2 shadow-md">
-                <i class="fas fa-edit"></i> แก้ไขข้อมูล
+            <a href="{{ route('purchases.edit', $purchase->id) }}" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-all shadow-sm shadow-blue-200 font-kanit">
+                <i class="fas fa-edit mr-2"></i> แก้ไขข้อมูล
             </a>
         </div>
     </div>
 
-    {{-- MAIN INVOICE CARD --}}
-    <div class="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden print:shadow-none print:border-0">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {{-- ส่วนข้อมูลหลัก --}}
+        <div class="lg:col-span-2 space-y-6">
 
-        {{-- TOP HEADER BAR --}}
-        <div class="h-3 bg-gradient-to-r from-purple-600 to-indigo-600"></div>
-
-        <div class="p-8 md:p-12">
-            {{-- BRANDING & DOC INFO --}}
-            <div class="flex flex-col md:flex-row justify-between gap-8 mb-12">
-                <div>
-                    <h1 class="text-3xl font-black text-gray-900 font-kanit tracking-tight mb-1">ใบกำกับภาษีซื้อ</h1>
-                    <p class="text-gray-500 font-kanit">Purchase Tax Invoice</p>
-
-                    <div class="mt-8 space-y-1 text-sm text-gray-600 font-kanit">
-                        <p class="text-xs uppercase tracking-widest text-gray-400 font-bold mb-2">ข้อมูลผู้ขาย</p>
-                        <p class="text-lg text-purple-700 font-bold">{{ $purchase->supplier->name ?? 'ไม่ระบุผู้ขาย' }}</p>
-                        <p class="max-w-xs">{{ $purchase->supplier->address ?? '-' }}</p>
-                        <p><span class="text-gray-400">เลขประจำตัวผู้เสียภาษี:</span> {{ $purchase->supplier->tax_id ?? '-' }}</p>
-                    </div>
+            {{-- การ์ดข้อมูลผู้จำหน่ายและสาขา --}}
+            <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-6">
+                    @if($purchase->status == 'ชำระแล้ว')
+                        <span class="px-4 py-2 bg-emerald-100 text-emerald-600 rounded-full text-sm font-bold uppercase tracking-wide">
+                            <i class="fas fa-check-circle mr-1"></i> {{ $purchase->status }}
+                        </span>
+                    @elseif($purchase->status == 'ยกเลิก')
+                        <span class="px-4 py-2 bg-red-100 text-red-600 rounded-full text-sm font-bold uppercase tracking-wide">
+                            <i class="fas fa-times-circle mr-1"></i> {{ $purchase->status }}
+                        </span>
+                    @else
+                        <span class="px-4 py-2 bg-orange-100 text-orange-600 rounded-full text-sm font-bold uppercase tracking-wide">
+                            <i class="fas fa-clock mr-1"></i> {{ $purchase->status }}
+                        </span>
+                    @endif
                 </div>
 
-                <div class="bg-gray-50 p-6 rounded-2xl border border-gray-100 min-w-[280px]">
-                    <div class="space-y-3 font-kanit">
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-500">เลขที่เอกสาร:</span>
-                            <span class="font-mono font-bold text-gray-900 bg-white px-3 py-1 rounded-lg border border-gray-200">
-                                {{ $purchase->doc_no }}
-                            </span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-500">วันที่เอกสาร:</span>
-                            <span class="font-bold text-gray-900">{{ \Carbon\Carbon::parse($purchase->doc_date)->format('d/m/Y') }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-500">สาขา:</span>
-                            <span class="font-bold text-gray-900">{{ $purchase->branch->name ?? '-' }}</span>
-                        </div>
-                        <div class="flex justify-between pt-2 border-t border-gray-200">
-                            <span class="text-gray-500">สถานะ:</span>
-                            <span class="px-3 py-1 rounded-full text-xs font-bold
-                                @if($purchase->status == 'ชำระแล้ว') bg-green-100 text-green-700
-                                @elseif($purchase->status == 'ยกเลิก') bg-gray-100 text-gray-700
-                                @else bg-yellow-100 text-yellow-700 @endif">
-                                {{ $purchase->status }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- TABLE SECTION --}}
-            <div class="mb-10 overflow-x-auto">
-                <table class="w-full text-left font-kanit">
-                    <thead>
-                        <tr class="border-b-2 border-gray-100 text-gray-400 uppercase text-xs tracking-wider">
-                            <th class="py-4 px-2 w-16">ลำดับ</th>
-                            <th class="py-4 px-2">รายละเอียดรายการซื้อ</th>
-                            <th class="py-4 px-2 text-right">จำนวนเงิน (ก่อนภาษี)</th>
-                            <th class="py-4 px-2 text-right">ภาษี ({{ $purchase->vat_rate }}%)</th>
-                        </tr>
-                    </thead>
-                    <tbody class="text-gray-700">
-                        <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                            <td class="py-6 px-2 align-top text-center text-gray-400 font-mono">01</td>
-                            <td class="py-6 px-2">
-                                <p class="font-bold text-gray-900">บันทึกค่าใช้จ่าย/ซื้อสินค้า</p>
-                                <div class="mt-2 text-sm text-gray-500 bg-gray-50 p-3 rounded-lg border border-dashed border-gray-200">
-                                    <i class="fas fa-sticky-note mr-2 text-purple-300"></i>
-                                    {{ $purchase->note ?: 'ไม่มีหมายเหตุเพิ่มเติม' }}
-                                </div>
-                            </td>
-                            <td class="py-6 px-2 text-right font-mono font-bold text-gray-900">
-                                {{ number_format($purchase->subtotal, 2) }}
-                            </td>
-                            <td class="py-6 px-2 text-right font-mono text-gray-500">
-                                {{ number_format($purchase->vat, 2) }}
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            {{-- CALCULATION SUMMARY --}}
-            <div class="flex justify-end">
-                <div class="w-full md:w-80 space-y-3 font-kanit">
-                    <div class="flex justify-between text-gray-600">
-                        <span>มูลค่าฐานภาษี:</span>
-                        <span class="font-mono">{{ number_format($purchase->subtotal, 2) }}</span>
-                    </div>
-                    <div class="flex justify-between text-gray-600">
-                        <span>ภาษีมูลค่าเพิ่ม ({{ $purchase->vat_rate }}%):</span>
-                        <span class="font-mono">{{ number_format($purchase->vat, 2) }}</span>
-                    </div>
-                    <div class="flex justify-between items-center pt-4 border-t-2 border-purple-100">
-                        <span class="text-xl font-bold text-gray-900">ยอดเงินสุทธิ:</span>
-                        <div class="text-right">
-                            <span class="text-2xl font-black text-purple-600 font-mono">
-                                ฿ {{ number_format($purchase->total, 2) }}
-                            </span>
-                            <p class="text-[10px] text-gray-400 mt-1 uppercase">Inclusive of VAT</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- FOOTER INFO --}}
-            <div class="mt-20 pt-8 border-t border-dashed border-gray-200">
-                <div class="grid grid-cols-2 gap-4 text-xs text-gray-400 font-kanit">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
-                        <p class="mb-1"><i class="fas fa-user-circle mr-1"></i> ผู้ออกเอกสาร: {{ $purchase->creator->name ?? 'System Admin' }}</p>
-                        <p><i class="fas fa-clock mr-1"></i> บันทึกเมื่อ: {{ $purchase->created_at->format('d/m/Y H:i') }} น.</p>
+                        <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4">ข้อมูลผู้จำหน่าย</h3>
+                        <div class="flex items-start space-x-3">
+                            <div class="bg-blue-50 p-3 rounded-2xl text-blue-600">
+                                <i class="fas fa-truck text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-lg font-bold text-gray-900 font-kanit">{{ $purchase->supplier->name ?? 'ไม่ระบุ' }}</p>
+                                <p class="text-sm text-gray-500 mt-1">{{ $purchase->supplier->address ?? 'ไม่มีข้อมูลที่อยู่' }}</p>
+                                <p class="text-sm text-gray-500">{{ $purchase->supplier->phone ?? '-' }}</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="text-right">
-                        <p class="font-bold text-gray-500 mb-1">Smart Sign Management System</p>
-                        <p>เอกสารนี้ออกโดยระบบอัตโนมัติ ไม่ต้องมีลายเซ็นก็สามารถใช้งานได้</p>
+
+                    <div>
+                        <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4">สถานที่รับสินค้า</h3>
+                        <div class="flex items-start space-x-3">
+                            <div class="bg-emerald-50 p-3 rounded-2xl text-emerald-600">
+                                <i class="fas fa-store text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-lg font-bold text-gray-900 font-kanit">{{ $purchase->branch->name ?? 'ไม่ระบุ' }}</p>
+                                <p class="text-sm text-gray-500 mt-1">คลังสินค้า/สาขาที่รับเข้าสต็อก</p>
+                            </div>
+                        </div>
                     </div>
+                </div>
+
+                @if($purchase->note)
+                <div class="mt-8 pt-6 border-t border-gray-50">
+                    <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">หมายเหตุเพิ่มเติม</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">{{ $purchase->note }}</p>
+                </div>
+                @endif
+            </div>
+
+            {{-- ตารางรายการสินค้า --}}
+            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-8 py-6 border-b border-gray-50 flex items-center space-x-2 text-blue-600 font-bold">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="font-kanit tracking-wide">รายการสินค้าในคำสั่งซื้อ</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50/50">
+                                <th class="px-8 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">#</th>
+                                <th class="px-4 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">รายละเอียดสินค้า</th>
+                                <th class="px-4 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider text-center">จำนวน</th>
+                                <th class="px-4 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider text-right">ราคา/หน่วย</th>
+                                <th class="px-8 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider text-right">ยอดรวม</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50">
+                            @foreach($purchase->items as $index => $item)
+                            <tr class="hover:bg-gray-50/30 transition-colors">
+                                <td class="px-8 py-4 text-sm text-gray-400">{{ $index + 1 }}</td>
+                                <td class="px-4 py-4">
+                                    <p class="text-sm font-bold text-gray-800 font-kanit">{{ $item->desc }}</p>
+                                </td>
+                                <td class="px-4 py-4 text-center text-sm font-medium text-gray-600">
+                                    {{ number_format($item->qty, 0) }}
+                                </td>
+                                <td class="px-4 py-4 text-right text-sm text-gray-600">
+                                    {{ number_format($item->price, 2) }}
+                                </td>
+                                <td class="px-8 py-4 text-right text-sm font-bold text-gray-900">
+                                    {{ number_format($item->total, 2) }}
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
-<style>
-@media print {
-    body { background: white !important; }
-    .container { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
-    .print\:hidden { display: none !important; }
-    .rounded-3xl { border-radius: 0 !important; }
-    .shadow-2xl { box-shadow: none !important; }
-    .bg-gray-50 { background-color: #f9fafb !important; -webkit-print-color-adjust: exact; }
-    .bg-gradient-to-r { background: linear-gradient(to right, #9333ea, #4f46e5) !important; -webkit-print-color-adjust: exact; }
-}
-</style>
-@endsection
+        {{-- สรุปยอดเงิน (Sidebar) --}}
+        <div class="space-y-6">
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-6">รายละเอียดวันที่</h3>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-500 font-kanit">วันที่เอกสาร:</span>
+                        <span class="text-sm font-bold text-gray-800">{{ $purchase->doc_date->format('d/m/Y') }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-500 font-kanit">วันที่ครบกำหนด:</span>
+                        <span class="text-sm font-bold text-red-500">{{ $purchase->due_date ? $purchase->due_date->format('d/m/Y') : '-' }}</span>
+                    </div>
+                    <div class="pt-4 border-t border-gray-50">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-500 font-kanit">สร้างเมื่อ:</span>
+                            <span class="text-xs text-gray-400">{{ $purchase->created_at->format('d/m/Y H:i') }} น.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-br from-blue-600 to-blue-700 p-8 rounded-[2rem] shadow-xl text-white relative overflow-hidden">
+                <div class="absolute -right-4 -bottom-4 opacity-10 text-9xl">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                </div>
+
+                <h3 class="text-xs font-bold uppercase tracking-[0.2em] opacity-70 mb-6">สรุปยอดรวม (Summary)</h3>
+
+                <div class="space-y-4 relative z-10">
+                    <div class="flex justify-between text-sm">
+                        <span class="opacity-80">ยอดรวมสินค้า (Subtotal)</span>
+                        <span class="font-bold">{{ number_format($purchase->subtotal, 2) }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="opacity-80">ภาษีมูลค่าเพิ่ม (VAT {{ (int)$purchase->vat_rate }}%)</span>
+                        <span class="font-bold">{{ number_format($purchase->vat, 2) }}</span>
+                    </div>
+
+                    <div class="pt-6 mt-6 border-t border-white/20">
+                        <p class="text-xs opacity-70 uppercase mb-1">ยอดชำระสุทธิทั้งสิ้น</p>
+                        <div class="flex justify-between items-end">
+                            <span class="text-4xl font-bold tracking-tight">{{ number_format($purchase->total, 2) }}</span>
+                            <span class="text-sm font-medium opacity-80 mb-1">THB</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 bg-blue-50 rounded-2xl border border-blue-100 flex items-center space-x-3">
+                <div class="bg-blue-600 text-white p-2 rounded-lg">
+                    <i class="fas fa-info-circle"></i>
+                </div>
+                <p class="text-xs text-blue-700 font-kanit leading-snug">
+                    เอกสารนี้เป็นใบสั่งซื้อที่ได้รับการบันทึกเข้าสู่ระบบแล้ว ข้อมูลสต็อกจะถูกอัปเดตตามสาขาที่ระบุ
+                </p>
+            </div>
+        </div>
+    </div>
+</x-app-layout>
