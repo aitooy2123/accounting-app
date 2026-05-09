@@ -9,15 +9,20 @@
             </div>
             <p class="text-sm text-gray-500 font-kanit ml-8">เลขที่เอกสาร: <span class="font-bold text-blue-600">{{ $purchase->doc_no }}</span></p>
         </div>
+{{-- ค้นหาจุดที่มีปุ่มแก้ไขข้อมูล แล้วเพิ่มปุ่ม Export ต่อท้าย --}}
+<div class="flex space-x-3 ml-8 md:ml-0">
+    <button onclick="window.print()" class="px-5 py-2.5 bg-white border border-gray-200 text-gray-600 text-sm font-bold rounded-xl hover:bg-gray-50 transition-all">
+        <i class="fas fa-print mr-2"></i> พิมพ์เอกสาร
+    </button>
 
-        <div class="flex space-x-3 ml-8 md:ml-0">
-            <button onclick="window.print()" class="px-5 py-2.5 bg-white border border-gray-200 text-gray-600 text-sm font-bold rounded-xl hover:bg-gray-50 transition-all">
-                <i class="fas fa-print mr-2"></i> พิมพ์เอกสาร
-            </button>
-            <a href="{{ route('purchases.edit', $purchase->id) }}" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-all shadow-sm shadow-blue-200 font-kanit">
-                <i class="fas fa-edit mr-2"></i> แก้ไขข้อมูล
-            </a>
-        </div>
+    <a href="{{ route('purchases.export', $purchase->id) }}" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl transition-all shadow-sm shadow-emerald-200 font-kanit">
+        <i class="fas fa-file-excel mr-2"></i> Export Excel
+    </a>
+
+    <a href="{{ route('purchases.edit', $purchase->id) }}" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-all shadow-sm shadow-blue-200 font-kanit">
+        <i class="fas fa-edit mr-2"></i> แก้ไขข้อมูล
+    </a>
+</div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">

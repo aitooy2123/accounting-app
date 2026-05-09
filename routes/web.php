@@ -71,8 +71,7 @@ Route::get('/purchases/{purchase}', [PurchaseController::class, 'show'])->name('
     // Force Delete
     Route::delete('/purchases/{id}/force-delete', [PurchaseController::class, 'forceDelete'])
         ->name('purchases.force-delete');
-
-
+Route::get('/purchases/{id}/export', [PurchaseController::class, 'export'])->name('purchases.export');
 
 
 

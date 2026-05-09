@@ -7,6 +7,8 @@ use App\Models\Customer;
 use App\Models\Branch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB; // ย้ายมาไว้ตรงนี้ที่เดียว
+use App\Exports\PurchaseExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PurchaseController extends Controller
 {
@@ -243,4 +245,16 @@ class PurchaseController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
+
+
+
+public function export($id)
+{
+    $purchase = Purchase::findOrFail($id);
+    return Excel::download(new PurchaseExport($id), 'PO-' . $purchase->doc_no . '.xlsx');
+}
+
+
+
+
 }
