@@ -13,6 +13,12 @@
             <button onclick="window.print()" class="px-4 py-2 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 font-kanit transition-all flex items-center gap-2 shadow-sm">
                 <i class="fas fa-print"></i> พิมพ์เอกสาร
             </button>
+
+ <a href="{{--  --}}" class="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-bold rounded-xl transition-all duration-300 shadow-lg shadow-blue-200/50 hover:shadow-blue-300/50 transform hover:-translate-y-0.5 font-kanit">
+        <i class="fas fa-plus-circle mr-2"></i> ใบเสนอราคา
+      </a>
+
+
             <a href="{{ route('sales.export', $sale->id) }}" class="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 font-kanit transition-all flex items-center gap-2 shadow-md">
                 <i class="fas fa-file-excel"></i> ส่งออก Excel
             </a>

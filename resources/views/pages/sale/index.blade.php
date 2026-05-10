@@ -12,10 +12,7 @@
         <span id="bulkDeleteText">ลบที่เลือก (0)</span>
       </button>
 
-      <a href="{{--  --}}" class="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-bold rounded-xl transition-all duration-300 shadow-lg shadow-blue-200/50 hover:shadow-blue-300/50 transform hover:-translate-y-0.5 font-kanit">
-        <i class="fas fa-plus-circle mr-2"></i> ใบเสนอราคา
-      </a>
-
+     
       <a href="{{ route('sales.create') }}" class="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-bold rounded-xl transition-all duration-300 shadow-lg shadow-blue-200/50 hover:shadow-blue-300/50 transform hover:-translate-y-0.5 font-kanit">
         <i class="fas fa-plus-circle mr-2"></i> สร้างเอกสารใหม่
       </a>
