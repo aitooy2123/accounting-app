@@ -3,33 +3,32 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Artisan;
 
 class CreateCustomersTable extends Migration
 {
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
     public function up(): void
     {
-        // 1. ตรวจสอบและสร้างตารางหากยังไม่มี
         if (!Schema::hasTable('customers')) {
             Schema::create('customers', function (Blueprint $table) {
                 $table->id();
-                $table->string('code')->unique();          // รหัสลูกค้า
-                $table->string('name');                    // ชื่อลูกค้า/บริษัท
+                $table->string('code')->unique();
+                $table->string('name');
                 $table->string('email')->nullable();
                 $table->string('phone')->nullable();
                 $table->text('address')->nullable();
-                $table->string('tax_id')->nullable();       // เลขผู้เสียภาษี
+                $table->string('tax_id')->nullable();
                 $table->string('contact_person')->nullable();
                 $table->string('contact_phone')->nullable();
+
+                // ✅ เพิ่ม 2 คอลัมน์นี้
+                $table->foreignId('branch_id')->nullable()->constrained('branches')->nullOnDelete()->comment('รหัสสาขา');
+                $table->foreignId('company_id')->nullable()->constrained('companies')->nullOnDelete()->comment('รหัสบริษัท');
+
                 $table->boolean('is_active')->default(true);
                 $table->timestamps();
             });
         } else {
-            // 2. ถ้ามีตารางอยู่แล้ว ให้ตรวจสอบและเพิ่มคอลัมน์ที่ยังไม่มีทีละฟิลด์
             Schema::table('customers', function (Blueprint $table) {
                 if (!Schema::hasColumn('customers', 'code')) {
                     $table->string('code')->unique()->after('id');
@@ -55,22 +54,35 @@ class CreateCustomersTable extends Migration
                 if (!Schema::hasColumn('customers', 'contact_phone')) {
                     $table->string('contact_phone')->nullable()->after('contact_person');
                 }
+
+                // ✅ เพิ่มการตรวจสอบ 2 คอลัมน์นี้
+                if (!Schema::hasColumn('customers', 'branch_id')) {
+                    $table->foreignId('branch_id')->nullable()->after('contact_phone')->constrained('branches')->nullOnDelete()->comment('รหัสสาขา');
+                }
+                if (!Schema::hasColumn('customers', 'company_id')) {
+                    $table->foreignId('company_id')->nullable()->after('branch_id')->constrained('companies')->nullOnDelete()->comment('รหัสบริษัท');
+                }
+
                 if (!Schema::hasColumn('customers', 'is_active')) {
-                    $table->boolean('is_active')->default(true)->after('contact_phone');
+                    $table->boolean('is_active')->default(true)->after('company_id');
                 }
             });
+
+             // ✅ เรียก Seeder หลังจากสร้างตาราง
+            Artisan::call('db:seed', [
+                '--class' => 'CustomerSeeder',
+                '--force' => true,
+            ]);
         }
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
     public function down()
     {
-        // ลบตารางเฉพาะเมื่อมีตารางอยู่จริงเท่านั้น
         if (Schema::hasTable('customers')) {
+            Schema::table('customers', function (Blueprint $table) {
+                $table->dropForeign(['branch_id']);
+                $table->dropForeign(['company_id']);
+            });
             Schema::dropIfExists('customers');
         }
     }

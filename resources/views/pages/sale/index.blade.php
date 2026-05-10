@@ -7,18 +7,19 @@
 
     <div class="flex items-center space-x-3">
       {{-- BULK DELETE BUTTON - ซ่อนไว้ก่อนจนกว่าจะมีการเลือก --}}
-      <button type="button"
-              id="bulkDeleteBtn"
-              class="hidden inline-flex items-center px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-xl transition-all duration-300 shadow-lg shadow-red-200/50 font-kanit"
-              onclick="bulkDelete()">
+      <button type="button" id="bulkDeleteBtn" class="hidden inline-flex items-center px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-xl transition-all duration-300 shadow-lg shadow-red-200/50 font-kanit" onclick="bulkDelete()">
         <i class="fas fa-trash-alt mr-2"></i>
         <span id="bulkDeleteText">ลบที่เลือก (0)</span>
       </button>
 
-      <a href="{{ route('sales.create') }}"
-         class="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-bold rounded-xl transition-all duration-300 shadow-lg shadow-blue-200/50 hover:shadow-blue-300/50 transform hover:-translate-y-0.5 font-kanit">
+      <a href="{{--  --}}" class="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-bold rounded-xl transition-all duration-300 shadow-lg shadow-blue-200/50 hover:shadow-blue-300/50 transform hover:-translate-y-0.5 font-kanit">
+        <i class="fas fa-plus-circle mr-2"></i> ใบเสนอราคา
+      </a>
+
+      <a href="{{ route('sales.create') }}" class="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-bold rounded-xl transition-all duration-300 shadow-lg shadow-blue-200/50 hover:shadow-blue-300/50 transform hover:-translate-y-0.5 font-kanit">
         <i class="fas fa-plus-circle mr-2"></i> สร้างเอกสารใหม่
       </a>
+
     </div>
   </div>
 
@@ -28,9 +29,7 @@
       <i class="fas fa-check-circle mr-2"></i>
       <span>เลือก <strong id="selectedCountDisplay">0</strong> รายการ</span>
     </div>
-    <button type="button"
-            onclick="clearSelection()"
-            class="text-sm text-blue-600 hover:text-blue-800 font-kanit underline">
+    <button type="button" onclick="clearSelection()" class="text-sm text-blue-600 hover:text-blue-800 font-kanit underline">
       ยกเลิกการเลือก
     </button>
   </div>
@@ -41,27 +40,20 @@
         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
           <i class="fas fa-search"></i>
         </div>
-        <input type="text"
-               name="search"
-               value="{{ request('search') }}"
-               class="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-kanit"
-               placeholder="ค้นหาเลขที่เอกสาร...">
+        <input type="text" name="search" value="{{ request('search') }}" class="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-kanit" placeholder="ค้นหาเลขที่เอกสาร...">
       </div>
 
-      <select name="status"
-              class="block w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 transition-all font-kanit">
+      <select name="status" class="block w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 transition-all font-kanit">
         <option value="">ทุกสถานะการชำระ</option>
         <option value="ชำระแล้ว" {{ request('status') == 'ชำระแล้ว' ? 'selected' : '' }}>ชำระแล้ว</option>
         <option value="ค้างชำระ" {{ request('status') == 'ค้างชำระ' ? 'selected' : '' }}>ค้างชำระ</option>
       </select>
 
       <div class="flex space-x-2">
-        <button type="submit"
-                class="flex-1 bg-gray-900 hover:bg-black text-white px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 font-kanit">
+        <button type="submit" class="flex-1 bg-gray-900 hover:bg-black text-white px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 font-kanit">
           <i class="fas fa-filter mr-2"></i>กรองข้อมูล
         </button>
-        <a href="{{ route('sales.index') }}"
-           class="px-4 py-2.5 bg-gray-100 text-gray-500 hover:bg-gray-200 rounded-xl transition-all duration-300 flex items-center justify-center">
+        <a href="{{ route('sales.index') }}" class="px-4 py-2.5 bg-gray-100 text-gray-500 hover:bg-gray-200 rounded-xl transition-all duration-300 flex items-center justify-center">
           <i class="fas fa-redo-alt"></i>
         </a>
       </div>
@@ -76,9 +68,7 @@
             {{-- CHECKBOX COLUMN HEADER --}}
             <th class="px-6 py-4 w-12">
               <div class="flex items-center">
-                <input type="checkbox"
-                       id="selectAllCheckbox"
-                       class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer">
+                <input type="checkbox" id="selectAllCheckbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer">
               </div>
             </th>
             <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">วันที่เอกสาร</th>
@@ -94,11 +84,7 @@
               {{-- CHECKBOX COLUMN --}}
               <td class="px-6 py-4">
                 <div class="flex items-center">
-                  <input type="checkbox"
-                         class="sale-checkbox w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer"
-                         value="{{ $item->id }}"
-                         data-sale-id="{{ $item->id }}"
-                         data-doc-no="{{ $item->doc_no }}">
+                  <input type="checkbox" class="sale-checkbox w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer" value="{{ $item->id }}" data-sale-id="{{ $item->id }}" data-doc-no="{{ $item->doc_no }}">
                 </div>
               </td>
               <td class="px-6 py-4 text-sm text-gray-600">
@@ -122,26 +108,18 @@
               </td>
               <td class="px-6 py-4 text-right">
                 <div class="flex justify-end items-center space-x-1">
-                          <div class="flex justify-end items-center space-x-1">
-                 <a href="{{ route('sale.show', $item->id) }}"
-                                   class="text-blue-600 hover:text-blue-900 transition-colors p-1"
-                                   title="ดูรายละเอียด">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                  <a href="{{ route('sales.edit', $item->id) }}"
-                     class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
-                     title="แก้ไข">
-                    <i class="fas fa-pencil-alt text-sm"></i>
-                  </a>
+                  <div class="flex justify-end items-center space-x-1">
+                    <a href="{{ route('sale.show', $item->id) }}" class="text-blue-600 hover:text-blue-900 transition-colors p-1" title="ดูรายละเอียด">
+                      <i class="fas fa-eye"></i>
+                    </a>
+                    <a href="{{ route('sales.edit', $item->id) }}" class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200" title="แก้ไข">
+                      <i class="fas fa-pencil-alt text-sm"></i>
+                    </a>
 
-                  <button type="button"
-                          class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 delete-sale"
-                          data-sale-id="{{ $item->id }}"
-                          data-doc-no="{{ $item->doc_no }}"
-                          title="ลบ">
-                    <i class="fas fa-trash-alt text-sm"></i>
-                  </button>
-                </div>
+                    <button type="button" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 delete-sale" data-sale-id="{{ $item->id }}" data-doc-no="{{ $item->doc_no }}" title="ลบ">
+                      <i class="fas fa-trash-alt text-sm"></i>
+                    </button>
+                  </div>
               </td>
             </tr>
           @empty
@@ -152,8 +130,7 @@
                     <i class="fas fa-file-invoice text-4xl text-gray-300"></i>
                   </div>
                   <span class="font-kanit text-gray-500 font-medium">ยังไม่มีรายการขายในระบบ</span>
-                  <a href="{{ route('sales.create') }}"
-                     class="mt-4 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition-all duration-300">
+                  <a href="{{ route('sales.create') }}" class="mt-4 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition-all duration-300">
                     <i class="fas fa-plus mr-2"></i>สร้างเอกสารใบแรกของคุณที่นี่
                   </a>
                 </div>
@@ -344,47 +321,49 @@
           });
 
           // Send bulk delete request
-          fetch('{{ route("sales.bulk-delete") }}', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-CSRF-TOKEN': '{{ csrf_token() }}',
-              'Accept': 'application/json'
-            },
-            body: JSON.stringify({ ids: selectedIds })
-          })
-          .then(response => response.json())
-          .then(data => {
-            if (data.success) {
+          fetch('{{ route('sales.bulk-delete') }}', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({
+                ids: selectedIds
+              })
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                Swal.fire({
+                  icon: 'success',
+                  title: 'ลบสำเร็จ!',
+                  text: data.message || `ลบเอกสาร ${selectedIds.length} รายการเรียบร้อยแล้ว`,
+                  timer: 3000,
+                  showConfirmButton: false,
+                  customClass: {
+                    popup: 'font-kanit'
+                  }
+                });
+                // Reload page after success
+                setTimeout(() => {
+                  window.location.reload();
+                }, 1500);
+              } else {
+                throw new Error(data.message || 'เกิดข้อผิดพลาดในการลบ');
+              }
+            })
+            .catch(error => {
               Swal.fire({
-                icon: 'success',
-                title: 'ลบสำเร็จ!',
-                text: data.message || `ลบเอกสาร ${selectedIds.length} รายการเรียบร้อยแล้ว`,
-                timer: 3000,
-                showConfirmButton: false,
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด!',
+                text: error.message || 'ไม่สามารถลบเอกสารได้ กรุณาลองใหม่อีกครั้ง',
+                confirmButtonText: 'ตกลง',
                 customClass: {
                   popup: 'font-kanit'
                 }
               });
-              // Reload page after success
-              setTimeout(() => {
-                window.location.reload();
-              }, 1500);
-            } else {
-              throw new Error(data.message || 'เกิดข้อผิดพลาดในการลบ');
-            }
-          })
-          .catch(error => {
-            Swal.fire({
-              icon: 'error',
-              title: 'เกิดข้อผิดพลาด!',
-              text: error.message || 'ไม่สามารถลบเอกสารได้ กรุณาลองใหม่อีกครั้ง',
-              confirmButtonText: 'ตกลง',
-              customClass: {
-                popup: 'font-kanit'
-              }
             });
-          });
         }
       });
     };
@@ -465,11 +444,13 @@
     font-size: 1.5rem !important;
   }
 
-  .swal2-confirm, .swal2-cancel {
+  .swal2-confirm,
+  .swal2-cancel {
     font-family: 'Kanit', sans-serif !important;
   }
 
-  #bulkDeleteBtn, #selectionBar {
+  #bulkDeleteBtn,
+  #selectionBar {
     transition: all 0.3s ease-in-out;
   }
 

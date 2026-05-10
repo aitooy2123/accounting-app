@@ -14,9 +14,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // สร้าง user 100 คน (ใช้ factory + faker อัตโนมัติ)
-        User::factory()->count(100)->create();
-
         // เรียก seeder อื่น ๆ (เรียงลำดับให้ถูก)
         $this->call([
             CompanySeeder::class,
@@ -27,6 +24,10 @@ class DatabaseSeeder extends Seeder
             PurchaseSeeder::class,
             InvoiceSeeder::class,   // ✅ เพิ่ม
             ExpenseSeeder::class,   // ✅ เพิ่ม
+            UserSeeder::class,
         ]);
+
+        // สร้าง user 100 คน (ใช้ factory + faker อัตโนมัติ)
+        User::factory()->count(10)->create();
     }
 }

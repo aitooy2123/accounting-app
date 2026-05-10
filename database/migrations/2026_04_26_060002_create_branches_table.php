@@ -6,31 +6,29 @@ use Illuminate\Support\Facades\Schema;
 
 class CreateBranchesTable extends Migration
 {
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
     public function up(): void
     {
-        // 1. ตรวจสอบและสร้างตาราง (Schema::hasTable)
         if (!Schema::hasTable('branches')) {
             Schema::create('branches', function (Blueprint $table) {
                 $table->id();
-                $table->string('code');              // รหัสสาขา
-                $table->string('name');              // ชื่อสาขา
+                $table->foreignId('company_id')->constrained('companies')->cascadeOnDelete()->comment('รหัสบริษัท');
+                $table->string('code');
+                $table->string('name');
                 $table->string('address')->nullable();
                 $table->string('phone')->nullable();
                 $table->string('email')->nullable();
-                $table->string('manager')->nullable(); // ผู้จัดการสาขา
+                $table->string('manager')->nullable();
                 $table->boolean('is_active')->default(true);
                 $table->timestamps();
             });
         } else {
-            // 2. ถ้ามีตารางอยู่แล้ว ให้ตรวจสอบและเพิ่มคอลัมน์ที่ยังไม่มี (Schema::hasColumn)
             Schema::table('branches', function (Blueprint $table) {
+                // เพิ่ม company_id ถ้ายังไม่มี
+                if (!Schema::hasColumn('branches', 'company_id')) {
+                    $table->foreignId('company_id')->after('id')->constrained('companies')->cascadeOnDelete()->comment('รหัสบริษัท');
+                }
                 if (!Schema::hasColumn('branches', 'code')) {
-                    $table->string('code')->after('id');
+                    $table->string('code')->after('company_id');
                 }
                 if (!Schema::hasColumn('branches', 'name')) {
                     $table->string('name')->after('code');
@@ -54,15 +52,12 @@ class CreateBranchesTable extends Migration
         }
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
     public function down()
     {
-        // ลบตารางเฉพาะเมื่อมีตารางอยู่จริง
         if (Schema::hasTable('branches')) {
+            Schema::table('branches', function (Blueprint $table) {
+                $table->dropForeign(['company_id']);
+            });
             Schema::dropIfExists('branches');
         }
     }

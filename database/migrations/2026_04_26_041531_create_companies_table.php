@@ -23,6 +23,7 @@ class CreateCompaniesTable extends Migration
                 $table->string('phone')->nullable();
                 $table->text('address')->nullable();
                 $table->string('tax_id')->nullable();
+                $table->string('type')->nullable();
                 $table->boolean('is_active')->default(true); // สถานะการใช้งาน
                 $table->timestamps();
 

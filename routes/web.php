@@ -12,6 +12,7 @@ use App\Exports\SaleExport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\ReportController; // Ensure you have this controller
 use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\Sales\QuotationController;
 
 
 /*
@@ -39,8 +40,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // --- ระบบงานขาย (Sales) ---
     Route::resource('sales', SalesController::class)->except('show');
-
-Route::get('/sales/{sale}', [SalesController::class, 'show'])->name('sale.show');
+    Route::get('/sales/{sale}', [SalesController::class, 'show'])->name('sale.show');
 
     Route::get('sales/{id}/export', function ($id) {
         $sale = App\Models\Sale::findOrFail($id);
@@ -58,7 +58,15 @@ Route::get('/sales/{sale}', [SalesController::class, 'show'])->name('sale.show')
     //     return view('pages.purchase.index');
     // })->name('purchases');
 
+    // routes/web.php
 
+    Route::prefix('sales')->name('sales.')->middleware(['auth'])->group(function () {
+        Route::resource('quotations', QuotationController::class);
+
+        // Route สำหรับแปลงเป็นใบแจ้งหนี้ (ตาม FlowAccount)
+        Route::post('quotations/{quotation}/convert', [QuotationController::class, 'convertToInvoice'])
+            ->name('quotations.convert');
+    });
 
     // Purchase Resource
     Route::resource('purchases', PurchaseController::class);
@@ -67,11 +75,11 @@ Route::get('/sales/{sale}', [SalesController::class, 'show'])->name('sale.show')
     // Restore (Soft Delete)
     Route::post('/purchases/{id}/restore', [PurchaseController::class, 'restore'])
         ->name('purchases.restore');
-Route::get('/purchases/{purchase}', [PurchaseController::class, 'show'])->name('purchases.show');
+    Route::get('/purchases/{purchase}', [PurchaseController::class, 'show'])->name('purchases.show');
     // Force Delete
     Route::delete('/purchases/{id}/force-delete', [PurchaseController::class, 'forceDelete'])
         ->name('purchases.force-delete');
-Route::get('/purchases/{id}/export', [PurchaseController::class, 'export'])->name('purchases.export');
+    Route::get('/purchases/{id}/export', [PurchaseController::class, 'export'])->name('purchases.export');
 
 
 
@@ -137,7 +145,7 @@ Route::get('/purchases/{id}/export', [PurchaseController::class, 'export'])->nam
 
 Route::get('/customers/template', [CustomerController::class, 'downloadTemplate'])
     ->name('customers.template');
-    Route::post('/customers/import', [CustomerController::class, 'import'])
+Route::post('/customers/import', [CustomerController::class, 'import'])
     ->name('customers.import');
 
 Route::resource('customers', CustomerController::class);

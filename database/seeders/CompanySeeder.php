@@ -22,6 +22,7 @@ class CompanySeeder extends Seeder
                 'type' => 'บริษัทจำกัด',
                 'tax_id' => '0105555123456',
                 'is_active' => true,
+                'code' => rand(100000, 999999),
             ],
             [
                 'name' => 'บริษัท ไทยนวัตกรรม จำกัด (มหาชน)',
@@ -31,6 +32,7 @@ class CompanySeeder extends Seeder
                 'type' => 'บริษัทมหาชนจำกัด',
                 'tax_id' => '0105555987654',
                 'is_active' => true,
+                'code' => rand(100000, 999999),
             ],
             [
                 'name' => 'ห้างหุ้นส่วนจำกัด สมาร์ท อิเล็คทริค',
@@ -40,6 +42,7 @@ class CompanySeeder extends Seeder
                 'type' => 'ห้างหุ้นส่วนจำกัด',
                 'tax_id' => '0205555012345',
                 'is_active' => true,
+                'code' => rand(100000, 999999),
             ],
             [
                 'name' => 'บริษัท ดีไซน์ สตูดิโอ จำกัด',
@@ -49,6 +52,7 @@ class CompanySeeder extends Seeder
                 'type' => 'บริษัทจำกัด',
                 'tax_id' => '0505555098765',
                 'is_active' => true,
+                'code' => rand(100000, 999999),
             ],
             [
                 'name' => 'บริษัท ฟู้ดเทค อินดัสทรี จำกัด',
@@ -58,6 +62,8 @@ class CompanySeeder extends Seeder
                 'type' => 'บริษัทจำกัด',
                 'tax_id' => '0115555034567',
                 'is_active' => false,
+                'code' => rand(100000, 999999),
+
             ],
             [
                 'name' => 'บริษัท เอเชีย โลจิสติกส์ จำกัด',
@@ -67,6 +73,7 @@ class CompanySeeder extends Seeder
                 'type' => 'บริษัทจำกัด',
                 'tax_id' => '0105555078901',
                 'is_active' => true,
+                'code' => rand(100000, 999999),
             ],
             [
                 'name' => 'บริษัท กรีน เอ็นเนอร์ยี่ จำกัด (มหาชน)',
@@ -76,6 +83,7 @@ class CompanySeeder extends Seeder
                 'type' => 'บริษัทมหาชนจำกัด',
                 'tax_id' => '0835555012345',
                 'is_active' => true,
+                'code' => rand(100000, 999999),
             ],
             [
                 'name' => 'ห้างหุ้นส่วนจำกัด เจริญทรัพย์ การค้า',
@@ -85,6 +93,7 @@ class CompanySeeder extends Seeder
                 'type' => 'ห้างหุ้นส่วนจำกัด',
                 'tax_id' => '0305555054321',
                 'is_active' => true,
+                'code' => rand(100000, 999999),
             ],
             [
                 'name' => 'บริษัท ไมโครซอฟท์ ประเทศไทย จำกัด',
@@ -94,6 +103,7 @@ class CompanySeeder extends Seeder
                 'type' => 'บริษัทจำกัด',
                 'tax_id' => '0105553123456',
                 'is_active' => true,
+                'code' => rand(100000, 999999),
             ],
             [
                 'name' => 'บริษัท แอดวานซ์ ซอฟต์แวร์ จำกัด',
@@ -103,6 +113,7 @@ class CompanySeeder extends Seeder
                 'type' => 'บริษัทจำกัด',
                 'tax_id' => '0105554112233',
                 'is_active' => true,
+                'code' => rand(100000, 999999),
             ],
             [
                 'name' => 'บริษัท เอสซี แมนูแฟคเจอริ่ง จำกัด',
@@ -112,6 +123,8 @@ class CompanySeeder extends Seeder
                 'type' => 'บริษัทจำกัด',
                 'tax_id' => '0735555067890',
                 'is_active' => false,
+                'code' => rand(100000, 999999),
+
             ],
             [
                 'name' => 'บริษัท ดิจิทัล ทรานฟอร์มเมชั่น จำกัด',
@@ -121,6 +134,7 @@ class CompanySeeder extends Seeder
                 'type' => 'บริษัทจำกัด',
                 'tax_id' => '0105555167890',
                 'is_active' => true,
+                'code' => rand(100000, 999999),
             ],
             [
                 'name' => 'ห้างหุ้นส่วนจำกัด ทรัพย์ทวี คอนสตรัคชั่น',
@@ -130,6 +144,7 @@ class CompanySeeder extends Seeder
                 'type' => 'ห้างหุ้นส่วนจำกัด',
                 'tax_id' => '0405555024680',
                 'is_active' => true,
+                'code' => rand(100000, 999999),
             ],
             [
                 'name' => 'บริษัท เวิลด์ไวด์ เทรดดิ้ง จำกัด',
@@ -139,6 +154,7 @@ class CompanySeeder extends Seeder
                 'type' => 'บริษัทจำกัด',
                 'tax_id' => '0105555178912',
                 'is_active' => true,
+                'code' => rand(100000, 999999),
             ],
             [
                 'name' => 'บริษัท ไบโอเทค แลบบอราทอรี่ จำกัด',
@@ -148,6 +164,8 @@ class CompanySeeder extends Seeder
                 'type' => 'บริษัทจำกัด',
                 'tax_id' => '0105555145678',
                 'is_active' => false,
+                'code' => rand(100000, 999999),
+
             ],
             [
                 'name' => 'บริษัท เอเซีย มารีน เซอร์วิส จำกัด',
@@ -157,6 +175,7 @@ class CompanySeeder extends Seeder
                 'type' => 'บริษัทจำกัด',
                 'tax_id' => '0205555123456',
                 'is_active' => true,
+                'code' => rand(100000, 999999),
             ],
             [
                 'name' => 'บริษัท คิวเอ การันตี จำกัด',
@@ -166,6 +185,7 @@ class CompanySeeder extends Seeder
                 'type' => 'บริษัทจำกัด',
                 'tax_id' => '0105555135790',
                 'is_active' => true,
+                'code' => rand(100000, 999999),
             ],
             [
                 'name' => 'ห้างหุ้นส่วนจำกัด สงขลาวาณิชย์',
@@ -175,6 +195,7 @@ class CompanySeeder extends Seeder
                 'type' => 'ห้างหุ้นส่วนจำกัด',
                 'tax_id' => '0905555012345',
                 'is_active' => true,
+                'code' => rand(100000, 999999),
             ],
             [
                 'name' => 'บริษัท เทเลคอมมูนิตี้ เน็ตเวิร์ค จำกัด',
@@ -184,6 +205,8 @@ class CompanySeeder extends Seeder
                 'type' => 'บริษัทจำกัด',
                 'tax_id' => '0105555182468',
                 'is_active' => false,
+                'code' => rand(100000, 999999),
+
             ],
             [
                 'name' => 'บริษัท พรีเมี่ยม เซอร์วิส โซลูชั่น จำกัด',
@@ -193,6 +216,7 @@ class CompanySeeder extends Seeder
                 'type' => 'บริษัทจำกัด',
                 'tax_id' => '0105555111222',
                 'is_active' => true,
+                'code' => rand(100000, 999999),
             ],
         ];
 
