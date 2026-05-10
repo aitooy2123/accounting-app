@@ -20,10 +20,6 @@
                 <span id="bulkDeleteText">ลบที่เลือก (0)</span>
             </button>
 
-            <a href="{{ route('customers.create') }}"
-               class="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-bold rounded-xl transition-all duration-300 shadow-lg shadow-blue-200/50 hover:shadow-blue-300/50 transform hover:-translate-y-0.5 font-kanit">
-                <i class="fas fa-plus-circle mr-2"></i> เพิ่มลูกค้าใหม่
-            </a>
 
             {{-- ปุ่ม Import --}}
             <button onclick="openImportModal()"
@@ -35,7 +31,13 @@
                class="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white text-sm font-bold rounded-xl transition-all duration-300 shadow-lg shadow-gray-200/50 font-kanit">
                 <i class="fas fa-download mr-2"></i> ดาวน์โหลด Template
             </a>
+                 <a href="{{ route('customers.create') }}"
+               class="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-bold rounded-xl transition-all duration-300 shadow-lg shadow-blue-200/50 hover:shadow-blue-300/50 transform hover:-translate-y-0.5 font-kanit">
+                <i class="fas fa-plus-circle mr-2"></i> เพิ่มลูกค้าใหม่
+            </a>
+
         </div>
+
     </div>
 
     {{-- SELECTION BAR --}}
@@ -96,7 +98,7 @@
                         </th>
                         <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">รหัสลูกค้า</th>
                         <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">ชื่อลูกค้า</th>
-                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">เบอร์โทร</th>
+                        {{-- <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">เบอร์โทร</th> --}}
                         <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">บริษัท/สาขา</th>
                         <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">สถานะ</th>
                         <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">จัดการ</th>
@@ -130,7 +132,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="px-6 py-4 text-sm text-gray-600">
+                        {{-- <td class="px-6 py-4 text-sm text-gray-600">
                             @if($customer->phone)
                                 <div class="flex items-center">
                                     <i class="fas fa-phone-alt text-green-400 mr-2 text-xs w-4"></i>
@@ -139,7 +141,7 @@
                             @else
                                 <span class="text-gray-400">-</span>
                             @endif
-                        </td>
+                        </td> --}}
                         <td class="px-6 py-4 text-sm text-gray-600">
                             <div>{{ $customer->company->name ?? '-' }}</div>
                             <div class="text-xs text-gray-400">{{ $customer->branch->name ?? '-' }}</div>

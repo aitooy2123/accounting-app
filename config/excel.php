@@ -112,7 +112,9 @@ return [
         |
         */
         'heading_row'  => [
-            'formatter' => 'slug',
+            // 'formatter' => 'slug',
+     'formatter' => 'none',
+
         ],
 
         /*
@@ -129,6 +131,8 @@ return [
             'escape_character' => '\\',
             'contiguous'       => false,
             'input_encoding'   => Csv::GUESS_ENCODING,
+           'guess_input_encoding' => true, // ให้เดา encoding อัตโนมัติ
+
         ],
 
         /*

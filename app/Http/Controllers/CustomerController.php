@@ -63,29 +63,32 @@ class CustomerController extends Controller
             'endDate'
         ));
     }
-public function import(Request $request)
-{
-    try {
-        $file = $request->file('file');
 
-        // Test 1: เช็คว่าไฟล์ถูกอัพโหลดไหม
-        if (!$file->isValid()) {
-            throw new \Exception('File upload failed');
+  public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv,txt'
+        ]);
+
+        try {
+            // ตรวจสอบ encoding ก่อน import
+            $file = $request->file('file');
+            $path = $file->getRealPath();
+
+            // อ่านตัวอย่างข้อมูลเพื่อ debug
+            $testData = Excel::toArray(new CustomersImport, $file);
+            \Log::info('Import test data:', $testData);
+
+            // ทำการ import จริง
+            Excel::import(new CustomersImport, $file);
+
+            return back()->with('success', 'นำเข้าข้อมูลสำเร็จ');
+
+        } catch (\Exception $e) {
+            \Log::error('Import error: ' . $e->getMessage());
+            return back()->with('error', 'เกิดข้อผิดพลาด: ' . $e->getMessage());
         }
-
-        // Test 2: ลองอ่านไฟล์ raw
-        $content = file_get_contents($file->getPathname());
-        \Log::info('File content length: ' . strlen($content));
-
-        // Test 3: ลอง import
-        Excel::import(new CustomersImport, $file);
-
-        return back()->with('success', 'Import done!');
-
-    } catch (\Exception $e) {
-        return back()->with('error', 'Error: ' . $e->getMessage());
     }
-}
 
 public function downloadTemplate(ExcelService $excelService)
 {
