@@ -24,10 +24,10 @@
                     <i class="fas fa-print"></i> พิมพ์
                 </button>
             </div>
-        </div>
-    </div> --}}
+        </div> --}}
+    </div>
 
-    {{-- ฟอร์มเลือกช่วงวันที่และลูกค้า (แบบปรับปรุง) --}}
+    {{-- ฟอร์มเลือกช่วงวันที่และลูกค้า --}}
     <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 print:hidden border border-gray-100">
         <form method="GET" action="{{ route('reports.journal') }}" id="filterForm">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -65,6 +65,8 @@
                     <select name="document_type" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-emerald-500">
                         <option value="">📄 ทั้งหมด</option>
                         <option value="quotation" {{ request('document_type') == 'quotation' ? 'selected' : '' }}>📊 ใบเสนอราคา</option>
+                        <option value="invoice" {{ request('document_type') == 'invoice' ? 'selected' : '' }}>📃 ใบกำกับภาษี</option>
+                        <option value="receipt" {{ request('document_type') == 'receipt' ? 'selected' : '' }}>💰 ใบรับเงิน</option>
                     </select>
                 </div>
                 <div class="flex items-end gap-2">
@@ -79,10 +81,9 @@
         </form>
     </div>
 
-
-    {{-- สรุปยอดแยกรายลูกค้า (Customer Summary Card) - ปรับปรุง --}}
-    {{-- @if($customerSummary->count() > 0)
-    <div class="mb-8">
+    {{-- สรุปยอดแยกรายลูกค้า - แสดงเฉพาะเมื่อมีข้อมูล
+    @if(isset($customerSummary) && $customerSummary->count() > 0)
+    <div class="mb-8 print:hidden">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-lg font-bold text-gray-800 font-kanit">
                 <i class="fas fa-chart-pie text-emerald-500 mr-2"></i>สรุปยอดแยกรายลูกค้า
@@ -127,7 +128,8 @@
         </div>
     </div>
     @endif --}}
-    {{-- ตารางสมุดรายวัน (ปรับปรุง) --}}
+
+    {{-- ตารางสมุดรายวัน --}}
     <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
         <div class="overflow-x-auto">
             <table class="w-full font-kanit text-sm" id="journalTable">
@@ -185,7 +187,7 @@
                         </tr>
                         {{-- บรรทัดที่สาม: VAT (ถ้ามี) --}}
                         @if($transaction->vat > 0)
-                        <tr class="bg-gray-50/50 border-b border-gray-100 {{ $index % 2 == 0 ? 'bg-gray-50/30' : 'bg-gray-100/30' }}">
+                        <tr class="border-b border-gray-100 {{ $index % 2 == 0 ? 'bg-gray-50/30' : 'bg-gray-100/30' }}">
                             <td class="px-4 py-2 pl-12">
                                 <div class="flex items-center gap-2">
                                     <div class="w-2 h-2 rounded-full bg-amber-400 opacity-60"></div>
@@ -241,7 +243,7 @@
                     </tr>
                 </tfoot>
                 @endif
-            现[
+            </table>
         </div>
 
         {{-- Footer Info --}}
@@ -250,7 +252,7 @@
                 <i class="far fa-clock mr-1"></i> สร้างเมื่อ {{ now()->format('d/m/Y H:i:s') }}
             </div>
             <div>
-                <i class="fas fa-database mr-1"></i> พบ {{ $transactions->count() }} รายการ
+                <i class="fas fa-database mr-1"></i> พบรายการทั้งหมด {{ $transactions->count() }} รายการ
             </div>
         </div>
     </div>
@@ -259,31 +261,58 @@
 <script>
 // Reset Filters Function
 function resetFilters() {
-    document.querySelector('select[name="customer_id"]').value = '';
-    document.querySelector('select[name="document_type"]').value = '';
-    document.querySelector('input[name="start_date"]').value = '{{ now()->startOfMonth()->format("Y-m-d") }}';
-    document.querySelector('input[name="end_date"]').value = '{{ now()->format("Y-m-d") }}';
-    document.getElementById('filterForm').submit();
+    // Reset select elements
+    const customerSelect = document.querySelector('select[name="customer_id"]');
+    const docTypeSelect = document.querySelector('select[name="document_type"]');
+
+    if (customerSelect) customerSelect.value = '';
+    if (docTypeSelect) docTypeSelect.value = '';
+
+    // Reset date inputs
+    const startDateInput = document.querySelector('input[name="start_date"]');
+    const endDateInput = document.querySelector('input[name="end_date"]');
+
+    if (startDateInput) {
+        startDateInput.value = '{{ now()->startOfMonth()->format("Y-m-d") }}';
+    }
+    if (endDateInput) {
+        endDateInput.value = '{{ now()->format("Y-m-d") }}';
+    }
+
+    // Submit the form
+    const form = document.getElementById('filterForm');
+    if (form) form.submit();
 }
 
 // Toggle Customer Summary
 function toggleCustomerSummary() {
     const grid = document.getElementById('customerSummaryGrid');
     const icon = document.getElementById('summaryToggleIcon');
-    if (grid.style.display === 'none') {
-        grid.style.display = 'grid';
-        icon.classList.remove('fa-chevron-down');
-        icon.classList.add('fa-chevron-up');
-    } else {
-        grid.style.display = 'none';
-        icon.classList.remove('fa-chevron-up');
-        icon.classList.add('fa-chevron-down');
+
+    if (grid && icon) {
+        if (grid.style.display === 'none') {
+            grid.style.display = 'grid';
+            icon.classList.remove('fa-chevron-down');
+            icon.classList.add('fa-chevron-up');
+        } else {
+            grid.style.display = 'none';
+            icon.classList.remove('fa-chevron-up');
+            icon.classList.add('fa-chevron-down');
+        }
     }
 }
 
-// Export to Excel (สามารถ Implement เพิ่มได้)
+// Export to Excel
 document.getElementById('exportExcelBtn')?.addEventListener('click', function() {
-    window.location.href = '{{ route("reports.journal.export") }}?' + new URLSearchParams(new FormData(document.getElementById('filterForm'))).toString();
+    const form = document.getElementById('filterForm');
+    if (form) {
+        const formData = new FormData(form);
+        const params = new URLSearchParams();
+        for (const [key, value] of formData.entries()) {
+            if (value) params.append(key, value);
+        }
+        window.location.href = '{{ route("reports.journal.export") }}?' + params.toString();
+    }
 });
 
 // Keyboard shortcut (Ctrl+P for print)
@@ -292,6 +321,18 @@ document.addEventListener('keydown', function(e) {
         e.preventDefault();
         window.print();
     }
+});
+
+// Auto-hide success messages after 3 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            alert.style.transition = 'opacity 0.5s';
+            alert.style.opacity = '0';
+            setTimeout(() => alert.remove(), 500);
+        }, 3000);
+    });
 });
 </script>
 
@@ -334,6 +375,10 @@ document.addEventListener('keydown', function(e) {
     }
     tfoot {
         display: table-footer-group;
+    }
+    a {
+        text-decoration: none !important;
+        color: black !important;
     }
 }
 </style>
