@@ -132,7 +132,7 @@
                 </div>
                 <div>
                     <p class="text-2xl font-bold text-gray-900">{{ $systemSummary['accounts'] }}</p>
-                    <p class="text-xs text-gray-500">รหัสบัญชี</p>
+                    <p class="text-xs text-gray-500"> ผังบัญชี</p>
                 </div>
             </div>
         </div>
