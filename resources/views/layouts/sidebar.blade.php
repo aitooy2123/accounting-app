@@ -26,7 +26,9 @@
     <x-sidebar-link :href="route('banks')" :active="request()->routeIs('banks')" icon="fas fa-university">
       ธนาคาร (Banking)
     </x-sidebar-link>
-
+  <x-sidebar-link :href="route('reports.journal')" :active="request()->routeIs('reports.journal')" icon="fas fa-book">
+      สมุดบรายวันทั่วไป
+    </x-sidebar-link>
     <x-sidebar-link :href="route('accounts.index')" :active="request()->routeIs('accounts')" icon="fas fa-book">
       ผังบัญชี (Accounting)
     </x-sidebar-link>

@@ -144,11 +144,11 @@ Route::resource('customers', CustomerController::class);
 Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
 
 
-Route::prefix('reports')->name('reports.')->group(function () {
-    Route::get('/journal/{customer_id}', [ReportController::class, 'journal'])->name('journal');
-    Route::get('/ledger/{customer_id}', [ReportController::class, 'ledger'])->name('ledger');
-    Route::get('/trial-balance/{customer_id}', [ReportController::class, 'trialBalance'])->name('trial-balance');
-    Route::get('/pnl/{customer_id}', [ReportController::class, 'pnl'])->name('pnl');
+
+Route::prefix('reports')->group(function () {
+    Route::get('/journal', [ReportController::class, 'journal'])->name('reports.journal');
+    Route::get('/journal/export', [ReportController::class, 'exportJournalExcel'])->name('reports.journal.export');
+     Route::get('/customer-statement/{customerId?}', [ReportController::class, 'customerStatement'])->name('reports.customer-statement');
 });
 // ดึง Route สำหรับระบบ Auth (Login, Register, Forgot Password) ที่ Breeze สร้างให้
 require __DIR__ . '/auth.php';

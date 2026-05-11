@@ -14,24 +14,7 @@
                 <i class="fas fa-arrow-left mr-2"></i> กลับ
             </a>
 
-            <div class="flex flex-wrap gap-2">
-                @php
-                    $reportLinks = [
-                        ['route' => 'reports.journal', 'icon' => 'fa-book', 'title' => 'สมุดรายวัน', 'color' => 'blue'],
-                        ['route' => 'reports.ledger', 'icon' => 'fa-list-ul', 'title' => 'แยกประเภท', 'color' => 'indigo'],
-                        ['route' => 'reports.trial-balance', 'icon' => 'fa-scale-balanced', 'title' => 'งบทดลอง', 'color' => 'emerald'],
-                        ['route' => 'reports.pnl', 'icon' => 'fa-chart-line', 'title' => 'กำไรขาดทุน', 'color' => 'rose'],
-                    ];
-                @endphp
-
-                @foreach($reportLinks as $report)
-                    <a href="{{ route($report['route'], ['customer_id' => $customer->id]) }}"
-                       class="inline-flex items-center px-3 py-2 bg-white border border-gray-100 text-gray-600 hover:text-{{ $report['color'] }}-600 hover:bg-{{ $report['color'] }}-50 rounded-xl transition-all shadow-sm text-xs font-bold group">
-                        <i class="fas {{ $report['icon'] }} mr-2 text-gray-400 group-hover:text-{{ $report['color'] }}-500 transition-colors"></i>
-                        {{ $report['title'] }}
-                    </a>
-                @endforeach
-            </div>
+        
 
             <a href="{{ route('customers.edit', $customer) }}"
                class="flex-1 lg:flex-none inline-flex items-center justify-center px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-all shadow-sm shadow-blue-100">
