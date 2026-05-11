@@ -130,7 +130,7 @@ class SalesController extends Controller
             'credit_term' => 'required|integer|in:0,7,30',
             'vat_rate'    => 'required|in:0,7,10',
             'note'        => 'nullable|string',
-            'status' => 'nullable|in:ชำระแล้ว,ค้างชำระ',
+            'status' => 'nullable|in:ชำระแล้ว,ค้างชำระ,ออกใบเสอนราคา',
             'items'       => 'required|array|min:1',
             'items.*.desc' => 'required|string',
             'items.*.qty' => 'required|numeric|min:0.01',

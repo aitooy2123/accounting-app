@@ -14,9 +14,7 @@
                 <i class="fas fa-print"></i> พิมพ์ใบเสนอราคา
             </button>
 
-            <a href="{{ route('sales.export', $sale->id) }}" class="px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 font-kanit transition-all flex items-center gap-2 shadow-md">
-                <i class="fas fa-file-excel"></i> ส่งออก Excel
-            </a>
+            
 
             <a href="{{ route('sales.edit', $sale) }}" class="px-4 py-2 bg-amber-500 text-white rounded-xl hover:bg-amber-600 font-kanit transition-all flex items-center gap-2 shadow-md">
                 <i class="fas fa-edit"></i> แก้ไขข้อมูล

@@ -44,6 +44,8 @@
         <option value="">ทุกสถานะการชำระ</option>
         <option value="ชำระแล้ว" {{ request('status') == 'ชำระแล้ว' ? 'selected' : '' }}>ชำระแล้ว</option>
         <option value="ค้างชำระ" {{ request('status') == 'ค้างชำระ' ? 'selected' : '' }}>ค้างชำระ</option>
+      <option value="ออกใบเสอนราคา" {{ request('status') == 'ออกใบเสอนราคา' ? 'selected' : '' }}>ออกใบเสอนราคา</option>
+
       </select>
 
       <div class="flex space-x-2">
@@ -113,7 +115,7 @@
      <a href="{{ route('quotations.showsale', $item->id) }}"
    class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
    title="ใบเสนอราคา">
-          <i class="fas fa-print text-sm"></i>
+          <i class="fas fa-file-pdf text-sm"></i>
 </a>
                     <a href="{{ route('sales.edit', $item->id) }}" class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200" title="แก้ไข">
                       <i class="fas fa-pencil-alt text-sm"></i>

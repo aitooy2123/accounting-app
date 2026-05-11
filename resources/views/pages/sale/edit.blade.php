@@ -256,6 +256,9 @@
     <option value="ค้างชำระ" {{ request('status') == 'ค้างชำระ' ? 'selected' : '' }}>
         ค้างชำระ
     </option>
+     <option value="ออกใบเสอนราคา" {{ request('status') == 'ออกใบเสอนราคา' ? 'selected' : '' }}>
+        ออกใบเสอนราคา
+    </option>
 </select>
         </div>
         {{-- สรุปยอด --}}
