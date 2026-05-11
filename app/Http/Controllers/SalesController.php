@@ -266,4 +266,16 @@ public function show(Sale $sale)
     $branches = Branch::active()->orderBy('name')->get();
     return view('pages.sale.show', compact('sale', 'customers', 'branches'));
 }
+
+public function showsale($id)
+{
+    // ใช้ Sale:: (โมเดล) เพื่อหาข้อมูล
+    $sale = Sale::with(['customer', 'items'])->find($id);
+
+    if (!$sale) {
+        return redirect()->back()->with('error', 'ไม่พบข้อมูล');
+    }
+
+    // มั่นใจว่าชื่อไฟล์ view และโฟลเดอร์ถูกต้อง
+return view('pages.quotations.saleshow', compact('sale'));}
 }

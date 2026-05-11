@@ -12,7 +12,7 @@
         <span id="bulkDeleteText">ลบที่เลือก (0)</span>
       </button>
 
-     
+
       <a href="{{ route('sales.create') }}" class="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-bold rounded-xl transition-all duration-300 shadow-lg shadow-blue-200/50 hover:shadow-blue-300/50 transform hover:-translate-y-0.5 font-kanit">
         <i class="fas fa-plus-circle mr-2"></i> สร้างเอกสารใหม่
       </a>
@@ -106,9 +106,15 @@
               <td class="px-6 py-4 text-right">
                 <div class="flex justify-end items-center space-x-1">
                   <div class="flex justify-end items-center space-x-1">
+
                     <a href="{{ route('sale.show', $item->id) }}" class="text-blue-600 hover:text-blue-900 transition-colors p-1" title="ดูรายละเอียด">
                       <i class="fas fa-eye"></i>
                     </a>
+     <a href="{{ route('quotations.showsale', $item->id) }}"
+   class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+   title="ใบเสนอราคา">
+          <i class="fas fa-print text-sm"></i>
+</a>
                     <a href="{{ route('sales.edit', $item->id) }}" class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200" title="แก้ไข">
                       <i class="fas fa-pencil-alt text-sm"></i>
                     </a>

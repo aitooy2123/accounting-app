@@ -52,21 +52,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('sales.bulk-delete');
     // Route::get('/sales/export', [SalesController::class, 'exportExcel'])->name('pages.sales_export');
     Route::post('/sales/bulk-delete', [SalesController::class, 'bulkDelete'])->name('sales.bulk-delete');
-
-    // --- ระบบงานซื้อ (Purchases) ---
+Route::get('/quotations/showsale/{id}', [SalesController::class, 'showsale'])->name('quotations.showsale');    // --- ระบบงานซื้อ (Purchases) ---
     // Route::get('/purchases', function () {
     //     return view('pages.purchase.index');
     // })->name('purchases');
 
     // routes/web.php
 
-    Route::prefix('sales')->name('sales.')->middleware(['auth'])->group(function () {
-        Route::resource('quotations', QuotationController::class);
-
-        // Route สำหรับแปลงเป็นใบแจ้งหนี้ (ตาม FlowAccount)
-        Route::post('quotations/{quotation}/convert', [QuotationController::class, 'convertToInvoice'])
-            ->name('quotations.convert');
-    });
 
     // Purchase Resource
     Route::resource('purchases', PurchaseController::class);
