@@ -112,11 +112,11 @@
                     <a href="{{ route('sale.show', $item->id) }}" class="text-blue-600 hover:text-blue-900 transition-colors p-1" title="ดูรายละเอียด">
                       <i class="fas fa-eye"></i>
                     </a>
-     <a href="{{ route('quotations.showsale', $item->id) }}"
+     {{-- <a href="{{ route('quotations.showsale', $item->id) }}"
    class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
    title="ใบเสนอราคา">
           <i class="fas fa-file-pdf text-sm"></i>
-</a>
+</a> --}}
                     <a href="{{ route('sales.edit', $item->id) }}" class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200" title="แก้ไข">
                       <i class="fas fa-pencil-alt text-sm"></i>
                     </a>

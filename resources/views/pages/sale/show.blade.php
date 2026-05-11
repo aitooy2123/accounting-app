@@ -5,25 +5,73 @@
 <div class="container mx-auto px-4 py-8 max-w-4xl">
 
     {{-- ACTION BUTTONS TOP --}}
-    <div class="mb-6 flex justify-between items-center print:hidden">
-        <a href="{{ route('sales.index') }}" class="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-all font-kanit">
-            <i class="fas fa-arrow-left"></i> กลับหน้ารายการ
-        </a>
-        <div class="flex gap-2">
-            <button onclick="window.print()" class="px-4 py-2 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 font-kanit transition-all flex items-center gap-2 shadow-sm">
-                <i class="fas fa-print"></i> พิมพ์เอกสาร
+<div class="mb-6 flex flex-wrap justify-between items-center gap-4 print:hidden">
+    <!-- ปุ่มย้อนกลับ: ปรับให้ดูเป็นปุ่มเบาๆ (Ghost Button) -->
+    <a href="{{ route('sales.index') }}"
+       class="group flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-all duration-300 font-kanit">
+        <div class="p-2 rounded-full group-hover:bg-blue-50 transition-colors">
+            <i class="fas fa-arrow-left"></i>
+        </div>
+        <span>กลับหน้ารายการ</span>
+    </a>
+
+    <div class="flex items-center gap-3">
+        <!-- Dropdown Group -->
+        <div class="relative" x-data="{ open: false }">
+            <button @click="open = !open" @click.away="open = false"
+                class="px-5 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl hover:border-blue-400 hover:text-blue-600 font-kanit transition-all duration-200 flex items-center gap-2 shadow-sm active:scale-95">
+                <i class="fas fa-file-invoice-dollar text-gray-400" :class="open ? 'text-blue-500' : ''"></i>
+                <span>จัดการเอกสาร</span>
+                <i class="fas fa-chevron-down text-[10px] transition-transform duration-300" :class="open ? 'rotate-180' : ''"></i>
             </button>
 
+            <!-- Dropdown Menu: เพิ่ม Blur และปรับเงาให้ดู Soft ขึ้น -->
+            <div x-show="open"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                 x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                 class="absolute right-0 mt-3 w-60 bg-white/95 backdrop-blur-sm border border-gray-100 rounded-2xl shadow-2xl z-[60] py-2 origin-top-right overflow-hidden">
 
+                <div class="px-4 py-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">ตัวเลือกเอกสาร</div>
 
-            <a href="{{ route('sales.export', $sale->id) }}" class="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 font-kanit transition-all flex items-center gap-2 shadow-md">
-                <i class="fas fa-file-excel"></i> ส่งออก Excel
-            </a>
-            <a href="{{ route('sales.edit', $sale) }}" class="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-kanit transition-all flex items-center gap-2 shadow-md">
-                <i class="fas fa-edit"></i> แก้ไขข้อมูล
-            </a>
+                <!-- Print -->
+                <button onclick="window.print()" class="w-full text-left px-4 py-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700 font-kanit flex items-center gap-3 transition-colors group">
+                    <div class="w-8 h-8 rounded-lg bg-gray-50 group-hover:bg-white flex items-center justify-center transition-colors">
+                        <i class="fas fa-print"></i>
+                    </div>
+                    พิมพ์เอกสาร
+                </button>
+
+                <!-- PDF/Quotation -->
+                <a href="{{ route('quotations.showsale', $sale->id) }}" class="px-4 py-2.5 text-gray-700 hover:bg-red-50 hover:text-red-700 font-kanit flex items-center gap-3 transition-colors group">
+                    <div class="w-8 h-8 rounded-lg bg-red-50 group-hover:bg-white flex items-center justify-center transition-colors text-red-500">
+                        <i class="fas fa-file-pdf"></i>
+                    </div>
+                    ใบเสนอราคา (PDF)
+                </a>
+
+                <!-- Excel Export -->
+                <a href="{{ route('sales.export', $sale->id) }}" class="px-4 py-2.5 text-gray-700 hover:bg-green-50 hover:text-green-700 font-kanit flex items-center gap-3 transition-colors group">
+                    <div class="w-8 h-8 rounded-lg bg-green-50 group-hover:bg-white flex items-center justify-center transition-colors text-green-600">
+                        <i class="fas fa-file-excel"></i>
+                    </div>
+                    ส่งออก Excel
+                </a>
+
+               </div>
         </div>
+
+        <!-- Main Action: ปรับสี Blue ให้ดูโมเดิร์นและเพิ่ม Hover Effect -->
+        <a href="{{ route('sales.edit', $sale) }}"
+           class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-kanit transition-all duration-300 flex items-center gap-2 shadow-lg shadow-blue-200 hover:shadow-blue-300 active:scale-95">
+            <i class="fas fa-edit"></i>
+            <span>แก้ไขข้อมูล</span>
+        </a>
     </div>
+</div>
 
     {{-- MAIN INVOICE CARD --}}
     <div class="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden print:shadow-none print:border-0">
@@ -194,4 +242,5 @@
     .bg-yellow-50 { background-color: #fefce8 !important; -webkit-print-color-adjust: exact; }
 }
 </style>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 @endsection
