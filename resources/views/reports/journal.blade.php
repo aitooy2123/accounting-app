@@ -3,59 +3,82 @@
 @section('content')
 <div class="container mx-auto px-4 py-8 max-w-7xl font-kanit">
 
-    {{-- Header Section --}}
+    {{-- Header --}}
     <div class="mb-6 flex justify-between items-end">
+
         <div>
-            <h1 class="text-3xl font-black text-gray-900 tracking-tight">
 
-                @if(request('journal_type') == 'sales')
-                    <span class="text-emerald-600">สมุดรายวันขาย (SJ)</span>
-
-                @elseif(request('journal_type') == 'purchase')
-                    <span class="text-blue-600">สมุดรายวันซื้อ (PJ)</span>
-
-                @elseif(request('journal_type') == 'payment')
-                    <span class="text-rose-600">สมุดรายวันจ่าย (PV)</span>
-
-                @elseif(request('journal_type') == 'receipt')
-                    <span class="text-cyan-600">สมุดรายวันรับ (RV)</span>
-
-                @else
-                    สมุดรายวันทั่วไป (GJ)
-
-                @endif
-
-            </h1>
-
-            <p class="text-gray-500">
-                บันทึกรายการบัญชีแยกประเภทเบื้องต้น
-            </p>
-        </div>
-
-        <div class="print:hidden">
-            <button onclick="window.print()"
-                    class="px-5 py-2 bg-gray-800 text-white rounded-xl hover:bg-black transition-all flex items-center gap-2">
-                <i class="fas fa-print"></i>
-                พิมพ์รายงาน
-            </button>
-        </div>
-    </div>
-
-    {{-- Filter Form --}}
-    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 mb-8 print:hidden">
-
-        <form method="GET"
-              action="{{ route('reports.journal') }}"
-              id="filterForm">
-
-            {{-- Journal Type Selection --}}
-            <div class="flex flex-wrap gap-2 mb-6 p-1.5 bg-gray-50 rounded-2xl w-fit border border-gray-100">
+            <h1 class="text-3xl font-black tracking-tight">
 
                 @php
                     $currentType = request('journal_type', 'general');
                 @endphp
 
-                {{-- GJ --}}
+                @if($currentType == 'sales')
+
+                    <span class="text-emerald-600">
+                        สมุดรายวันขาย (SJ)
+                    </span>
+
+                @elseif($currentType == 'purchase')
+
+                    <span class="text-blue-600">
+                        สมุดรายวันซื้อ (PJ)
+                    </span>
+
+                @elseif($currentType == 'payment')
+
+                    <span class="text-rose-600">
+                        สมุดรายวันจ่าย (PV)
+                    </span>
+
+                @elseif($currentType == 'receipt')
+
+                    <span class="text-cyan-600">
+                        สมุดรายวันรับ (RV)
+                    </span>
+
+                @else
+
+                    <span class="text-gray-800">
+                        สมุดรายวันทั่วไป (GJ)
+                    </span>
+
+                @endif
+
+            </h1>
+
+            <p class="text-gray-500 mt-1">
+                บันทึกรายการบัญชีแยกประเภทเบื้องต้น
+            </p>
+
+        </div>
+
+        {{-- Print --}}
+        <div class="print:hidden">
+
+            <button onclick="window.print()"
+                    class="px-5 py-2 bg-gray-900 text-white rounded-xl hover:bg-black transition-all flex items-center gap-2">
+
+                <i class="fas fa-print"></i>
+                พิมพ์รายงาน
+
+            </button>
+
+        </div>
+
+    </div>
+
+    {{-- Filter --}}
+    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 mb-8 print:hidden">
+
+        <form method="GET"
+              action="{{ route('reports.journal') }}">
+
+            {{-- Journal Type --}}
+            <div class="flex flex-wrap gap-2 mb-6 p-1.5 bg-gray-50 rounded-2xl w-fit border border-gray-100">
+
+                {{-- General --}}
                 <button type="submit"
                         name="journal_type"
                         value="general"
@@ -63,10 +86,12 @@
                         {{ $currentType == 'general'
                             ? 'bg-white shadow-sm text-gray-900 font-bold'
                             : 'text-gray-400' }}">
+
                     ทั่วไป
+
                 </button>
 
-                {{-- SJ --}}
+                {{-- Sales --}}
                 <button type="submit"
                         name="journal_type"
                         value="sales"
@@ -74,10 +99,12 @@
                         {{ $currentType == 'sales'
                             ? 'bg-emerald-500 text-white shadow-md font-bold'
                             : 'text-gray-400' }}">
+
                     รายวันขาย
+
                 </button>
 
-                {{-- PJ --}}
+                {{-- Purchase --}}
                 <button type="submit"
                         name="journal_type"
                         value="purchase"
@@ -85,10 +112,12 @@
                         {{ $currentType == 'purchase'
                             ? 'bg-blue-600 text-white shadow-md font-bold'
                             : 'text-gray-400' }}">
+
                     รายวันซื้อ
+
                 </button>
 
-                {{-- PV --}}
+                {{-- Payment --}}
                 <button type="submit"
                         name="journal_type"
                         value="payment"
@@ -96,10 +125,12 @@
                         {{ $currentType == 'payment'
                             ? 'bg-rose-600 text-white shadow-md font-bold'
                             : 'text-gray-400' }}">
+
                     รายวันจ่าย
+
                 </button>
 
-                {{-- RV --}}
+                {{-- Receipt --}}
                 <button type="submit"
                         name="journal_type"
                         value="receipt"
@@ -107,15 +138,19 @@
                         {{ $currentType == 'receipt'
                             ? 'bg-cyan-600 text-white shadow-md font-bold'
                             : 'text-gray-400' }}">
+
                     รายวันรับ
+
                 </button>
 
             </div>
 
+            {{-- Filters --}}
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
-                {{-- Start Date --}}
+                {{-- Start --}}
                 <div>
+
                     <label class="text-xs font-bold text-gray-400 mb-1 block">
                         วันที่เริ่มต้น
                     </label>
@@ -124,10 +159,12 @@
                            name="start_date"
                            value="{{ request('start_date', now()->startOfMonth()->format('Y-m-d')) }}"
                            class="w-full border-gray-200 rounded-xl focus:ring-emerald-500">
+
                 </div>
 
-                {{-- End Date --}}
+                {{-- End --}}
                 <div>
+
                     <label class="text-xs font-bold text-gray-400 mb-1 block">
                         วันที่สิ้นสุด
                     </label>
@@ -136,10 +173,12 @@
                            name="end_date"
                            value="{{ request('end_date', now()->format('Y-m-d')) }}"
                            class="w-full border-gray-200 rounded-xl focus:ring-emerald-500">
+
                 </div>
 
                 {{-- Customer --}}
                 <div>
+
                     <label class="text-xs font-bold text-gray-400 mb-1 block">
                         คู่ค้า / ลูกค้า
                     </label>
@@ -147,7 +186,9 @@
                     <select name="customer_id"
                             class="w-full border-gray-200 rounded-xl">
 
-                        <option value="">ทั้งหมด</option>
+                        <option value="">
+                            ทั้งหมด
+                        </option>
 
                         @foreach($customers as $customer)
 
@@ -161,6 +202,7 @@
                         @endforeach
 
                     </select>
+
                 </div>
 
                 {{-- Buttons --}}
@@ -168,7 +210,9 @@
 
                     <button type="submit"
                             class="flex-1 bg-gray-900 text-white py-2 rounded-xl hover:bg-black transition-all">
+
                         ค้นหา
+
                     </button>
 
                     <a href="{{ route('reports.journal') }}"
@@ -179,17 +223,19 @@
                     </a>
 
                 </div>
+
             </div>
 
         </form>
 
     </div>
 
-    {{-- Journal Table --}}
+    {{-- Table --}}
     <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
 
         <table class="w-full text-left">
 
+            {{-- Header --}}
             <thead class="
                 {{
                     $currentType == 'sales'
@@ -211,29 +257,32 @@
                 text-white text-sm">
 
                 <tr>
-                    <th class="px-6 py-4 font-medium w-32 text-center">
+
+                    <th class="px-6 py-4 text-center w-32">
                         วันที่
                     </th>
 
-                    <th class="px-6 py-4 font-medium w-40">
+                    <th class="px-6 py-4 w-40">
                         เลขที่เอกสาร
                     </th>
 
-                    <th class="px-6 py-4 font-medium">
+                    <th class="px-6 py-4">
                         รายการ / ชื่อบัญชี
                     </th>
 
-                    <th class="px-6 py-4 font-medium text-right w-40">
+                    <th class="px-6 py-4 text-right w-40">
                         เดบิต (Dr.)
                     </th>
 
-                    <th class="px-6 py-4 font-medium text-right w-40">
+                    <th class="px-6 py-4 text-right w-40">
                         เครดิต (Cr.)
                     </th>
+
                 </tr>
 
             </thead>
 
+            {{-- Body --}}
             <tbody class="divide-y divide-gray-100 text-sm">
 
                 @forelse($transactions as $index => $item)
@@ -241,6 +290,7 @@
                     {{-- Debit --}}
                     <tr class="{{ $index % 2 == 0 ? 'bg-white' : 'bg-gray-50/50' }}">
 
+                        {{-- Date --}}
                         <td class="px-6 py-4 text-center text-gray-500 align-top"
                             rowspan="{{ $item->vat > 0 ? 3 : 2 }}">
 
@@ -248,33 +298,66 @@
 
                         </td>
 
-                        <td class="px-6 py-4 font-mono text-gray-900 font-bold align-top"
+                        {{-- Doc --}}
+                        <td class="px-6 py-4 font-mono font-bold text-gray-900 align-top"
                             rowspan="{{ $item->vat > 0 ? 3 : 2 }}">
 
                             {{ $item->doc_no }}
 
                         </td>
 
+                        {{-- Debit Account --}}
                         <td class="px-6 py-4">
 
-                            <span class="font-bold text-gray-800">
-                                {{ $item->debit_account }}
-                            </span>
+                            <div class="font-bold text-gray-800">
 
-                            <div class="text-xs text-gray-400">
-                                {{ $item->customer_name }}
+                                {{ $item->debit_account }}
+
+                            </div>
+
+                            <div class="flex items-center gap-2 mt-1">
+
+                                <div class="text-xs text-gray-400">
+
+                                    {{ $item->customer_name }}
+
+                                </div>
+
+                                {{-- Status --}}
+                                @if(($item->status ?? '') == 'ชำระแล้ว')
+
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">
+
+                                        ชำระแล้ว
+
+                                    </span>
+
+                                @elseif(($item->status ?? '') == 'ค้างชำระ')
+
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">
+
+                                        ค้างชำระ
+
+                                    </span>
+
+                                @endif
+
                             </div>
 
                         </td>
 
+                        {{-- Debit --}}
                         <td class="px-6 py-4 text-right font-mono font-bold text-emerald-600">
 
                             {{ number_format($item->total, 2) }}
 
                         </td>
 
+                        {{-- Credit --}}
                         <td class="px-6 py-4 text-right text-gray-300">
+
                             -
+
                         </td>
 
                     </tr>
@@ -285,13 +368,17 @@
                         <td class="px-6 py-2 pl-16">
 
                             <span class="text-gray-700">
+
                                 {{ $item->credit_account }}
+
                             </span>
 
                         </td>
 
                         <td class="px-6 py-2 text-right text-gray-300">
+
                             -
+
                         </td>
 
                         <td class="px-6 py-2 text-right font-mono font-bold text-rose-600">
@@ -320,7 +407,9 @@
                             </td>
 
                             <td class="px-6 py-2 text-right text-gray-300">
+
                                 -
+
                             </td>
 
                             <td class="px-6 py-2 text-right font-mono text-gray-600">
@@ -360,7 +449,7 @@
                         <td colspan="3"
                             class="px-6 py-5 text-right font-bold text-gray-900">
 
-                            รวมยอดดุล (Balanced):
+                            รวมยอดดุล (Balanced)
 
                         </td>
 

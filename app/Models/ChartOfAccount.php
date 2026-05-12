@@ -18,4 +18,16 @@ class ChartOfAccount extends Model
     public function children() {
         return $this->hasMany(ChartOfAccount::class, 'parent_id')->orderBy('code');
     }
+
+    public function edit($id)
+{
+    $sale = Sale::findOrFail($id);
+
+    $chartOfAccounts = ChartOfAccount::orderBy('code')->get();
+
+    return view('sales.edit', compact(
+        'sale',
+        'chartOfAccounts'
+    ));
+}
 }
