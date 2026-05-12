@@ -99,11 +99,12 @@ class ReportController extends Controller
         ];
     }
 
+
     private function getAccountMapping($type, $side)
     {
         // ผังบัญชีเบื้องต้น (สามารถปรับเปลี่ยนรหัสให้ตรงกับ DB ของคุณได้ที่นี่)
         $mapping = [
-            'sales'    => ['dr' => '1130', 'cr' => '4110'], // ลูกหนี้ / รายได้
+            'sales'    => ['dr' => '1130', 'cr' => '4100'], // ลูกหนี้ / รายได้
             'purchase' => ['dr' => '5110', 'cr' => '2130'], // ซื้อสินค้า / เจ้าหนี้
             'payment'  => ['dr' => '2130', 'cr' => '1110'], // เจ้าหนี้ / เงินสด-ธนาคาร
             'receipt'  => ['dr' => '1110', 'cr' => '1130'], // เงินสด-ธนาคาร / ลูกหนี้
@@ -126,31 +127,27 @@ class ReportController extends Controller
     /**
      * ดึงรหัสและชื่อบัญชีภาษาไทยจากฐานข้อมูล
      */
-      private function fetchAccountNameByCode($code)
+private function fetchAccountNameByCode($code)
 {
     if (empty($code)) return 'ไม่ระบุรหัส';
-
     $cleanCode = trim($code);
+
     static $accountCache = [];
+    if (isset($accountCache[$cleanCode])) return $accountCache[$cleanCode];
 
-    if (!isset($accountCache[$cleanCode])) {
-        // 1. ลองหาแบบตรงตัวก่อน (เช่น '4100-01')
-        $account = ChartOfAccount::where('code', $cleanCode)->first();
+    // ค้นหาแบบตรงตัว หรือ ค้นหาโดยเริ่มด้วยรหัสนั้นๆ
+    $account = ChartOfAccount::where('code', $cleanCode)
+                ->orWhere('code', 'like', $cleanCode . '%') // เช่น หา 4110 จะเจอ 4110-00
+                ->first();
 
-        // 2. ถ้าไม่เจอ และไม่มีขีดในคำค้นหา ให้ลองหาแบบ prefix (เช่น หา '4100' ใน '4100-01')
-        if (!$account && strpos($cleanCode, '-') === false) {
-            $account = ChartOfAccount::where('code', 'like', $cleanCode . '-%')->first();
-        }
-
-        if ($account) {
-            $displayName = $account->name_th ?: ($account->name ?? 'ไม่มีชื่อบัญชี');
-            $accountCache[$cleanCode] = "{$account->code} - {$displayName}";
-        } else {
-            // คืนค่ารหัสเดิมเพื่อให้รู้ว่าตัวไหนที่หาไม่เจอ
-            $accountCache[$cleanCode] = "{$cleanCode} - (ไม่พบชื่อในผังบัญชี)";
-        }
+    if ($account) {
+        $displayName = $account->name_th ?: ($account->name ?? 'ไม่มีชื่อบัญชี');
+        $result = "{$account->code} - {$displayName}";
+    } else {
+        $result = "{$cleanCode} - (ไม่พบชื่อในผังบัญชี)";
     }
 
-    return $accountCache[$cleanCode];
+    $accountCache[$cleanCode] = $result;
+    return $result;
 }
 }
