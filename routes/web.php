@@ -12,7 +12,7 @@ use App\Exports\SaleExport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\ReportController; // Ensure you have this controller
 use App\Http\Controllers\PurchaseController;
-use App\Http\Controllers\Sales\QuotationController;
+use App\Http\Controllers\PaymentVoucherController;
 
 
 /*
@@ -150,5 +150,11 @@ Route::prefix('reports')->group(function () {
     Route::get('/journal/export', [ReportController::class, 'exportJournalExcel'])->name('reports.journal.export');
      Route::get('/customer-statement/{customerId?}', [ReportController::class, 'customerStatement'])->name('reports.customer-statement');
 });
+
+
+
+Route::resource('pv', PaymentVoucherController::class);
+Route::post('/pv/bulk-delete', [PaymentVoucherController::class, 'bulkDelete'])
+    ->name('pv.bulk-delete');
 // ดึง Route สำหรับระบบ Auth (Login, Register, Forgot Password) ที่ Breeze สร้างให้
 require __DIR__ . '/auth.php';
