@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Company;
 use Illuminate\Database\Seeder;
-use Carbon\Carbon;
 
 class CompanySeeder extends Seeder
 {
@@ -14,6 +13,7 @@ class CompanySeeder extends Seeder
     public function run(): void
     {
         $companies = [
+
             [
                 'name' => 'บริษัท โกลบอลเทค โซลูชั่นส์ จำกัด',
                 'email' => 'info@globaltech.co.th',
@@ -24,6 +24,7 @@ class CompanySeeder extends Seeder
                 'is_active' => true,
                 'code' => rand(100000, 999999),
             ],
+
             [
                 'name' => 'บริษัท ไทยนวัตกรรม จำกัด (มหาชน)',
                 'email' => 'contact@thaiinnovation.com',
@@ -34,6 +35,7 @@ class CompanySeeder extends Seeder
                 'is_active' => true,
                 'code' => rand(100000, 999999),
             ],
+
             [
                 'name' => 'ห้างหุ้นส่วนจำกัด สมาร์ท อิเล็คทริค',
                 'email' => 'sales@smartelectric.com',
@@ -44,6 +46,7 @@ class CompanySeeder extends Seeder
                 'is_active' => true,
                 'code' => rand(100000, 999999),
             ],
+
             [
                 'name' => 'บริษัท ดีไซน์ สตูดิโอ จำกัด',
                 'email' => 'hello@designstudio.co.th',
@@ -54,6 +57,7 @@ class CompanySeeder extends Seeder
                 'is_active' => true,
                 'code' => rand(100000, 999999),
             ],
+
             [
                 'name' => 'บริษัท ฟู้ดเทค อินดัสทรี จำกัด',
                 'email' => 'info@foodtech.co.th',
@@ -63,8 +67,8 @@ class CompanySeeder extends Seeder
                 'tax_id' => '0115555034567',
                 'is_active' => false,
                 'code' => rand(100000, 999999),
-
             ],
+
             [
                 'name' => 'บริษัท เอเชีย โลจิสติกส์ จำกัด',
                 'email' => 'contact@asialogistics.com',
@@ -75,6 +79,7 @@ class CompanySeeder extends Seeder
                 'is_active' => true,
                 'code' => rand(100000, 999999),
             ],
+
             [
                 'name' => 'บริษัท กรีน เอ็นเนอร์ยี่ จำกัด (มหาชน)',
                 'email' => 'info@greenenergy.co.th',
@@ -85,6 +90,7 @@ class CompanySeeder extends Seeder
                 'is_active' => true,
                 'code' => rand(100000, 999999),
             ],
+
             [
                 'name' => 'ห้างหุ้นส่วนจำกัด เจริญทรัพย์ การค้า',
                 'email' => 'charoensup@gmail.com',
@@ -95,6 +101,7 @@ class CompanySeeder extends Seeder
                 'is_active' => true,
                 'code' => rand(100000, 999999),
             ],
+
             [
                 'name' => 'บริษัท ไมโครซอฟท์ ประเทศไทย จำกัด',
                 'email' => 'thai@microsoft.com',
@@ -105,6 +112,7 @@ class CompanySeeder extends Seeder
                 'is_active' => true,
                 'code' => rand(100000, 999999),
             ],
+
             [
                 'name' => 'บริษัท แอดวานซ์ ซอฟต์แวร์ จำกัด',
                 'email' => 'contact@advancesoft.com',
@@ -115,115 +123,90 @@ class CompanySeeder extends Seeder
                 'is_active' => true,
                 'code' => rand(100000, 999999),
             ],
-            [
-                'name' => 'บริษัท เอสซี แมนูแฟคเจอริ่ง จำกัด',
-                'email' => 'info@scmanufacturing.co.th',
-                'phone' => '034-567-890',
-                'address' => '678 ถนนเพชรเกษม ตำบลอ้อมใหญ่ อำเภอสามพราน นครปฐม 73160',
-                'type' => 'บริษัทจำกัด',
-                'tax_id' => '0735555067890',
-                'is_active' => false,
-                'code' => rand(100000, 999999),
 
-            ],
-            [
-                'name' => 'บริษัท ดิจิทัล ทรานฟอร์มเมชั่น จำกัด',
-                'email' => 'hello@digitaltrans.com',
-                'phone' => '02-666-7777',
-                'address' => '555 ถนนสุขุมวิท 21 แขวงคลองเตยเหนือ เขตวัฒนา กรุงเทพมหานคร 10110',
-                'type' => 'บริษัทจำกัด',
-                'tax_id' => '0105555167890',
-                'is_active' => true,
-                'code' => rand(100000, 999999),
-            ],
-            [
-                'name' => 'ห้างหุ้นส่วนจำกัด ทรัพย์ทวี คอนสตรัคชั่น',
-                'email' => 'sbtawee@gmail.com',
-                'phone' => '043-345-678',
-                'address' => '246 ถนนศรีจันทร์ ตำบลในเมือง อำเภอเมืองขอนแก่น ขอนแก่น 40000',
-                'type' => 'ห้างหุ้นส่วนจำกัด',
-                'tax_id' => '0405555024680',
-                'is_active' => true,
-                'code' => rand(100000, 999999),
-            ],
-            [
-                'name' => 'บริษัท เวิลด์ไวด์ เทรดดิ้ง จำกัด',
-                'email' => 'info@worldwidetrading.com',
-                'phone' => '02-789-0123',
-                'address' => '789 ถนนสาทรเหนือ แขวงสีลม เขตบางรัก กรุงเทพมหานคร 10500',
-                'type' => 'บริษัทจำกัด',
-                'tax_id' => '0105555178912',
-                'is_active' => true,
-                'code' => rand(100000, 999999),
-            ],
-            [
-                'name' => 'บริษัท ไบโอเทค แลบบอราทอรี่ จำกัด',
-                'email' => 'contact@biotechlab.co.th',
-                'phone' => '02-456-7891',
-                'address' => '345 ถนนพญาไท แขวงถนนพญาไท เขตราชเทวี กรุงเทพมหานคร 10400',
-                'type' => 'บริษัทจำกัด',
-                'tax_id' => '0105555145678',
-                'is_active' => false,
-                'code' => rand(100000, 999999),
+            /*
+            |--------------------------------------------------------------------------
+            | เพิ่ม ร้านค้า / ห้างหุ้นส่วน / ไม่ระบุ
+            |--------------------------------------------------------------------------
+            */
 
-            ],
             [
-                'name' => 'บริษัท เอเซีย มารีน เซอร์วิส จำกัด',
-                'email' => 'info@asiamarine.com',
-                'phone' => '038-123-456',
-                'address' => '1234 ถนนแหลมฉบัง ตำบลทุ่งสุขลา อำเภอศรีราชา ชลบุรี 20230',
-                'type' => 'บริษัทจำกัด',
-                'tax_id' => '0205555123456',
+                'name' => 'ร้าน สมชายการค้า',
+                'email' => 'somchai.shop@gmail.com',
+                'phone' => '081-111-2222',
+                'address' => '99 ถนนสุขุมวิท ชลบุรี 20000',
+                'type' => 'ร้านค้า',
+                'tax_id' => '2000000000001',
                 'is_active' => true,
                 'code' => rand(100000, 999999),
             ],
-            [
-                'name' => 'บริษัท คิวเอ การันตี จำกัด',
-                'email' => 'qa@qaguarantee.co.th',
-                'phone' => '02-333-4444',
-                'address' => '333 ถนนวิภาวดีรังสิต แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร 10900',
-                'type' => 'บริษัทจำกัด',
-                'tax_id' => '0105555135790',
-                'is_active' => true,
-                'code' => rand(100000, 999999),
-            ],
-            [
-                'name' => 'ห้างหุ้นส่วนจำกัด สงขลาวาณิชย์',
-                'email' => 'songkhlatrade@gmail.com',
-                'phone' => '074-345-678',
-                'address' => '567 ถนนนครนอก ตำบลบ่อยาง อำเภอเมืองสงขลา สงขลา 90000',
-                'type' => 'ห้างหุ้นส่วนจำกัด',
-                'tax_id' => '0905555012345',
-                'is_active' => true,
-                'code' => rand(100000, 999999),
-            ],
-            [
-                'name' => 'บริษัท เทเลคอมมูนิตี้ เน็ตเวิร์ค จำกัด',
-                'email' => 'info@telecomnetwork.com',
-                'phone' => '02-888-9999',
-                'address' => '888 ถนนพหลโยธิน แขวงสามเสนใน เขตพญาไท กรุงเทพมหานคร 10400',
-                'type' => 'บริษัทจำกัด',
-                'tax_id' => '0105555182468',
-                'is_active' => false,
-                'code' => rand(100000, 999999),
 
-            ],
             [
-                'name' => 'บริษัท พรีเมี่ยม เซอร์วิส โซลูชั่น จำกัด',
-                'email' => 'contact@premiumservice.co.th',
-                'phone' => '02-111-2222',
-                'address' => '111 ถนนรามคำแหง แขวงหัวหมาก เขตบางกะปิ กรุงเทพมหานคร 10240',
-                'type' => 'บริษัทจำกัด',
-                'tax_id' => '0105555111222',
+                'name' => 'ร้าน เจริญมินิมาร์ท',
+                'email' => 'charoenmart@gmail.com',
+                'phone' => '082-222-3333',
+                'address' => '55 ถนนสุขุมวิท ศรีราชา ชลบุรี 20110',
+                'type' => 'ร้านค้า',
+                'tax_id' => '2000000000002',
                 'is_active' => true,
                 'code' => rand(100000, 999999),
             ],
+
+            [
+                'name' => 'ห้างหุ้นส่วน สมบูรณ์ทรัพย์',
+                'email' => 'somboon@gmail.com',
+                'phone' => '083-333-4444',
+                'address' => '88 ถนนศรีราชา ชลบุรี 20110',
+                'type' => 'ห้างหุ้นส่วน',
+                'tax_id' => '2000000000003',
+                'is_active' => true,
+                'code' => rand(100000, 999999),
+            ],
+
+            [
+                'name' => 'ห้างหุ้นส่วน รุ่งเรืองการค้า',
+                'email' => 'รุ่งเรือง@gmail.com',
+                'phone' => '084-444-5555',
+                'address' => '777 ถนนสุขุมวิท พัทยา ชลบุรี 20150',
+                'type' => 'ห้างหุ้นส่วน',
+                'tax_id' => '2000000000004',
+                'is_active' => true,
+                'code' => rand(100000, 999999),
+            ],
+
+            [
+                'name' => 'กิจการไม่ระบุประเภท',
+                'email' => 'unknown@gmail.com',
+                'phone' => '085-555-6666',
+                'address' => 'ไม่ระบุ',
+                'type' => 'ไม่ระบุ',
+                'tax_id' => '2000000000005',
+                'is_active' => true,
+                'code' => rand(100000, 999999),
+            ],
+
+            [
+                'name' => 'ร้านค้าทั่วไป',
+                'email' => 'generalshop@gmail.com',
+                'phone' => '086-666-7777',
+                'address' => 'ไม่ระบุ',
+                'type' => null,
+                'tax_id' => '2000000000006',
+                'is_active' => true,
+                'code' => rand(100000, 999999),
+            ],
+
         ];
 
         foreach ($companies as $company) {
-            Company::create($company);
+
+            Company::updateOrCreate(
+                ['tax_id' => $company['tax_id']],
+                $company
+            );
+
         }
 
-        $this->command->info('✅ CompanySeeder: เพิ่มข้อมูลบริษัท 20 รายการเรียบร้อยแล้ว');
+        $this->command->info('✅ CompanySeeder: เพิ่มข้อมูลบริษัท/ร้านค้า/ห้างหุ้นส่วน เรียบร้อยแล้ว');
     }
 }

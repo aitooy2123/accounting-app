@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Log;
 
 class CreatePaymentsTable extends Migration
 {
@@ -13,18 +14,48 @@ class CreatePaymentsTable extends Migration
      */
     public function up()
     {
-     Schema::create('payments', function (Blueprint $table) {
-        $table->id();
-        $table->date('pay_date');
-        $table->string('doc_no')->unique(); // เพิ่ม unique กันเลขที่ซ้ำ
-        $table->foreignId('supplier_id')->constrained()->onDelete('cascade');
-        $table->string('remark')->nullable(); // สำหรับใส่คำอธิบายรายการในสมุดรายวัน
-        $table->decimal('subtotal', 15, 2); // ยอดก่อนภาษี
-        $table->decimal('vat', 15, 2)->default(0); // ภาษีมูลค่าเพิ่ม
-        $table->decimal('amount', 15, 2); // ยอดรวมสุทธิ (Net)
-        $table->string('status')->default('active'); // สำหรับจัดการการยกเลิกรายการ
-        $table->timestamps();
-    });
+        try {
+
+            // ป้องกัน create ซ้ำ
+            if (Schema::hasTable('payments')) {
+                return;
+            }
+
+            Schema::create('payments', function (Blueprint $table) {
+
+                $table->id();
+
+                $table->date('pay_date');
+
+                $table->string('doc_no')->unique();
+
+                $table->foreignId('supplier_id')
+                    ->constrained()
+                    ->onDelete('cascade');
+
+                $table->string('remark')->nullable();
+
+                $table->decimal('subtotal', 15, 2);
+
+                $table->decimal('vat', 15, 2)->default(0);
+
+                $table->decimal('amount', 15, 2);
+
+                $table->string('status')->default('active');
+
+                $table->timestamps();
+            });
+
+        } catch (\Exception $e) {
+
+            // เขียน log
+            Log::error('Create payments table error: ' . $e->getMessage());
+
+            // แสดง error
+            throw new \Exception(
+                'ไม่สามารถสร้างตาราง payments ได้ : ' . $e->getMessage()
+            );
+        }
     }
 
     /**
@@ -34,6 +65,17 @@ class CreatePaymentsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('payments');
+        try {
+
+            Schema::dropIfExists('payments');
+
+        } catch (\Exception $e) {
+
+            Log::error('Drop payments table error: ' . $e->getMessage());
+
+            throw new \Exception(
+                'ไม่สามารถลบตาราง payments ได้ : ' . $e->getMessage()
+            );
+        }
     }
 }
