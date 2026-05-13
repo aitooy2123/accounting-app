@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\PaymentVoucher;
@@ -10,11 +11,53 @@ use App\Models\Payee;
 
 class PaymentVoucherController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $vouchers = PaymentVoucher::with('items.account')
+        $query = PaymentVoucher::with(['items.account', 'payee']);
+
+        // =========================
+        // SEARCH
+        // =========================
+
+        if ($request->filled('search')) {
+
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+
+                // ค้นหาเลขที่ PV
+                $q->where('pv_no', 'like', "%{$search}%")
+
+                    // ค้นหา note
+                    ->orWhere('note', 'like', "%{$search}%")
+
+                    // ค้นหาชื่อผู้รับเงิน
+                    ->orWhereHas('payee', function ($payeeQuery) use ($search) {
+                        $payeeQuery->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        // =========================
+        // DATE FILTER
+        // =========================
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('pv_date', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('pv_date', '<=', $request->date_to);
+        }
+
+        // =========================
+        // SORT + PAGINATE
+        // =========================
+
+        $vouchers = $query
             ->latest()
-            ->paginate(20);
+            ->paginate(20)
+            ->appends($request->query());
 
         return view('pages.pv.index', compact('vouchers'));
     }
@@ -22,8 +65,9 @@ class PaymentVoucherController extends Controller
     public function create()
     {
         $accounts = ChartOfAccount::all();
+        $payees = Payee::all();
 
-        return view('pages.pv.create', compact('accounts'));
+        return view('pages.pv.create', compact('accounts', 'payees'));
     }
 
     public function store(Request $request)
@@ -44,6 +88,7 @@ class PaymentVoucherController extends Controller
             ]);
 
             foreach ($request->items as $item) {
+
                 PaymentVoucherItem::create([
                     'payment_voucher_id' => $pv->id,
                     'chart_of_account_id' => $item['chart_of_account_id'],
@@ -54,13 +99,17 @@ class PaymentVoucherController extends Controller
             }
         });
 
-        return redirect()->route('pv.index')
+        return redirect()
+            ->route('pv.index')
             ->with('success', 'บันทึก PV สำเร็จ');
     }
 
     public function show($id)
     {
-        $pv = PaymentVoucher::with('items')->findOrFail($id);
+        $pv = PaymentVoucher::with([
+            'items.account',
+            'payee'
+        ])->findOrFail($id);
 
         return view('pages.pv.show', compact('pv'));
     }
@@ -70,6 +119,7 @@ class PaymentVoucherController extends Controller
         $ids = $request->ids;
 
         if (!$ids || count($ids) === 0) {
+
             return response()->json([
                 'success' => false,
                 'message' => 'ไม่พบข้อมูล'
