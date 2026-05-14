@@ -19,15 +19,12 @@ class ChartOfAccount extends Model
         return $this->hasMany(ChartOfAccount::class, 'parent_id')->orderBy('code');
     }
 
-    public function edit($id)
+public function edit(Sale $sale)
 {
-    $sale = Sale::findOrFail($id);
+    $customers = Customer::all();
+    $branches = Branch::all();
+    $chartOfAccounts = ChartOfAccount::all(); // 👈 add this line
 
-    $chartOfAccounts = ChartOfAccount::orderBy('code')->get();
-
-    return view('sales.edit', compact(
-        'sale',
-        'chartOfAccounts'
-    ));
+    return view('pages.sale.edit', compact('sale', 'customers', 'branches', 'chartOfAccounts'));
 }
 }
