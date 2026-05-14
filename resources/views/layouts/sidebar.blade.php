@@ -21,9 +21,7 @@
       ซื้อ (Purchases)
     </x-sidebar-link>
 
-     <x-sidebar-link :href="route('pv.index')" :active="request()->routeIs('pv.*')" icon="fas fa-shopping-cart">
-รายจ่าย
-    </x-sidebar-link>
+ 
 
     <div class="pt-4 pb-2 px-3 text-xs font-semibold text-gray-400 uppercase">การเงิน & บัญชี</div>
 
