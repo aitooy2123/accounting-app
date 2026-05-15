@@ -13,6 +13,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\ReportController; // Ensure you have this controller
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\PaymentVoucherController;
+use App\Http\Controllers\ExpenseController;
 
 
 /*
@@ -152,9 +153,6 @@ Route::prefix('reports')->group(function () {
 });
 
 
-
-Route::resource('pv', PaymentVoucherController::class);
-Route::post('/pv/bulk-delete', [PaymentVoucherController::class, 'bulkDelete'])
-    ->name('pv.bulk-delete');
-// ดึง Route สำหรับระบบ Auth (Login, Register, Forgot Password) ที่ Breeze สร้างให้
+//ค่าใช้จ่าย
+Route::resource('expenses', ExpenseController::class);
 require __DIR__ . '/auth.php';

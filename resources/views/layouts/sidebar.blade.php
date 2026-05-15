@@ -20,8 +20,11 @@
     <x-sidebar-link :href="route('purchases.index')" :active="request()->routeIs('purchases.*')" icon="fas fa-shopping-cart">
       ซื้อ (Purchases)
     </x-sidebar-link>
+<x-sidebar-link :href="route('expenses.index')" :active="request()->routeIs('expenses.*')" icon="fas fa-shopping-cart">
+      ค่าใช้จ่าย(expenses)
+    </x-sidebar-link>
 
- 
+
 
     <div class="pt-4 pb-2 px-3 text-xs font-semibold text-gray-400 uppercase">การเงิน & บัญชี</div>
 
