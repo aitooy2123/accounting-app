@@ -99,8 +99,7 @@
               <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">ผู้จำหน่าย</th>
               <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">รายละเอียด</th>
               <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">จำนวนเงิน</th>
-              <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">ผังบัญชี</th>
-              <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">หมายเหตุ</th>
+
               <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">จัดการ</th>
             </tr>
           </thead>
@@ -143,7 +142,7 @@
                 <td class="px-6 py-4 text-right text-sm font-bold text-red-600">
                   {{ number_format($item->total_amount, 2) }}
                 </td>
-                <td class="px-6 py-4">
+                {{-- <td class="px-6 py-4">
                   <span class="inline-flex items-center px-2.5 py-1 bg-green-50 text-green-700 rounded-lg text-sm font-medium">
                     <i class="fas fa-book mr-1.5 text-xs"></i>
                     {{ $item->account->account_name ?? '-' }}
@@ -151,7 +150,7 @@
                 </td>
                 <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
                   {{ $item->remark ?? '-' }}
-                </td>
+                </td> --}}
                 <td class="px-6 py-4 text-right">
                   <div class="flex justify-end items-center space-x-1">
                     <a href="{{ route('expenses.edit', $item) }}"

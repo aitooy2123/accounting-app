@@ -46,6 +46,7 @@
 
             <div class="p-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
                     {{-- วันที่จ่าย --}}
                     <div>
                         <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">วันที่รายการ <span class="text-red-500">*</span></label>
@@ -94,7 +95,19 @@
                         </div>
                     </div>
 
-                    {{-- จำนวนเงิน (ก่อนภาษี) --}}
+                    รายละเอียดหลัก
+                    <div class="md:col-span-2">
+                        <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">รายละเอียดรายการ <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-start pointer-events-none text-gray-400 pt-3">
+                                <i class="fas fa-list text-xs"></i>
+                            </div>
+                            <textarea name="description" rows="2" placeholder="ระบุเหตุผลหรือรายละเอียดการจ่าย"
+                                      class="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">{{ old('description') }}</textarea>
+                        </div>
+                    </div>
+
+                    {{-- จำนวนเงิน (ถ้าไม่มีรายการย่อย) --}}
                     <div>
                         <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">จำนวนเงิน (ก่อนภาษี) <span class="text-red-500">*</span></label>
                         <div class="relative">
@@ -168,7 +181,7 @@
                         </div>
                     </div>
 
-                    {{-- หมายเหตุเพิ่มเติม (span 2 columns) --}}
+                    {{-- หมายเหตุ --}}
                     <div class="md:col-span-2">
                         <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">หมายเหตุเพิ่มเติม</label>
                         <div class="relative">
@@ -179,6 +192,7 @@
                                       class="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">{{ old('remark') }}</textarea>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
