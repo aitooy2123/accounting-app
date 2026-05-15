@@ -10,12 +10,12 @@
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 space-y-4 md:space-y-0">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 font-kanit">แก้ไขรายการจ่ายเงิน</h1>
-                <p class="text-sm text-gray-500 font-kanit">เลขที่เอกสาร: <span class="text-blue-600 font-bold">{{ $expense->doc_no }}</span></p>
+                <p class="text-sm text-gray-500 font-kanit">แก้ไขรายละเอียดค่าใช้จ่ายและรายการย่อย</p>
             </div>
             <div class="flex space-x-3">
                 <a href="{{ route('expenses.index') }}" class="px-5 py-2.5 bg-white border border-gray-200 text-gray-600 text-sm font-bold rounded-xl hover:bg-gray-50 transition-all font-kanit">ยกเลิก</a>
-                <button type="submit" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold rounded-xl transition-all shadow-sm shadow-amber-200 font-kanit">
-                    <i class="fas fa-save mr-2"></i> บันทึกการแก้ไข
+                <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-all shadow-sm shadow-blue-200 font-kanit">
+                    <i class="fas fa-save mr-2"></i> อัปเดตรายการ
                 </button>
             </div>
         </div>
@@ -36,18 +36,19 @@
             </div>
         @endif
 
+        {{-- Main Expense Card --}}
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-50 bg-gray-50/50">
                 <h3 class="text-sm font-bold text-gray-700 font-kanit flex items-center">
-                    <i class="fas fa-edit mr-2 text-amber-500"></i>
-                    รายละเอียดข้อมูลรายการจ่าย
+                    <i class="fas fa-edit mr-2 text-blue-500"></i>
+                    แก้ไขข้อมูลหลัก
                 </h3>
             </div>
 
             <div class="p-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                    {{-- วันที่รายการ --}}
+                    {{-- วันที่จ่าย --}}
                     <div>
                         <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">วันที่รายการ <span class="text-red-500">*</span></label>
                         <div class="relative">
@@ -55,7 +56,7 @@
                                 <i class="fas fa-calendar-alt text-xs"></i>
                             </div>
                             <input type="date" name="expense_date"
-                                   value="{{ old('expense_date', $expense->expense_date ? date('Y-m-d', strtotime($expense->expense_date)) : '') }}"
+                                   value="{{ old('expense_date', $expense->expense_date->format('Y-m-d')) }}"
                                    class="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
                         </div>
                     </div>
@@ -69,6 +70,7 @@
                             </div>
                             <input type="text" name="doc_no"
                                    value="{{ old('doc_no', $expense->doc_no) }}"
+                                   placeholder="เช่น INV6705001"
                                    class="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
                         </div>
                     </div>
@@ -88,6 +90,74 @@
                                     </option>
                                 @endforeach
                             </select>
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+                                <i class="fas fa-chevron-down text-[10px]"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- รายละเอียดหลัก --}}
+                    <div class="md:col-span-2">
+                        <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">รายละเอียดรายการ <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-start pointer-events-none text-gray-400 pt-3">
+                                <i class="fas fa-list text-xs"></i>
+                            </div>
+                            <textarea name="description" rows="2" placeholder="ระบุเหตุผลหรือรายละเอียดการจ่าย"
+                                      class="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">{{ old('description', $expense->description) }}</textarea>
+                        </div>
+                    </div>
+
+                    {{-- จำนวนเงิน (ถ้าไม่มีรายการย่อย) --}}
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">จำนวนเงิน (ก่อนภาษี) <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 font-bold text-xs">
+                                ฿
+                            </div>
+                            <input type="number" step="0.01" name="amount" id="amount"
+                                   value="{{ old('amount', $expense->amount) }}"
+                                   placeholder="0.00"
+                                   class="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm font-bold text-blue-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-right">
+                        </div>
+                        <p class="text-[10px] text-gray-400 mt-1">ใช้กรณีไม่มีรายการย่อย (items)</p>
+                    </div>
+
+                    {{-- ภาษี --}}
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">ภาษีมูลค่าเพิ่ม (VAT)</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                <i class="fas fa-percent text-xs"></i>
+                            </div>
+                            <select name="vat_rate" id="vat_rate" class="block w-full pl-10 pr-10 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none">
+                                <option value="0" @selected(old('vat_rate', $expense->vat_rate) == 0)>0% (ไม่มี VAT)</option>
+                                <option value="7" @selected(old('vat_rate', $expense->vat_rate) == 7)>7% (มาตรฐาน)</option>
+                                <option value="10" @selected(old('vat_rate', $expense->vat_rate) == 10)>10%</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+                                <i class="fas fa-chevron-down text-[10px]"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- สถานะ --}}
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">สถานะการชำระเงิน <span class="text-red-500">*</span></label>
+                        <div class="grid grid-cols-3 gap-2">
+                            @php $status = old('status', $expense->status); @endphp
+                            @foreach([
+                                'paid' => ['label' => 'ชำระแล้ว', 'color' => 'peer-checked:bg-green-50 peer-checked:text-green-600 peer-checked:border-green-500'],
+                                'pending' => ['label' => 'ค้างชำระ', 'color' => 'peer-checked:bg-amber-50 peer-checked:text-amber-600 peer-checked:border-amber-500'],
+                                'invoiced' => ['label' => 'ออกใบแจ้งหนี้', 'color' => 'peer-checked:bg-blue-50 peer-checked:text-blue-600 peer-checked:border-blue-500']
+                            ] as $key => $style)
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="status" value="{{ $key }}" class="hidden peer" {{ $status == $key ? 'checked' : '' }}>
+                                    <div class="text-center py-2.5 text-[12px] font-bold rounded-xl border border-gray-200 transition-all font-kanit {{ $style['color'] }} bg-white text-gray-500">
+                                        {{ $style['label'] }}
+                                    </div>
+                                </label>
+                            @endforeach
                         </div>
                     </div>
 
@@ -106,59 +176,88 @@
                                     </option>
                                 @endforeach
                             </select>
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+                                <i class="fas fa-chevron-down text-[10px]"></i>
+                            </div>
                         </div>
                     </div>
 
-                    {{-- รายละเอียด --}}
+                    {{-- หมายเหตุ --}}
                     <div class="md:col-span-2">
-                        <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">รายละเอียดรายการ <span class="text-red-500">*</span></label>
-                        <textarea name="description" rows="2" class="block w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">{{ old('description', $expense->description) }}</textarea>
-                    </div>
-
-                    {{-- จำนวนเงิน --}}
-                    <div>
-                        <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">จำนวนเงิน (ก่อนภาษี) <span class="text-red-500">*</span></label>
+                        <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">หมายเหตุเพิ่มเติม</label>
                         <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 font-bold text-xs">฿</div>
-                            <input type="number" step="0.01" name="amount" id="amount"
-                                   value="{{ old('amount', (float)$expense->amount) }}"
-                                   class="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm font-bold text-blue-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-right">
-                        </div>
-                    </div>
-
-                    {{-- VAT --}}
-                    <div>
-                        <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">ภาษีมูลค่าเพิ่ม (VAT)</label>
-                        <select name="vat_rate" id="vat_rate" class="block w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 transition-all">
-                            <option value="0" @selected(old('vat_rate', (int)$expense->vat_rate) == 0)>0% (ไม่มี VAT)</option>
-                            <option value="7" @selected(old('vat_rate', (int)$expense->vat_rate) == 7)>7% (มาตรฐาน)</option>
-                            <option value="10" @selected(old('vat_rate', (int)$expense->vat_rate) == 10)>10%</option>
-                        </select>
-                    </div>
-
-                    {{-- สถานะ --}}
-                    <div class="md:col-span-2">
-                        <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">สถานะการชำระเงิน <span class="text-red-500">*</span></label>
-                        <div class="grid grid-cols-3 gap-2">
-                            @foreach(['paid' => 'ชำระแล้ว', 'pending' => 'ค้างชำระ', 'invoiced' => 'ออกใบแจ้งหนี้'] as $key => $label)
-                                <label class="cursor-pointer">
-                                    <input type="radio" name="status" value="{{ $key }}" class="hidden peer" {{ old('status', $expense->status) == $key ? 'checked' : '' }}>
-                                    <div class="text-center py-2.5 text-[12px] font-bold rounded-xl border border-gray-200 transition-all peer-checked:bg-blue-50 peer-checked:text-blue-600 peer-checked:border-blue-500 bg-white text-gray-500">
-                                        {{ $label }}
-                                    </div>
-                                </label>
-                            @endforeach
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-start pointer-events-none text-gray-400 pt-3">
+                                <i class="fas fa-sticky-note text-xs"></i>
+                            </div>
+                            <textarea name="remark" rows="2"
+                                      class="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">{{ old('remark', $expense->remark) }}</textarea>
                         </div>
                     </div>
 
                 </div>
             </div>
+        </div>
 
-            {{-- Footer --}}
+        {{-- Items Section (Dynamic) --}}
+        <div class="mt-6 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center">
+                <h3 class="text-sm font-bold text-gray-700 font-kanit flex items-center">
+                    <i class="fas fa-list-ul mr-2 text-blue-500"></i>
+                    รายการค่าใช้จ่ายย่อย (Items)
+                </h3>
+                <button type="button" id="addItemBtn" class="text-xs bg-white border border-gray-200 text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-all">
+                    <i class="fas fa-plus mr-1"></i> เพิ่มรายการ
+                </button>
+            </div>
+
+            <div class="p-6">
+                <table class="w-full" id="itemsTable">
+                    <thead>
+                        <tr class="text-left text-[11px] font-bold text-gray-400 uppercase border-b border-gray-100">
+                            <th class="pb-3 w-2/5">รายละเอียด</th>
+                            <th class="pb-3 w-1/6 text-right">จำนวน</th>
+                            <th class="pb-3 w-1/6 text-right">ราคาต่อหน่วย</th>
+                            <th class="pb-3 w-1/6 text-right">รวม</th>
+                            <th class="pb-3 w-12"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="itemsBody">
+                        {{-- วนลูปแสดง items ที่มีอยู่ --}}
+                        @php $oldItems = old('items', $expense->items->toArray()); @endphp
+                        @forelse($oldItems as $index => $item)
+                            <tr class="item-row border-b border-gray-50">
+                                <td class="py-3 pr-2">
+                                    <input type="text" name="items[{{ $index }}][desc]" value="{{ $item['description'] ?? '' }}" placeholder="รายการ..." class="w-full border border-gray-200 rounded-lg text-sm px-3 py-2 focus:ring-blue-500">
+                                </td>
+                                <td class="py-3 pr-2">
+                                    <input type="number" step="any" name="items[{{ $index }}][qty]" value="{{ $item['quantity'] ?? $item['qty'] ?? 1 }}" class="item-qty w-full text-right border border-gray-200 rounded-lg text-sm px-3 py-2 focus:ring-blue-500">
+                                </td>
+                                <td class="py-3 pr-2">
+                                    <input type="number" step="any" name="items[{{ $index }}][price]" value="{{ $item['unit_price'] ?? $item['price'] ?? 0 }}" class="item-price w-full text-right border border-gray-200 rounded-lg text-sm px-3 py-2 focus:ring-blue-500">
+                                </td>
+                                <td class="py-3 pr-2">
+                                    <span class="item-total block text-right text-sm font-medium text-gray-700">0.00</span>
+                                </td>
+                                <td class="py-3 text-center">
+                                    <button type="button" class="remove-item text-red-400 hover:text-red-600 transition-all"><i class="fas fa-trash-alt"></i></button>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr class="item-row border-b border-gray-50" id="emptyRowPlaceholder">
+                                <td colspan="5" class="py-6 text-center text-gray-400 text-sm">ยังไม่มีรายการย่อย คลิก "เพิ่มรายการ" ข้างบน</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- Footer info และรวมยอด --}}
             <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
-                <span class="text-[10px] text-gray-400 font-kanit italic">* กรุณาตรวจสอบยอดรวมก่อนบันทึก</span>
+                <p class="text-[10px] text-gray-400 font-kanit italic">
+                    * รายการย่อยจะถูกนำมาคำนวณรวมแทนฟิลด์ "จำนวนเงิน" (ถ้ามี)
+                </p>
                 <div class="text-right">
-                    <span class="text-[10px] text-gray-400 font-bold uppercase block">ยอดรวมสุทธิ</span>
+                    <span class="text-[10px] text-gray-400 font-bold uppercase block">ยอดรวมสุทธิ (Grand Total)</span>
                     <span id="grand_total" class="text-lg font-bold text-gray-900">฿ 0.00</span>
                 </div>
             </div>
@@ -168,26 +267,103 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const amountInput = document.getElementById('amount');
-        const vatSelect = document.getElementById('vat_rate');
-        const grandTotalDisplay = document.getElementById('grand_total');
+        let itemIndex = {{ count($oldItems) }};
 
-        function calculateTotal() {
-            const amount = parseFloat(amountInput.value) || 0;
+        // Helper: คำนวณรวมทั้งฟอร์ม
+        function calculateAll() {
+            let subtotal = 0;
+            const rows = document.querySelectorAll('#itemsBody .item-row');
+            rows.forEach(row => {
+                if (row.id === 'emptyRowPlaceholder') return;
+                const qty = parseFloat(row.querySelector('.item-qty')?.value) || 0;
+                const price = parseFloat(row.querySelector('.item-price')?.value) || 0;
+                const total = qty * price;
+                const totalSpan = row.querySelector('.item-total');
+                if (totalSpan) totalSpan.innerText = total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                subtotal += total;
+            });
+
+            // ถ้าไม่มีรายการย่อย ให้ใช้ amount field แทน
+            const amountInput = document.getElementById('amount');
+            const vatSelect = document.getElementById('vat_rate');
+            let beforeVat = subtotal;
+            if (beforeVat === 0 && amountInput) {
+                beforeVat = parseFloat(amountInput.value) || 0;
+            }
             const vatRate = parseFloat(vatSelect.value) || 0;
-            const total = amount + (amount * vatRate / 100);
-            grandTotalDisplay.innerText = '฿ ' + total.toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
+            const vatAmount = (beforeVat * vatRate) / 100;
+            const grandTotal = beforeVat + vatAmount;
+            document.getElementById('grand_total').innerText = '฿ ' + grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+            // ถ้ามีรายการย่อย ให้ disable amount field เพื่อไม่ให้สับสน (optional)
+            if (rows.length > 0 && amountInput) {
+                amountInput.disabled = true;
+                amountInput.classList.add('bg-gray-100');
+            } else if (amountInput) {
+                amountInput.disabled = false;
+                amountInput.classList.remove('bg-gray-100');
+            }
+        }
+
+        // เพิ่มแถวใหม่
+        function addItemRow() {
+            const tbody = document.getElementById('itemsBody');
+            // ลบ placeholder ถ้ามี
+            const placeholder = document.getElementById('emptyRowPlaceholder');
+            if (placeholder) placeholder.remove();
+
+            const newRow = document.createElement('tr');
+            newRow.className = 'item-row border-b border-gray-50';
+            newRow.innerHTML = `
+                <td class="py-3 pr-2"><input type="text" name="items[${itemIndex}][desc]" placeholder="รายการ..." class="w-full border border-gray-200 rounded-lg text-sm px-3 py-2"></td>
+                <td class="py-3 pr-2"><input type="number" step="any" name="items[${itemIndex}][qty]" value="1" class="item-qty w-full text-right border border-gray-200 rounded-lg text-sm px-3 py-2"></td>
+                <td class="py-3 pr-2"><input type="number" step="any" name="items[${itemIndex}][price]" value="0" class="item-price w-full text-right border border-gray-200 rounded-lg text-sm px-3 py-2"></td>
+                <td class="py-3 pr-2"><span class="item-total block text-right text-sm font-medium text-gray-700">0.00</span></td>
+                <td class="py-3 text-center"><button type="button" class="remove-item text-red-400 hover:text-red-600"><i class="fas fa-trash-alt"></i></button></td>
+            `;
+            tbody.appendChild(newRow);
+            itemIndex++;
+
+            attachRowEvents(newRow);
+            calculateAll();
+        }
+
+        function attachRowEvents(row) {
+            const qtyInput = row.querySelector('.item-qty');
+            const priceInput = row.querySelector('.item-price');
+            const removeBtn = row.querySelector('.remove-item');
+            if (qtyInput) qtyInput.addEventListener('input', calculateAll);
+            if (priceInput) priceInput.addEventListener('input', calculateAll);
+            if (removeBtn) removeBtn.addEventListener('click', function(e) {
+                row.remove();
+                // ถ้าไม่มีแถวเหลือ ให้สร้าง placeholder ใหม่
+                if (document.querySelectorAll('#itemsBody .item-row').length === 0) {
+                    const tbody = document.getElementById('itemsBody');
+                    const placeholderRow = document.createElement('tr');
+                    placeholderRow.id = 'emptyRowPlaceholder';
+                    placeholderRow.className = 'border-b border-gray-50';
+                    placeholderRow.innerHTML = '<td colspan="5" class="py-6 text-center text-gray-400 text-sm">ยังไม่มีรายการย่อย คลิก "เพิ่มรายการ" ข้างบน</td>';
+                    tbody.appendChild(placeholderRow);
+                }
+                calculateAll();
             });
         }
 
-        // ฟังเหตุการณ์การเปลี่ยนแปลง
-        amountInput.addEventListener('input', calculateTotal);
-        vatSelect.addEventListener('change', calculateTotal);
+        // ผูก events กับแถวที่มีอยู่แล้ว
+        document.querySelectorAll('#itemsBody .item-row').forEach(row => attachRowEvents(row));
 
-        // คำนวณทันทีเมื่อโหลดหน้า (เพื่อให้ยอดรวมแสดงค่าเริ่มต้นจากฐานข้อมูล)
-        calculateTotal();
+        // ผูก events กับ amount field และ vat
+        const amountInput = document.getElementById('amount');
+        const vatSelect = document.getElementById('vat_rate');
+        if (amountInput) amountInput.addEventListener('input', calculateAll);
+        if (vatSelect) vatSelect.addEventListener('change', calculateAll);
+
+        // ปุ่มเพิ่มรายการ
+        const addBtn = document.getElementById('addItemBtn');
+        if (addBtn) addBtn.addEventListener('click', addItemRow);
+
+        // เรียกคำนวณครั้งแรก
+        calculateAll();
     });
 </script>
 @endsection
