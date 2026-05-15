@@ -8,94 +8,102 @@ use App\Models\Payee;
 use App\Models\ChartOfAccount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+
 
 class ExpenseController extends Controller
 {
+    /**
+     * Display a listing of expenses.
+     */
     public function index(Request $request)
     {
         $query = Expense::with(['payee', 'account']);
 
-        if ($request->search) {
-            $query->where(function ($q) use ($request) {
-                $q->where('doc_no', 'like', '%' . $request->search . '%')
-                  ->orWhere('description', 'like', '%' . $request->search . '%');
+        // Search by doc_no, description, or payee name
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('doc_no', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhereHas('payee', fn($q2) => $q2->where('name', 'like', "%{$search}%"));
             });
         }
 
-       $expenses = $query->orderBy('amount', 'asc')->paginate(20);
-        return view('pages.expenses.index', compact('expenses'));
+        // Filter by payee
+        if ($request->filled('payee_id')) {
+            $query->where('payee_id', $request->payee_id);
+        }
+
+        $expenses = $query->orderBy('expense_date', 'desc')->paginate(20);
+        $payees = Payee::orderBy('name')->get();
+
+        return view('pages.expenses.index', compact('expenses', 'payees'));
     }
 
+    /**
+     * Show the form for creating a new expense.
+     */
     public function create()
     {
         $accounts = ChartOfAccount::orderBy('code')->get();
         $payees = Payee::orderBy('name')->get();
+
         return view('pages.expenses.create', compact('accounts', 'payees'));
     }
 
+    /**
+     * Store a newly created expense in storage.
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
             'expense_date' => 'required|date',
-            'doc_no'       => 'nullable|string|max:50|unique:expenses,doc_no', // เพิ่ม Unique Check
+            'doc_no'       => 'nullable|string|max:50|unique:expenses,doc_no',
             'payee_id'     => 'nullable|exists:payees,id',
             'account_id'   => 'nullable|exists:chart_of_accounts,id',
             'description'  => 'required|string',
             'remark'       => 'nullable|string',
             'status'       => 'required|in:paid,pending,invoiced',
             'vat_rate'     => 'required|numeric|in:0,7,10',
-            'amount'       => 'required|numeric|min:0',
-            'total_amount' => 'nullable|numeric',
+
+            // Amount is not required if items are provided
+            'amount'       => 'required_if:items,null|numeric|min:0',
+            'total_amount' => 'nullable|numeric', // ignored, calculated automatically
+
+            // Items array
             'items'        => 'nullable|array',
             'items.*.desc' => 'required_with:items|string',
             'items.*.qty'  => 'required_with:items|numeric|min:1',
             'items.*.price'=> 'required_with:items|numeric|min:0',
         ]);
 
-        // Logic การจัดการเลขที่เอกสาร
-        $docNo = $validated['doc_no'];
-        if (empty($docNo)) {
-            $year = date('Y', strtotime($validated['expense_date']));
-            $prefix = 'EXP-' . $year . '-';
+        // Generate doc_no if empty
+        $docNo = $this->generateDocNumber($validated['doc_no'] ?? null, $validated['expense_date']);
 
-            // ค้นหาเลขล่าสุดที่ใช้ Prefix นี้
-            $lastExpense = Expense::where('doc_no', 'like', $prefix . '%')
-                ->orderBy('doc_no', 'desc')
-                ->first();
-
-            if ($lastExpense && preg_match('/' . $prefix . '(\d+)/', $lastExpense->doc_no, $matches)) {
-                $nextNumber = intval($matches[1]) + 1;
-            } else {
-                $nextNumber = 1;
-            }
-            $docNo = $prefix . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
-        }
-
-        // คำนวณยอดเงิน
-        if (!empty($validated['items'])) {
-            $subtotal = collect($validated['items'])->sum(fn($item) => $item['qty'] * $item['price']);
-            $validated['amount'] = $subtotal;
-            $validated['total_amount'] = $subtotal + ($subtotal * $validated['vat_rate'] / 100);
-        } else {
-            $validated['total_amount'] = $validated['total_amount'] ?? ($validated['amount'] + ($validated['amount'] * $validated['vat_rate'] / 100));
-        }
+        // Calculate amounts
+        $amount = $this->calculateSubtotal($validated);
+        $vatRate = (float) $validated['vat_rate'];
+        $totalAmount = $amount + ($amount * $vatRate / 100);
 
         DB::beginTransaction();
+
         try {
             $expense = Expense::create([
                 'doc_no'        => $docNo,
                 'expense_date'  => $validated['expense_date'],
-                'payee_id'      => $validated['payee_id'],
-                'account_id'    => $validated['account_id'],
-                'amount'        => $validated['amount'],
-                'vat_rate'      => $validated['vat_rate'],
-                'total_amount'  => $validated['total_amount'],
+                'payee_id'      => $validated['payee_id'] ?? null,
+                'account_id'    => $validated['account_id'] ?? null,
                 'description'   => $validated['description'],
-                'remark'        => $validated['remark'],
+                'remark'        => $validated['remark'] ?? null,
                 'status'        => $validated['status'],
+                'amount'        => $amount,
+                'vat_rate'      => $vatRate,
+                'total_amount'  => $totalAmount,
                 'created_by'    => auth()->id(),
             ]);
 
+            // Create items if provided
             if (!empty($validated['items'])) {
                 foreach ($validated['items'] as $item) {
                     $expense->items()->create([
@@ -108,63 +116,180 @@ class ExpenseController extends Controller
             }
 
             DB::commit();
-            return redirect()->route('expenses.index')->with('success', 'บันทึกสำเร็จ เลขที่เอกสาร: ' . $docNo);
+
+            return redirect()->route('expenses.index')
+                ->with('success', "บันทึกสำเร็จ เลขที่เอกสาร: {$docNo}");
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withInput()->withErrors(['error' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()]);
+
+            return back()->withInput()->withErrors(['error' => $e->getMessage()]);
         }
     }
 
-public function edit(Expense $expense)
-{
-    $payees = Payee::all();
-    $accounts = ChartOfAccount::all();
-    return view('pages.expenses.edit', compact('expense', 'payees', 'accounts'));
-}
-public function update(Request $request, $id)
-{
-    $expense = Expense::findOrFail($id);
+    /**
+     * Show the form for editing the specified expense.
+     */
+    public function edit(Expense $expense)
+    {
+        $expense->load('items');
+        $payees = Payee::orderBy('name')->get();
+        $accounts = ChartOfAccount::orderBy('code')->get();
 
-    $validated = $request->validate([
-        'expense_date' => 'required|date',
-        'description'  => 'required|string',
-        'amount'       => 'required|numeric|min:0',
-        'vat_rate'     => 'required|numeric|in:0,7,10',
-        'status'       => 'required|in:paid,pending,invoiced',
-        'payee_id'     => 'nullable|exists:payees,id',
-        'account_id'   => 'nullable|exists:chart_of_accounts,id',
-        'remark'       => 'nullable|string',
-    ]);
+        return view('pages.expenses.edit', compact('expense', 'payees', 'accounts'));
+    }
 
-    // คำนวณยอดสุทธิใหม่เสมอ เพื่อป้องกันค่าจากหน้า Form ส่งมาผิดพลาด
-    $amount = (float)$validated['amount'];
-    $vatRate = (int)$validated['vat_rate'];
-    $total = $amount + ($amount * $vatRate / 100);
+    /**
+     * Update the specified expense in storage.
+     */
+    public function update(Request $request, $id)
+    {
+        $expense = Expense::with('items')->findOrFail($id);
 
-    DB::beginTransaction();
-    try {
-        $expense->update([
-            'expense_date' => $validated['expense_date'],
-            'payee_id'     => $validated['payee_id'],
-            'description'  => $validated['description'],
-            'amount'       => $amount,
-            'vat_rate'     => $vatRate,
-            'total_amount' => $total,
-            'status'       => $validated['status'],
-            'account_id'   => $validated['account_id'],
-            'remark'       => $validated['remark'], // ใช้ค่าจาก validated
+        $validated = $request->validate([
+            'expense_date' => 'required|date',
+            'doc_no'       => [
+                'nullable',
+                'string',
+                'max:50',
+                Rule::unique('expenses', 'doc_no')
+                    ->whereNotNull('doc_no')
+                    ->ignore($expense->id), // Fix: ignore current record
+            ],
+            'description'  => 'required|string',
+            'amount'       => 'nullable|numeric|min:0', // not required if items given
+            'vat_rate'     => 'required|numeric|in:0,7,10',
+            'status'       => 'required|in:paid,pending,invoiced',
+            'payee_id'     => 'nullable|exists:payees,id',
+            'account_id'   => 'nullable|exists:chart_of_accounts,id',
+            'remark'       => 'nullable|string',
+
+            'items'        => 'nullable|array',
+            'items.*.desc' => 'required_with:items|string',
+            'items.*.qty'  => 'required_with:items|numeric|min:1',
+            'items.*.price'=> 'required_with:items|numeric|min:0',
         ]);
 
-        DB::commit();
-        return redirect()->route('expenses.index')->with('success', 'อัปเดตข้อมูลสำเร็จ');
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return back()->withInput()->withErrors(['error' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()]);
+        DB::beginTransaction();
+
+        try {
+            // Calculate amounts
+            $amount = $this->calculateSubtotal($validated);
+            $vatRate = (float) $validated['vat_rate'];
+            $totalAmount = $amount + ($amount * $vatRate / 100);
+
+            // Doc_no handling: keep existing if input is empty/null
+            $docNo = $validated['doc_no'] ?? $expense->doc_no;
+            if (empty($docNo)) {
+                $docNo = $expense->doc_no;
+            }
+
+            $expense->update([
+                'doc_no'        => $docNo,
+                'expense_date'  => $validated['expense_date'],
+                'payee_id'      => $validated['payee_id'] ?? null,
+                'account_id'    => $validated['account_id'] ?? null,
+                'description'   => $validated['description'],
+                'remark'        => $validated['remark'] ?? null,
+                'status'        => $validated['status'],
+                'amount'        => $amount,
+                'vat_rate'      => $vatRate,
+                'total_amount'  => $totalAmount,
+            ]);
+
+            // Replace items (delete old, insert new)
+            $expense->items()->delete();
+            if (!empty($validated['items'])) {
+                foreach ($validated['items'] as $item) {
+                    $expense->items()->create([
+                        'description' => $item['desc'],
+                        'quantity'    => $item['qty'],
+                        'unit_price'  => $item['price'],
+                        'total'       => $item['qty'] * $item['price'],
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            return redirect()->route('expenses.index')
+                ->with('success', 'อัปเดตข้อมูลสำเร็จ');
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return back()->withInput()->withErrors(['error' => $e->getMessage()]);
+        }
     }
-}
+
+    /**
+     * Remove the specified expense from storage.
+     */
     public function destroy(Expense $expense)
     {
+        // If foreign key cascade is not set, delete items manually
+        $expense->items()->delete();
         $expense->delete();
+
         return back()->with('success', 'ลบข้อมูลสำเร็จ');
     }
+
+    /**
+     * Bulk delete expenses.
+     */
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->ids;
+
+        if (empty($ids)) {
+            return response()->json(['success' => false, 'message' => 'ไม่พบรายการที่เลือก']);
+        }
+
+        // Delete items first, then expenses
+        ExpenseItem::whereIn('expense_id', $ids)->delete();
+        Expense::whereIn('id', $ids)->delete();
+
+        return response()->json(['success' => true, 'message' => 'ลบรายการที่เลือกสำเร็จ']);
+    }
+
+    /**
+     * Generate a unique document number.
+     *
+     * @param string|null $providedDocNo
+     * @param string $expenseDate
+     * @return string
+     */
+    private function generateDocNumber(?string $providedDocNo, string $expenseDate): string
+    {
+        if (!empty($providedDocNo)) {
+            return $providedDocNo;
+        }
+
+        $year = date('Y', strtotime($expenseDate));
+        $prefix = "EXP-{$year}-";
+        $lastExpense = Expense::where('doc_no', 'like', "{$prefix}%")
+            ->orderBy('doc_no', 'desc')
+            ->first();
+
+        $nextNumber = 1;
+        if ($lastExpense && preg_match('/' . preg_quote($prefix, '/') . '(\d+)/', $lastExpense->doc_no, $matches)) {
+            $nextNumber = intval($matches[1]) + 1;
+        }
+
+        return $prefix . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Calculate subtotal from items or fallback to amount field.
+     *
+     * @param array $validated
+     * @return float
+     */
+    private function calculateSubtotal(array $validated): float
+    {
+        if (!empty($validated['items'])) {
+            return collect($validated['items'])->sum(fn($item) => $item['qty'] * $item['price']);
+        }
+
+        return (float) ($validated['amount'] ?? 0);
+    }
+
 }

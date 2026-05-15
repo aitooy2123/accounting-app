@@ -155,4 +155,10 @@ Route::prefix('reports')->group(function () {
 
 //ค่าใช้จ่าย
 Route::resource('expenses', ExpenseController::class);
+ Route::post('/expenses/bulk-delete', [ExpenseController::class, 'bulkDelete'])->name('expenses.bulk-delete');
+
+
+
+
+
 require __DIR__ . '/auth.php';

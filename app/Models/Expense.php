@@ -31,7 +31,12 @@ protected $fillable = [
         return $this->belongsTo(User::class, 'created_by');
     }
     protected $casts = [
-    'expense_date' => 'date',
+       'expense_date' => 'date',
     // หรือ 'datetime'
 ];
+public function items()
+{
+    return $this->hasMany(ExpenseItem::class);
+}
+
 }
