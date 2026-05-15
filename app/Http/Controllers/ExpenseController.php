@@ -62,7 +62,7 @@ class ExpenseController extends Controller
             'doc_no'       => 'nullable|string|max:50|unique:expenses,doc_no',
             'payee_id'     => 'nullable|exists:payees,id',
             'account_id'   => 'nullable|exists:chart_of_accounts,id',
-            'description'  => 'required|string',
+            'description'  => 'nullable|string',
             'remark'       => 'nullable|string',
             'status'       => 'required|in:paid,pending,invoiced',
             'vat_rate'     => 'required|numeric|in:0,7,10',
@@ -94,7 +94,7 @@ class ExpenseController extends Controller
                 'expense_date'  => $validated['expense_date'],
                 'payee_id'      => $validated['payee_id'] ?? null,
                 'account_id'    => $validated['account_id'] ?? null,
-                'description'   => $validated['description'],
+                'description'   => $validated['description']?? null,
                 'remark'        => $validated['remark'] ?? null,
                 'status'        => $validated['status'],
                 'amount'        => $amount,
@@ -155,7 +155,7 @@ class ExpenseController extends Controller
                     ->whereNotNull('doc_no')
                     ->ignore($expense->id), // Fix: ignore current record
             ],
-            'description'  => 'required|string',
+            'description'  => 'nullable|string',
             'amount'       => 'nullable|numeric|min:0', // not required if items given
             'vat_rate'     => 'required|numeric|in:0,7,10',
             'status'       => 'required|in:paid,pending,invoiced',
@@ -188,7 +188,7 @@ class ExpenseController extends Controller
                 'expense_date'  => $validated['expense_date'],
                 'payee_id'      => $validated['payee_id'] ?? null,
                 'account_id'    => $validated['account_id'] ?? null,
-                'description'   => $validated['description'],
+                'description'   => $validated['description']?? null,
                 'remark'        => $validated['remark'] ?? null,
                 'status'        => $validated['status'],
                 'amount'        => $amount,

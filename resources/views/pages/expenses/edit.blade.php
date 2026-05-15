@@ -97,7 +97,7 @@
                     </div>
 
                     {{-- รายละเอียดหลัก --}}
-                    <div class="md:col-span-2">
+                    {{-- <div class="md:col-span-2">
                         <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">รายละเอียดรายการ <span class="text-red-500">*</span></label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-start pointer-events-none text-gray-400 pt-3">
@@ -106,7 +106,7 @@
                             <textarea name="description" rows="2" placeholder="ระบุเหตุผลหรือรายละเอียดการจ่าย"
                                       class="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">{{ old('description', $expense->description) }}</textarea>
                         </div>
-                    </div>
+                    </div> --}}
 
                     {{-- จำนวนเงิน (ถ้าไม่มีรายการย่อย) --}}
                     <div>
