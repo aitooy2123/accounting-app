@@ -45,24 +45,17 @@
                class="w-full border rounded-lg p-2">
     </div>
 <div>
-    <label>ผังบัญชี</label>
+    <label class="block font-medium mb-1">ผังบัญชี</label>
 
     <select name="account_id"
-            class="w-full border rounded-lg p-2">
+            class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none">
 
         <option value="">-- เลือกผังบัญชี --</option>
 
         @foreach($accounts as $acc)
-
-            <option value="{{ $acc->id }}"
-                @selected(old('account_id', $expense->account_id ?? '') == $acc->id)>
-
-                {{ $acc->code }}
-                -
-                {{ $acc->name }}
-
+            <option value="{{ $acc->id }}" {{ old('account_id', $expense->account_id ?? '') == $acc->id ? 'selected' : '' }}>
+                {{ $acc->code }} - {{ $acc->name_th }}
             </option>
-
         @endforeach
 
     </select>
