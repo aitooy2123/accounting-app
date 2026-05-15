@@ -52,7 +52,7 @@
                     </td>
 
                     <td class="p-3 text-right text-red-600 font-semibold">
-                        {{ number_format($item->amount, 2) }}
+                        {{ number_format($item->total_amount, 2) }}
                     </td>
 
                     <td class="p-3">

@@ -4,22 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Expense extends Model
-{
-    protected $fillable = [
-        'doc_no',
-        'expense_date',
-        'payee_id',
-        'account_id', // ผังบัญชี (Debit)
-        'payment_id', // ช่องทางเงินสด/ธนาคาร (Credit) - ถ้ามี
-        'branch_id',
-        'amount',
-        'description',
-        'remark',
-        'status',
-        'created_by',
-    ];
 
+ class Expense extends Model
+{
+    // เพิ่มฟิลด์ที่หายไปลงใน array นี้
+protected $fillable = [
+    'expense_date',
+    'payee_id',
+    'description',
+'total_amount',
+    'vat_rate', // ← ต้องมี
+    'status',
+    'account_id',
+    'remark',
+];
     // เชื่อมไปยังผังบัญชี (Debit)
     public function account()
     {
