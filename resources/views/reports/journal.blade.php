@@ -26,7 +26,7 @@
                         สมุดรายวันซื้อ (PJ)
                     </span>
 
-                @elseif($currentType == 'payment')
+                @elseif($currentType == 'expenses')
 
                     <span class="text-rose-600">
                         สมุดรายวันจ่าย (PV)
@@ -120,9 +120,9 @@
                 {{-- Payment --}}
                 <button type="submit"
                         name="journal_type"
-                        value="payment"
+                        value="expenses"
                         class="px-5 py-2 rounded-xl transition-all
-                        {{ $currentType == 'payment'
+                        {{ $currentType == 'expenses'
                             ? 'bg-rose-600 text-white shadow-md font-bold'
                             : 'text-gray-400' }}">
 
