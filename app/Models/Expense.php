@@ -9,14 +9,9 @@ use Illuminate\Database\Eloquent\Model;
 {
     // เพิ่มฟิลด์ที่หายไปลงใน array นี้
 protected $fillable = [
-    'expense_date',
-    'payee_id',
-    'description',
-'total_amount',
-    'vat_rate', // ← ต้องมี
-    'status',
-    'account_id',
-    'remark',
+    'doc_no', 'expense_date', 'payee_id', 'account_id',
+    'amount', 'vat_rate', 'total_amount', 'description',
+    'remark', 'status', 'created_by'
 ];
     // เชื่อมไปยังผังบัญชี (Debit)
     public function account()
@@ -35,4 +30,8 @@ protected $fillable = [
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+    protected $casts = [
+    'expense_date' => 'date',
+    // หรือ 'datetime'
+];
 }

@@ -60,6 +60,19 @@
                         </div>
                     </div>
 
+                    {{-- เลขที่เอกสาร (เพิ่มใหม่) --}}
+<div>
+    <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">เลขที่เอกสาร / อ้างอิง</label>
+    <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+            <i class="fas fa-file-invoice text-xs"></i>
+        </div>
+        <input type="text" name="doc_no"
+               value="{{ old('doc_no') }}"
+               placeholder="เช่น INV6705001"
+               class="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+    </div>
+</div>
                     {{-- ผู้จำหน่าย/ผู้รับเงิน --}}
                     <div>
                         <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">ผู้จำหน่าย / ผู้รับเงิน</label>
