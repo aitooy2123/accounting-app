@@ -75,18 +75,18 @@
                         </div>
                     </div>
 
-                    {{-- ผู้จำหน่าย --}}
+                    {{-- ผู้จำหน่าย / ผู้รับเงิน --}}
                     <div>
                         <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">ผู้จำหน่าย / ผู้รับเงิน</label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                                 <i class="fas fa-store-alt text-xs"></i>
                             </div>
-                            <select name="payee_id" class="block w-full pl-10 pr-10 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none">
+                            <select name="company_id" class="block w-full pl-10 pr-10 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none">
                                 <option value="">-- เลือกผู้จำหน่าย --</option>
-                                @foreach($payees as $payee)
-                                    <option value="{{ $payee->id }}" @selected(old('payee_id', $expense->payee_id) == $payee->id)>
-                                        {{ $payee->name }}
+                                @foreach($companies as $company)
+                                    <option value="{{ $company->id }}" @selected(old('company_id', $expense->company_id) == $company->id)>
+                                        {{ $company->name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -108,7 +108,7 @@
                         </div>
                     </div>
 
-                    {{-- จำนวนเงิน (ถ้าไม่มีรายการย่อย) --}}
+                    {{-- จำนวนเงิน (ก่อนภาษี) --}}
                     <div>
                         <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">จำนวนเงิน (ก่อนภาษี) <span class="text-red-500">*</span></label>
                         <div class="relative">
@@ -222,18 +222,37 @@
                         </tr>
                     </thead>
                     <tbody id="itemsBody">
-                        {{-- วนลูปแสดง items ที่มีอยู่ --}}
-                        @php $oldItems = old('items', $expense->items->toArray()); @endphp
-                        @forelse($oldItems as $index => $item)
-                            <tr class="item-row border-b border-gray-50">
+                        @php
+                            // เตรียมข้อมูล items เพื่อแสดงผล (รองรับ validation error)
+                            $oldItems = old('items');
+                            if ($oldItems) {
+                                $itemsToDisplay = $oldItems;
+                            } else {
+                                $itemsToDisplay = $expense->items->mapWithKeys(function($item) {
+                                    // ใช้ id ของ item เป็น key ของ array เพื่อให้ง่ายต่อการอัปเดต
+                                    return [$item->id => [
+                                        'id' => $item->id,
+                                        'desc' => $item->description,
+                                        'qty' => $item->quantity,
+                                        'price' => $item->unit_price,
+                                    ]];
+                                })->toArray();
+                            }
+                        @endphp
+
+                        @forelse($itemsToDisplay as $key => $item)
+                            <tr class="item-row border-b border-gray-50" data-key="{{ $key }}">
                                 <td class="py-3 pr-2">
-                                    <input type="text" name="items[{{ $index }}][desc]" value="{{ $item['description'] ?? '' }}" placeholder="รายการ..." class="w-full border border-gray-200 rounded-lg text-sm px-3 py-2 focus:ring-blue-500">
+                                    <input type="text" name="items[{{ $key }}][desc]" value="{{ $item['desc'] ?? '' }}" placeholder="รายการ..." class="w-full border border-gray-200 rounded-lg text-sm px-3 py-2 focus:ring-blue-500">
+                                    @if(isset($item['id']))
+                                        <input type="hidden" name="items[{{ $key }}][id]" value="{{ $item['id'] }}">
+                                    @endif
                                 </td>
                                 <td class="py-3 pr-2">
-                                    <input type="number" step="any" name="items[{{ $index }}][qty]" value="{{ $item['quantity'] ?? $item['qty'] ?? 1 }}" class="item-qty w-full text-right border border-gray-200 rounded-lg text-sm px-3 py-2 focus:ring-blue-500">
+                                    <input type="number" step="any" name="items[{{ $key }}][qty]" value="{{ $item['qty'] ?? 1 }}" class="item-qty w-full text-right border border-gray-200 rounded-lg text-sm px-3 py-2 focus:ring-blue-500">
                                 </td>
                                 <td class="py-3 pr-2">
-                                    <input type="number" step="any" name="items[{{ $index }}][price]" value="{{ $item['unit_price'] ?? $item['price'] ?? 0 }}" class="item-price w-full text-right border border-gray-200 rounded-lg text-sm px-3 py-2 focus:ring-blue-500">
+                                    <input type="number" step="any" name="items[{{ $key }}][price]" value="{{ $item['price'] ?? 0 }}" class="item-price w-full text-right border border-gray-200 rounded-lg text-sm px-3 py-2 focus:ring-blue-500">
                                 </td>
                                 <td class="py-3 pr-2">
                                     <span class="item-total block text-right text-sm font-medium text-gray-700">0.00</span>
@@ -243,7 +262,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr class="item-row border-b border-gray-50" id="emptyRowPlaceholder">
+                            <tr class="item-row" id="emptyRowPlaceholder">
                                 <td colspan="5" class="py-6 text-center text-gray-400 text-sm">ยังไม่มีรายการย่อย คลิก "เพิ่มรายการ" ข้างบน</td>
                             </tr>
                         @endforelse
@@ -267,9 +286,12 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        let itemIndex = {{ count($oldItems) }};
+        // ฟังก์ชันสร้าง key สำหรับ item ใหม่ (ไม่ซ้ำกับ id เดิม)
+        function generateNewKey() {
+            return 'new_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
+        }
 
-        // Helper: คำนวณรวมทั้งฟอร์ม
+        // คำนวณยอดรวมทั้งหมด (รวม VAT)
         function calculateAll() {
             let subtotal = 0;
             const rows = document.querySelectorAll('#itemsBody .item-row');
@@ -283,11 +305,10 @@
                 subtotal += total;
             });
 
-            // ถ้าไม่มีรายการย่อย ให้ใช้ amount field แทน
             const amountInput = document.getElementById('amount');
             const vatSelect = document.getElementById('vat_rate');
             let beforeVat = subtotal;
-            if (beforeVat === 0 && amountInput) {
+            if (beforeVat === 0 && amountInput && !amountInput.disabled) {
                 beforeVat = parseFloat(amountInput.value) || 0;
             }
             const vatRate = parseFloat(vatSelect.value) || 0;
@@ -295,64 +316,84 @@
             const grandTotal = beforeVat + vatAmount;
             document.getElementById('grand_total').innerText = '฿ ' + grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
-            // ถ้ามีรายการย่อย ให้ disable amount field เพื่อไม่ให้สับสน (optional)
-            if (rows.length > 0 && amountInput) {
-                amountInput.disabled = true;
-                amountInput.classList.add('bg-gray-100');
-            } else if (amountInput) {
-                amountInput.disabled = false;
-                amountInput.classList.remove('bg-gray-100');
+            // ถ้ามีรายการย่อย ให้ disable amount field
+            const hasItems = rows.length > 0 && !document.getElementById('emptyRowPlaceholder');
+            if (amountInput) {
+                if (hasItems) {
+                    amountInput.disabled = true;
+                    amountInput.classList.add('bg-gray-100');
+                } else {
+                    amountInput.disabled = false;
+                    amountInput.classList.remove('bg-gray-100');
+                }
             }
         }
 
-        // เพิ่มแถวใหม่
-        function addItemRow() {
-            const tbody = document.getElementById('itemsBody');
-            // ลบ placeholder ถ้ามี
-            const placeholder = document.getElementById('emptyRowPlaceholder');
-            if (placeholder) placeholder.remove();
-
-            const newRow = document.createElement('tr');
-            newRow.className = 'item-row border-b border-gray-50';
-            newRow.innerHTML = `
-                <td class="py-3 pr-2"><input type="text" name="items[${itemIndex}][desc]" placeholder="รายการ..." class="w-full border border-gray-200 rounded-lg text-sm px-3 py-2"></td>
-                <td class="py-3 pr-2"><input type="number" step="any" name="items[${itemIndex}][qty]" value="1" class="item-qty w-full text-right border border-gray-200 rounded-lg text-sm px-3 py-2"></td>
-                <td class="py-3 pr-2"><input type="number" step="any" name="items[${itemIndex}][price]" value="0" class="item-price w-full text-right border border-gray-200 rounded-lg text-sm px-3 py-2"></td>
-                <td class="py-3 pr-2"><span class="item-total block text-right text-sm font-medium text-gray-700">0.00</span></td>
-                <td class="py-3 text-center"><button type="button" class="remove-item text-red-400 hover:text-red-600"><i class="fas fa-trash-alt"></i></button></td>
-            `;
-            tbody.appendChild(newRow);
-            itemIndex++;
-
-            attachRowEvents(newRow);
-            calculateAll();
-        }
-
+        // ผูก event ให้กับแถว (qty, price, remove)
         function attachRowEvents(row) {
             const qtyInput = row.querySelector('.item-qty');
             const priceInput = row.querySelector('.item-price');
             const removeBtn = row.querySelector('.remove-item');
             if (qtyInput) qtyInput.addEventListener('input', calculateAll);
             if (priceInput) priceInput.addEventListener('input', calculateAll);
-            if (removeBtn) removeBtn.addEventListener('click', function(e) {
-                row.remove();
-                // ถ้าไม่มีแถวเหลือ ให้สร้าง placeholder ใหม่
-                if (document.querySelectorAll('#itemsBody .item-row').length === 0) {
-                    const tbody = document.getElementById('itemsBody');
-                    const placeholderRow = document.createElement('tr');
-                    placeholderRow.id = 'emptyRowPlaceholder';
-                    placeholderRow.className = 'border-b border-gray-50';
-                    placeholderRow.innerHTML = '<td colspan="5" class="py-6 text-center text-gray-400 text-sm">ยังไม่มีรายการย่อย คลิก "เพิ่มรายการ" ข้างบน</td>';
-                    tbody.appendChild(placeholderRow);
-                }
-                calculateAll();
-            });
+            if (removeBtn) {
+                removeBtn.addEventListener('click', function(e) {
+                    row.remove();
+                    // ถ้าไม่มีแถวใดเหลือเลย ให้สร้าง placeholder
+                    if (document.querySelectorAll('#itemsBody .item-row:not(#emptyRowPlaceholder)').length === 0) {
+                        const tbody = document.getElementById('itemsBody');
+                        if (!document.getElementById('emptyRowPlaceholder')) {
+                            const placeholderRow = document.createElement('tr');
+                            placeholderRow.id = 'emptyRowPlaceholder';
+                            placeholderRow.className = 'item-row';
+                            placeholderRow.innerHTML = '<td colspan="5" class="py-6 text-center text-gray-400 text-sm">ยังไม่มีรายการย่อย คลิก "เพิ่มรายการ" ข้างบน</td>';
+                            tbody.appendChild(placeholderRow);
+                        }
+                    }
+                    calculateAll();
+                });
+            }
+        }
+
+        // เพิ่มแถวใหม่ (item ใหม่)
+        function addItemRow() {
+            const tbody = document.getElementById('itemsBody');
+            // ลบ placeholder ถ้ามี
+            const placeholder = document.getElementById('emptyRowPlaceholder');
+            if (placeholder) placeholder.remove();
+
+            const newKey = generateNewKey();
+            const newRow = document.createElement('tr');
+            newRow.className = 'item-row border-b border-gray-50';
+            newRow.setAttribute('data-key', newKey);
+            newRow.innerHTML = `
+                <td class="py-3 pr-2">
+                    <input type="text" name="items[${newKey}][desc]" placeholder="รายการ..." class="w-full border border-gray-200 rounded-lg text-sm px-3 py-2">
+                </td>
+                <td class="py-3 pr-2">
+                    <input type="number" step="any" name="items[${newKey}][qty]" value="1" class="item-qty w-full text-right border border-gray-200 rounded-lg text-sm px-3 py-2">
+                </td>
+                <td class="py-3 pr-2">
+                    <input type="number" step="any" name="items[${newKey}][price]" value="0" class="item-price w-full text-right border border-gray-200 rounded-lg text-sm px-3 py-2">
+                </td>
+                <td class="py-3 pr-2">
+                    <span class="item-total block text-right text-sm font-medium text-gray-700">0.00</span>
+                </td>
+                <td class="py-3 text-center">
+                    <button type="button" class="remove-item text-red-400 hover:text-red-600 transition-all"><i class="fas fa-trash-alt"></i></button>
+                </td>
+            `;
+            tbody.appendChild(newRow);
+            attachRowEvents(newRow);
+            calculateAll();
         }
 
         // ผูก events กับแถวที่มีอยู่แล้ว
-        document.querySelectorAll('#itemsBody .item-row').forEach(row => attachRowEvents(row));
+        document.querySelectorAll('#itemsBody .item-row').forEach(row => {
+            if (row.id !== 'emptyRowPlaceholder') attachRowEvents(row);
+        });
 
-        // ผูก events กับ amount field และ vat
+        // events สำหรับ amount และ vat
         const amountInput = document.getElementById('amount');
         const vatSelect = document.getElementById('vat_rate');
         if (amountInput) amountInput.addEventListener('input', calculateAll);
@@ -362,7 +403,7 @@
         const addBtn = document.getElementById('addItemBtn');
         if (addBtn) addBtn.addEventListener('click', addItemRow);
 
-        // เรียกคำนวณครั้งแรก
+        // คำนวณยอดครั้งแรก
         calculateAll();
     });
 </script>

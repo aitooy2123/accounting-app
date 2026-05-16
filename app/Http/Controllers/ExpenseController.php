@@ -70,7 +70,7 @@ class ExpenseController extends Controller
             'status'       => 'required|in:paid,pending,invoiced',
             'vat_rate'     => 'required|numeric|in:0,7,10',
             'amount'       => 'required_if:items,null|numeric|min:0',
-            'total_amount' => 'nullable|numeric',
+            'total'        => 'nullable|numeric',
             'items'        => 'nullable|array',
             'items.*.desc' => 'required_with:items|string',
             'items.*.qty'  => 'required_with:items|numeric|min:1',
@@ -80,7 +80,7 @@ class ExpenseController extends Controller
         $docNo = $this->generateDocNumber($validated['doc_no'] ?? null, $validated['expense_date']);
         $amount = $this->calculateSubtotal($validated);
         $vatRate = (float) $validated['vat_rate'];
-        $totalAmount = $amount + ($amount * $vatRate / 100);
+        $total = $amount + ($amount * $vatRate / 100);  // เปลี่ยนชื่อตัวแปรเป็น $total
 
         DB::beginTransaction();
         try {
@@ -94,7 +94,7 @@ class ExpenseController extends Controller
                 'status'        => $validated['status'],
                 'amount'        => $amount,
                 'vat_rate'      => $vatRate,
-                'total_amount'  => $totalAmount,
+                'total'         => $total,  // แก้ไขจาก 'total_amount' เป็น 'total'
                 'created_by'    => auth()->id(),
             ]);
 
@@ -167,7 +167,7 @@ class ExpenseController extends Controller
         try {
             $amount = $this->calculateSubtotal($validated);
             $vatRate = (float) $validated['vat_rate'];
-            $totalAmount = $amount + ($amount * $vatRate / 100);
+            $total = $amount + ($amount * $vatRate / 100);  // เปลี่ยนชื่อตัวแปรเป็น $total
 
             $docNo = $validated['doc_no'] ?? $expense->doc_no;
             if (empty($docNo)) {
@@ -184,7 +184,7 @@ class ExpenseController extends Controller
                 'status'        => $validated['status'],
                 'amount'        => $amount,
                 'vat_rate'      => $vatRate,
-                'total_amount'  => $totalAmount,
+                'total'         => $total,  // แก้ไขจาก 'total_amount' เป็น 'total'
             ]);
 
             $expense->items()->delete();

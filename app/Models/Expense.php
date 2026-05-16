@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
     // เพิ่มฟิลด์ที่หายไปลงใน array นี้
 protected $fillable = [
     'doc_no', 'expense_date', 'payee_id', 'account_id',
-    'amount', 'vat_rate', 'total_amount', 'description',
+    'amount', 'vat_rate', 'total', 'description',
     'remark', 'status', 'created_by'
 ];
     // เชื่อมไปยังผังบัญชี (Debit)

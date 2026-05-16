@@ -137,7 +137,7 @@
                   {{ $item->description }}
                 </td>
                 <td class="px-6 py-4 text-right text-sm font-bold text-red-600">
-                  {{ number_format($item->total_amount, 2) }}
+                  {{ number_format($item->total, 2) }}
                 </td>
                 {{-- <td class="px-6 py-4">
                   <span class="inline-flex items-center px-2.5 py-1 bg-green-50 text-green-700 rounded-lg text-sm font-medium">
