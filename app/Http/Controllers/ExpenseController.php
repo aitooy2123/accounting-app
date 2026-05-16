@@ -55,15 +55,15 @@ class ExpenseController extends Controller
      */
     public function store(Request $request)
     {
-        // แปลงค่าว่างของ company_id เป็น null
-        if ($request->input('company_id') === '') {
-            $request->merge(['company_id' => null]);
-        }
+        // // แปลงค่าว่างของ company_id เป็น null
+        // if ($request->input('company_id') === '') {
+        //     $request->merge(['company_id' => null]);
+        // }
 
         $validated = $request->validate([
             'expense_date' => 'required|date',
             'doc_no'       => 'nullable|string|max:50|unique:expenses,doc_no',
-            'company_id'   => 'nullable|exists:companies,id',
+            'company_id'   => 'required|exists:companies,id',
             'account_id'   => 'nullable|exists:chart_of_accounts,id',
             'description'  => 'nullable|string',
             'remark'       => 'nullable|string',
@@ -123,7 +123,7 @@ class ExpenseController extends Controller
      */
     public function edit(Expense $expense)
     {
-        $expense->load('items');
+          $expense->load(['items', 'company']);  // เพิ่ม 'company'
         $companies = Company::orderBy('name')->get();
         $accounts = ChartOfAccount::orderBy('code')->get();
         return view('pages.expenses.edit', compact('expense', 'companies', 'accounts'));
@@ -136,9 +136,7 @@ class ExpenseController extends Controller
     {
         $expense = Expense::with('items')->findOrFail($id);
 
-        if ($request->input('company_id') === '') {
-            $request->merge(['company_id' => null]);
-        }
+
 
         $validated = $request->validate([
             'expense_date' => 'required|date',
@@ -154,7 +152,7 @@ class ExpenseController extends Controller
             'amount'       => 'nullable|numeric|min:0',
             'vat_rate'     => 'required|numeric|in:0,7,10',
             'status'       => 'required|in:paid,pending,invoiced',
-            'company_id'   => 'nullable|exists:companies,id',
+            'company_id'   => 'required|exists:companies,id',
             'account_id'   => 'nullable|exists:chart_of_accounts,id',
             'remark'       => 'nullable|string',
             'items'        => 'nullable|array',
