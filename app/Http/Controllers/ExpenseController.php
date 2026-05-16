@@ -49,6 +49,13 @@ class ExpenseController extends Controller
         $accounts = ChartOfAccount::orderBy('code')->get();
         return view('pages.expenses.create', compact('accounts', 'companies'));
     }
+    public function show(Expense $expense)
+{
+    // ดึงข้อมูล Relation ที่จำเป็น (company, account, items)
+    $expense->load(['company', 'account', 'items']);
+
+    return view('pages.expenses.show', compact('expense'));
+}
 
     /**
      * Store a newly created expense in storage.

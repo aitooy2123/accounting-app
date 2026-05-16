@@ -148,22 +148,32 @@
                 <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
                   {{ $item->remark ?? '-' }}
                 </td> --}}
-                <td class="px-6 py-4 text-right">
-                  <div class="flex justify-end items-center space-x-1">
-                    <a href="{{ route('expenses.edit', $item) }}"
-                       class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
-                       title="แก้ไขข้อมูล">
-                      <i class="fas fa-pencil-alt text-sm"></i>
-                    </a>
-                    <button type="button"
-                            class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 delete-expense"
-                            data-expense-id="{{ $item->id }}"
-                            data-expense-name="{{ $item->doc_no }}"
-                            title="ลบรายการ">
-                      <i class="fas fa-trash-alt text-sm"></i>
-                    </button>
-                  </div>
-                </td>
+             <td class="px-6 py-4 text-right">
+    <div class="flex justify-end items-center space-x-1">
+        {{-- ปุ่มดูรายละเอียด (Show) --}}
+        <a href="{{ route('expenses.show', $item) }}"
+           class="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200"
+           title="ดูรายละเอียด">
+            <i class="fas fa-eye text-sm"></i>
+        </a>
+
+        {{-- ปุ่มแก้ไข --}}
+        <a href="{{ route('expenses.edit', $item) }}"
+           class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+           title="แก้ไขข้อมูล">
+            <i class="fas fa-pencil-alt text-sm"></i>
+        </a>
+
+        {{-- ปุ่มลบ --}}
+        <button type="button"
+                class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 delete-expense"
+                data-expense-id="{{ $item->id }}"
+                data-expense-name="{{ $item->doc_no }}"
+                title="ลบรายการ">
+            <i class="fas fa-trash-alt text-sm"></i>
+        </button>
+    </div>
+</td>
               </tr>
             @empty
               <tr>

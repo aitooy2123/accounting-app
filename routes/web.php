@@ -155,7 +155,9 @@ Route::prefix('reports')->group(function () {
 
 //ค่าใช้จ่าย
 Route::resource('expenses', ExpenseController::class);
+Route::get('expenses/{expense}', [ExpenseController::class, 'show'])->name('expenses.show');
  Route::post('/expenses/bulk-delete', [ExpenseController::class, 'bulkDelete'])->name('expenses.bulk-delete');
+
 
 
 
