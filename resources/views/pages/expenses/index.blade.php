@@ -43,15 +43,12 @@
         </div>
 
         {{-- PAYEE FILTER --}}
-        <select name="payee_id"
-                class="block w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-kanit">
-          <option value="">ผู้จำหน่ายทั้งหมด</option>
-          @foreach($payees as $payee)
-            <option value="{{ $payee->id }}" {{ request('payee_id') == $payee->id ? 'selected' : '' }}>
-              {{ $payee->name }}
-            </option>
-          @endforeach
-        </select>
+      <select name="company_id" class="...">
+    <option value="">-- เลือกผู้จำหน่าย --</option>
+    @foreach($companies as $company)
+        <option value="{{ $company->id }}">{{ $company->name }}</option>
+    @endforeach
+</select>
 
         {{-- BUTTONS --}}
         <div class="flex space-x-2">

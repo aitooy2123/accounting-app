@@ -38,5 +38,9 @@ public function items()
 {
     return $this->hasMany(ExpenseItem::class);
 }
+public function company()
+{
+    return $this->belongsTo(Company::class, 'company_id');
+}
 
 }
