@@ -75,25 +75,26 @@
                     </div>
 
                     {{-- ผู้จำหน่าย --}}
-                    <div>
-                        <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">ผู้จำหน่าย / ผู้รับเงิน</label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                <i class="fas fa-store-alt text-xs"></i>
-                            </div>
-                            <select name="payee_id" class="block w-full pl-10 pr-10 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none">
-                                <option value="">-- เลือกผู้จำหน่าย --</option>
-                                @foreach($payees as $payee)
-                                    <option value="{{ $payee->id }}" @selected(old('payee_id') == $payee->id)>
-                                        {{ $payee->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
-                                <i class="fas fa-chevron-down text-[10px]"></i>
-                            </div>
-                        </div>
-                    </div>
+                  {{-- ผู้จำหน่าย / ผู้รับเงิน --}}
+<div>
+    <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">ผู้จำหน่าย / ผู้รับเงิน</label>
+    <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+            <i class="fas fa-store-alt text-xs"></i>
+        </div>
+        <select name="company_id" class="block w-full pl-10 pr-10 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none">
+            <option value="">-- เลือกผู้จำหน่าย --</option>
+            @foreach($companies as $company)
+                <option value="{{ $company->id }}" @selected(old('company_id') == $company->id)>
+                    {{ $company->name }}
+                </option>
+            @endforeach
+        </select>
+        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+            <i class="fas fa-chevron-down text-[10px]"></i>
+        </div>
+    </div>
+</div>
 
                     รายละเอียดหลัก
                     <div class="md:col-span-2">

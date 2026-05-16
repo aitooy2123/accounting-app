@@ -16,7 +16,7 @@ return new class extends Migration
 
             $table->date('expense_date');
 
-            $table->unsignedBigInteger('payee_id')->nullable();
+            $table->unsignedBigInteger('company_id')->nullable();
 
             $table->unsignedBigInteger('account_id')->nullable();
 

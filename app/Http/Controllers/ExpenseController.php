@@ -9,7 +9,7 @@ use App\Models\ChartOfAccount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-
+use App\Models\Company;
 
 class ExpenseController extends Controller
 {
@@ -46,10 +46,11 @@ class ExpenseController extends Controller
      */
     public function create()
     {
+         $companies = Company::orderBy('name')->get();
         $accounts = ChartOfAccount::orderBy('code')->get();
         $payees = Payee::orderBy('name')->get();
 
-        return view('pages.expenses.create', compact('accounts', 'payees'));
+        return view('pages.expenses.create', compact('accounts', 'payees', 'companies'));
     }
 
     /**
@@ -60,7 +61,7 @@ class ExpenseController extends Controller
         $validated = $request->validate([
             'expense_date' => 'required|date',
             'doc_no'       => 'nullable|string|max:50|unique:expenses,doc_no',
-            'payee_id'     => 'nullable|exists:payees,id',
+             'company_id' => 'nullable|exists:companies,id',   // เปลี่ยนจาก payee_id
             'account_id'   => 'nullable|exists:chart_of_accounts,id',
             'description'  => 'nullable|string',
             'remark'       => 'nullable|string',
@@ -92,7 +93,7 @@ class ExpenseController extends Controller
             $expense = Expense::create([
                 'doc_no'        => $docNo,
                 'expense_date'  => $validated['expense_date'],
-                'payee_id'      => $validated['payee_id'] ?? null,
+                'company_id'      => $validated['company_id'] ?? null,
                 'account_id'    => $validated['account_id'] ?? null,
                 'description'   => $validated['description']?? null,
                 'remark'        => $validated['remark'] ?? null,
@@ -159,7 +160,7 @@ class ExpenseController extends Controller
             'amount'       => 'nullable|numeric|min:0', // not required if items given
             'vat_rate'     => 'required|numeric|in:0,7,10',
             'status'       => 'required|in:paid,pending,invoiced',
-            'payee_id'     => 'nullable|exists:payees,id',
+            'company_id'     => 'nullable|exists:companies,id',
             'account_id'   => 'nullable|exists:chart_of_accounts,id',
             'remark'       => 'nullable|string',
 
@@ -186,7 +187,7 @@ class ExpenseController extends Controller
             $expense->update([
                 'doc_no'        => $docNo,
                 'expense_date'  => $validated['expense_date'],
-                'payee_id'      => $validated['payee_id'] ?? null,
+                'company_id'      => $validated['company_id'] ?? null,
                 'account_id'    => $validated['account_id'] ?? null,
                 'description'   => $validated['description']?? null,
                 'remark'        => $validated['remark'] ?? null,
