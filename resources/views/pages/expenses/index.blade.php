@@ -123,16 +123,16 @@
                     {{ $item->doc_no }}
                   </span>
                 </td>
-                <td class="px-6 py-4">
-                  <div class="flex items-center">
-                    <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-md">
-                      {{ mb_substr($item->payee->name ?? '?', 0, 1) }}
-                    </div>
-                    <div class="ml-3">
-                      <div class="text-sm font-semibold text-gray-900">{{ $item->payee->name ?? '-' }}</div>
-                    </div>
-                  </div>
-                </td>
+               <td class="px-6 py-4">
+    <div class="flex items-center">
+        <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-md">
+            {{ mb_substr($item->company->name ?? '?', 0, 1) }}
+        </div>
+        <div class="ml-3">
+            <div class="text-sm font-semibold text-gray-900">{{ $item->company->name ?? '-' }}</div>
+        </div>
+    </div>
+</td>
                 <td class="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
                   {{ $item->description }}
                 </td>
