@@ -1,4 +1,8 @@
-<aside class="w-72 bg-white border-r border-gray-200 flex flex-col z-50">
+<!-- Alpine.js Core + Plugins -->
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+<style>[x-cloak] { display: none !important; }</style>
+<aside class="w-72 bg-white border-r border-gray-200 flex flex-col z-50" x-data="sidebarMenu()">
     {{-- Header Logo --}}
     <div class="p-6">
         <div class="flex items-center space-x-3 text-blue-600">
@@ -7,8 +11,8 @@
         </div>
     </div>
 
-    {{-- Navigation Menu --}}
-    <nav class="flex-1 px-4 space-y-1">
+    {{-- Navigation Menu with Dropdown --}}
+    <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
         @php
             $menuSections = [
                 'ธุรกรรมหลัก' => [
@@ -33,20 +37,32 @@
         @endphp
 
         @foreach ($menuSections as $heading => $links)
-            <div class="pt-4 pb-2 px-3 text-xs font-semibold text-gray-400 uppercase">{{ $heading }}</div>
-            @foreach ($links as $link)
-                <x-sidebar-link
-                    :href="route($link['route'])"
-                    :active="request()->routeIs($link['route'] . '.*') || request()->routeIs($link['route'])"
-                    :icon="$link['icon']"
-                >
-                    {{ $link['name'] }}
-                </x-sidebar-link>
-            @endforeach
+            {{-- Section Header (Click to toggle) --}}
+            <div class="pt-4 pb-2 px-3 flex items-center justify-between cursor-pointer select-none group"
+                 @click="toggleSection('{{ $heading }}')">
+                <div class="text-xs font-semibold text-gray-400 uppercase">{{ $heading }}</div>
+                <i class="fas fa-chevron-down text-gray-400 text-xs transition-transform duration-200"
+                   :class="{ 'rotate-180': openSections['{{ $heading }}'] }"></i>
+            </div>
+
+            {{-- Section Links (Show/Hide) --}}
+            <div x-show="openSections['{{ $heading }}']"
+                 x-collapse.duration.200ms
+                 class="space-y-1">
+                @foreach ($links as $link)
+                    <x-sidebar-link
+                        :href="route($link['route'])"
+                        :active="request()->routeIs($link['route'] . '.*') || request()->routeIs($link['route'])"
+                        :icon="$link['icon']"
+                    >
+                        {{ $link['name'] }}
+                    </x-sidebar-link>
+                @endforeach
+            </div>
         @endforeach
     </nav>
 
-    {{-- User & Logout --}}
+    {{-- User & Logout (unchanged) --}}
     <div class="p-4 border-t border-gray-100">
         <form method="POST" action="{{ route('logout') }}">
             @csrf
@@ -63,3 +79,31 @@
         </form>
     </div>
 </aside>
+
+<script>
+    function sidebarMenu() {
+        return {
+            // เก็บสถานะการเปิด-ปิดของแต่ละหมวดหมู่ (default: เปิดหมวดหมู่แรก)
+            openSections: {},
+            init() {
+                // กำหนดค่าเริ่มต้น: เปิดเฉพาะหมวดหมู่ "ธุรกรรมหลัก"
+                const sections = @json(array_keys($menuSections));
+                sections.forEach((section, index) => {
+                    this.openSections[section] = (index === 0); // เปิดเฉพาะหมวดแรก
+                });
+                // โหลดสถานะจาก localStorage (ถ้าต้องการให้จำ)
+                const saved = localStorage.getItem('sidebar_open_sections');
+                if (saved) {
+                    try {
+                        this.openSections = JSON.parse(saved);
+                    } catch(e) {}
+                }
+            },
+            toggleSection(section) {
+                this.openSections[section] = !this.openSections[section];
+                // บันทึกสถานะลง localStorage
+                localStorage.setItem('sidebar_open_sections', JSON.stringify(this.openSections));
+            }
+        }
+    }
+</script>
