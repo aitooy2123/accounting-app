@@ -14,7 +14,7 @@ use App\Http\Controllers\ReportController; // Ensure you have this controller
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\PaymentVoucherController;
 use App\Http\Controllers\ExpenseController;
-
+use App\Http\Controllers\WithholdingTaxController;
 
 /*
 |--------------------------------------------------------------------------
@@ -161,6 +161,5 @@ Route::get('expenses/{expense}', [ExpenseController::class, 'show'])->name('expe
 
 
 
-
-
+Route::resource('withholding-tax', WithholdingTaxController::class);
 require __DIR__ . '/auth.php';

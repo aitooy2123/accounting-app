@@ -20,9 +20,10 @@
                     ['name' => 'ขาย (Sales)', 'route' => 'sales.index', 'icon' => 'fas fa-file-invoice-dollar'],
                     ['name' => 'ซื้อ (Purchases)', 'route' => 'purchases.index', 'icon' => 'fas fa-shopping-cart'],
                 ],
-                   'ค่าใช้จ่าย' => [
-                    ['name' => 'ค่าใช้จ่าย (Expenses)', 'route' => 'expenses.index', 'icon' => 'fas fa-shopping-cart'],
-                ],
+                  'ค่าใช้จ่าย' => [
+    ['name' => 'ค่าใช้จ่าย (Expenses)', 'route' => 'expenses.index', 'icon' => 'fas fa-shopping-cart'],
+    ['name' => 'หัก ณ ที่จ่าย (Withholding Tax)', 'route' => 'withholding-tax.index', 'icon' => 'fas fa-percent'],
+],
                 'การเงิน & บัญชี' => [
                     ['name' => 'ธนาคาร (Banking)', 'route' => 'banks', 'icon' => 'fas fa-university'],
                     ['name' => 'สมุดบัญชีรายวันทั่วไป', 'route' => 'reports.journal', 'icon' => 'fas fa-book'],
