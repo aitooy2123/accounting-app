@@ -19,6 +19,8 @@
                     ['name' => 'ภาพรวม (Dashboard)', 'route' => 'dashboard', 'icon' => 'fas fa-th-large'],
                     ['name' => 'ขาย (Sales)', 'route' => 'sales.index', 'icon' => 'fas fa-file-invoice-dollar'],
                     ['name' => 'ซื้อ (Purchases)', 'route' => 'purchases.index', 'icon' => 'fas fa-shopping-cart'],
+                ],
+                   'ค่าใช้จ่าย' => [
                     ['name' => 'ค่าใช้จ่าย (Expenses)', 'route' => 'expenses.index', 'icon' => 'fas fa-shopping-cart'],
                 ],
                 'การเงิน & บัญชี' => [
