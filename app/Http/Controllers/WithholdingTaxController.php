@@ -16,7 +16,7 @@ class WithholdingTaxController extends Controller
      */
     public function index(Request $request)
     {
-        $query = WithholdingTax::with('expense.company'); // ผ่าน expense ไปหา company
+        $query = WithholdingTax::with('expense.company');
 
         // Search
         if ($request->filled('search')) {
@@ -28,12 +28,12 @@ class WithholdingTaxController extends Controller
             });
         }
 
-        // Filter by company (ผ่าน expense)
+        // Filter by company
         if ($request->filled('company_id')) {
             $query->whereHas('expense', fn($q) => $q->where('company_id', $request->company_id));
         }
 
-        // Date range (ใช้ฟิลด์ `date`)
+        // Date range
         if ($request->filled('from_date')) {
             $query->whereDate('date', '>=', $request->from_date);
         }
@@ -54,8 +54,9 @@ class WithholdingTaxController extends Controller
     {
         $companies = Company::orderBy('name')->get();
         $expenses = Expense::with('company')->orderBy('expense_date', 'desc')->get();
+        $autoNumber = $this->generateWithholdingNumber(); // สร้างเลขที่อัตโนมัติ
 
-        return view('pages.withholding-tax.create', compact('companies', 'expenses'));
+        return view('pages.withholding-tax.create', compact('companies', 'expenses', 'autoNumber'));
     }
 
     /**
@@ -63,23 +64,34 @@ class WithholdingTaxController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'withholding_number'          => 'nullable|string|max:50|unique:withholding_taxes,withholding_number',
-            'expense_id'                  => 'nullable|exists:expenses,id',
-            'date'                        => 'nullable|date',
-            'invoice_number'              => 'nullable|string|max:100',
-            'amount_before_withholding'   => 'nullable|numeric|min:0',
-            'withholding_rate'            => 'nullable|numeric|min:0|max:100',
-            'withholding_amount'          => 'nullable|numeric|min:0',
-            'remark'                      => 'nullable|string',
-        ]);
+        // 1. รับข้อมูลทั้งหมด
+        $data = $request->all();
 
-        // Verify tax_amount matches base * rate
+        // 2. จัดการ withholding_number (ถ้าไม่มีหรือซ้ำ ให้สร้างใหม่)
+        if (empty($data['withholding_number']) ||
+            WithholdingTax::where('withholding_number', $data['withholding_number'])->exists()) {
+            $data['withholding_number'] = $this->generateWithholdingNumber();
+        }
+
+        // 3. Validation (เปลี่ยน nullable เป็น required สำหรับฟิลด์จำเป็น)
+        $validated = validator($data, [
+            'withholding_number'          => 'required|string|max:50|unique:withholding_taxes,withholding_number',
+            'expense_id'                  => 'required|exists:expenses,id',
+            'date'                        => 'required|date',
+            'invoice_number'              => 'nullable|string|max:100',
+            'amount_before_withholding'   => 'required|numeric|min:0',
+            'withholding_rate'            => 'required|numeric|min:0|max:100',
+            'withholding_amount'          => 'required|numeric|min:0',
+            'remark'                      => 'nullable|string',
+        ])->validate();
+
+        // 4. ตรวจสอบความถูกต้องของภาษี
         $calculatedAmount = $validated['amount_before_withholding'] * $validated['withholding_rate'] / 100;
         if (abs($calculatedAmount - $validated['withholding_amount']) > 0.01) {
             return back()->withErrors(['withholding_amount' => 'จำนวนภาษีไม่ตรงกับยอดก่อนหักและอัตรา กรุณาคำนวณใหม่'])->withInput();
         }
 
+        // 5. บันทึก
         WithholdingTax::create($validated);
 
         return redirect()->route('withholding-tax.index')
@@ -112,16 +124,22 @@ class WithholdingTaxController extends Controller
     public function update(Request $request, WithholdingTax $withholdingTax)
     {
         $validated = $request->validate([
-            'withholding_number'          => ['nullable', 'string', 'max:50', Rule::unique('withholding_taxes')->ignore($withholdingTax->id)],
-            'expense_id'                  => 'nullable|exists:expenses,id',
-            'date'                        => 'nullable|date',
+            'withholding_number'          => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('withholding_taxes', 'withholding_number')->ignore($withholdingTax->id)
+            ],
+            'expense_id'                  => 'required|exists:expenses,id',
+            'date'                        => 'required|date',
             'invoice_number'              => 'nullable|string|max:100',
-            'amount_before_withholding'   => 'nullable|numeric|min:0',
-            'withholding_rate'            => 'nullable|numeric|min:0|max:100',
-            'withholding_amount'          => 'nullable|numeric|min:0',
+            'amount_before_withholding'   => 'required|numeric|min:0',
+            'withholding_rate'            => 'required|numeric|min:0|max:100',
+            'withholding_amount'          => 'required|numeric|min:0',
             'remark'                      => 'nullable|string',
         ]);
 
+        // ตรวจสอบการคำนวณ
         $calculatedAmount = $validated['amount_before_withholding'] * $validated['withholding_rate'] / 100;
         if (abs($calculatedAmount - $validated['withholding_amount']) > 0.01) {
             return back()->withErrors(['withholding_amount' => 'จำนวนภาษีไม่ตรงกับยอดก่อนหักและอัตรา'])->withInput();
@@ -156,5 +174,26 @@ class WithholdingTaxController extends Controller
         $ids = $request->ids;
         WithholdingTax::whereIn('id', $ids)->delete();
         return response()->json(['success' => true, 'message' => 'ลบข้อมูลเรียบร้อยแล้ว']);
+    }
+
+    /**
+     * Generate auto withholding number format: WT-YYYY-XXXXX
+     */
+    private function generateWithholdingNumber()
+    {
+        $year = date('Y');
+        $lastRecord = WithholdingTax::whereYear('date', $year)
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if ($lastRecord && preg_match('/WT-'.$year.'-(\d+)$/', $lastRecord->withholding_number, $matches)) {
+            $lastNumber = intval($matches[1]);
+            $newNumber = $lastNumber + 1;
+        } else {
+            $newNumber = 1;
+        }
+
+        $padded = str_pad($newNumber, 5, '0', STR_PAD_LEFT);
+        return "WT-{$year}-{$padded}";
     }
 }
