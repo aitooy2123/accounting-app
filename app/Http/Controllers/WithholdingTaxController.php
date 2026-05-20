@@ -7,8 +7,8 @@ use App\Models\Company;
 use App\Models\Expense;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-
 use Illuminate\Support\Facades\DB;
+
 class WithholdingTaxController extends Controller
 {
     /**
@@ -16,31 +16,32 @@ class WithholdingTaxController extends Controller
      */
     public function index(Request $request)
     {
-        $query = WithholdingTax::with('company');
+        $query = WithholdingTax::with('expense.company'); // ผ่าน expense ไปหา company
 
         // Search
         if ($request->filled('search')) {
-            $query->where(function($q) use ($request) {
-                $q->where('withholding_no', 'like', "%{$request->search}%")
-                  ->orWhere('invoice_no', 'like', "%{$request->search}%")
-                  ->orWhereHas('company', fn($q) => $q->where('name', 'like', "%{$request->search}%"));
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('withholding_number', 'like', "%{$search}%")
+                  ->orWhere('invoice_number', 'like', "%{$search}%")
+                  ->orWhereHas('expense.company', fn($q) => $q->where('name', 'like', "%{$search}%"));
             });
         }
 
-        // Filter by company
+        // Filter by company (ผ่าน expense)
         if ($request->filled('company_id')) {
-            $query->where('company_id', $request->company_id);
+            $query->whereHas('expense', fn($q) => $q->where('company_id', $request->company_id));
         }
 
-        // Date range
+        // Date range (ใช้ฟิลด์ `date`)
         if ($request->filled('from_date')) {
-            $query->whereDate('withholding_date', '>=', $request->from_date);
+            $query->whereDate('date', '>=', $request->from_date);
         }
         if ($request->filled('to_date')) {
-            $query->whereDate('withholding_date', '<=', $request->to_date);
+            $query->whereDate('date', '<=', $request->to_date);
         }
 
-        $withholdingTaxes = $query->orderBy('withholding_date', 'desc')->paginate(15);
+        $withholdingTaxes = $query->orderBy('date', 'desc')->paginate(15);
         $companies = Company::orderBy('name')->get();
 
         return view('pages.withholding-tax.index', compact('withholdingTaxes', 'companies'));
@@ -63,21 +64,20 @@ class WithholdingTaxController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'withholding_no'   => 'required|string|max:50|unique:withholding_taxes,withholding_no',
-            'company_id'       => 'required|exists:companies,id',
-            'expense_id'       => 'nullable|exists:expenses,id',
-            'withholding_date' => 'required|date',
-            'invoice_no'       => 'nullable|string|max:100',
-            'tax_base'         => 'required|numeric|min:0',
-            'tax_rate'         => 'required|numeric|min:0|max:100',
-            'tax_amount'       => 'required|numeric|min:0',
-            'remark'           => 'nullable|string',
+            'withholding_number'          => 'nullable|string|max:50|unique:withholding_taxes,withholding_number',
+            'expense_id'                  => 'nullable|exists:expenses,id',
+            'date'                        => 'nullable|date',
+            'invoice_number'              => 'nullable|string|max:100',
+            'amount_before_withholding'   => 'nullable|numeric|min:0',
+            'withholding_rate'            => 'nullable|numeric|min:0|max:100',
+            'withholding_amount'          => 'nullable|numeric|min:0',
+            'remark'                      => 'nullable|string',
         ]);
 
         // Verify tax_amount matches base * rate
-        $calculatedAmount = $validated['tax_base'] * $validated['tax_rate'] / 100;
-        if (abs($calculatedAmount - $validated['tax_amount']) > 0.01) {
-            return back()->withErrors(['tax_amount' => 'จำนวนภาษีไม่ตรงกับยอดก่อนหักและอัตรา กรุณาคำนวณใหม่'])->withInput();
+        $calculatedAmount = $validated['amount_before_withholding'] * $validated['withholding_rate'] / 100;
+        if (abs($calculatedAmount - $validated['withholding_amount']) > 0.01) {
+            return back()->withErrors(['withholding_amount' => 'จำนวนภาษีไม่ตรงกับยอดก่อนหักและอัตรา กรุณาคำนวณใหม่'])->withInput();
         }
 
         WithholdingTax::create($validated);
@@ -91,7 +91,7 @@ class WithholdingTaxController extends Controller
      */
     public function show(WithholdingTax $withholdingTax)
     {
-        $withholdingTax->load('company', 'expense');
+        $withholdingTax->load('expense.company');
         return view('pages.withholding-tax.show', compact('withholdingTax'));
     }
 
@@ -103,7 +103,6 @@ class WithholdingTaxController extends Controller
         $companies = Company::orderBy('name')->get();
         $expenses = Expense::with('company')->orderBy('expense_date', 'desc')->get();
 
-        // Fixed view path to match others
         return view('pages.withholding-tax.edit', compact('withholdingTax', 'companies', 'expenses'));
     }
 
@@ -113,20 +112,19 @@ class WithholdingTaxController extends Controller
     public function update(Request $request, WithholdingTax $withholdingTax)
     {
         $validated = $request->validate([
-            'withholding_no'   => ['required', 'string', 'max:50', Rule::unique('withholding_taxes')->ignore($withholdingTax->id)],
-            'company_id'       => 'required|exists:companies,id',
-            'expense_id'       => 'nullable|exists:expenses,id',
-            'withholding_date' => 'required|date',
-            'invoice_no'       => 'nullable|string|max:100',
-            'tax_base'         => 'required|numeric|min:0',
-            'tax_rate'         => 'required|numeric|min:0|max:100',
-            'tax_amount'       => 'required|numeric|min:0',
-            'remark'           => 'nullable|string',
+            'withholding_number'          => ['nullable', 'string', 'max:50', Rule::unique('withholding_taxes')->ignore($withholdingTax->id)],
+            'expense_id'                  => 'nullable|exists:expenses,id',
+            'date'                        => 'nullable|date',
+            'invoice_number'              => 'nullable|string|max:100',
+            'amount_before_withholding'   => 'nullable|numeric|min:0',
+            'withholding_rate'            => 'nullable|numeric|min:0|max:100',
+            'withholding_amount'          => 'nullable|numeric|min:0',
+            'remark'                      => 'nullable|string',
         ]);
 
-        $calculatedAmount = $validated['tax_base'] * $validated['tax_rate'] / 100;
-        if (abs($calculatedAmount - $validated['tax_amount']) > 0.01) {
-            return back()->withErrors(['tax_amount' => 'จำนวนภาษีไม่ตรงกับยอดก่อนหักและอัตรา'])->withInput();
+        $calculatedAmount = $validated['amount_before_withholding'] * $validated['withholding_rate'] / 100;
+        if (abs($calculatedAmount - $validated['withholding_amount']) > 0.01) {
+            return back()->withErrors(['withholding_amount' => 'จำนวนภาษีไม่ตรงกับยอดก่อนหักและอัตรา'])->withInput();
         }
 
         $withholdingTax->update($validated);
@@ -138,45 +136,25 @@ class WithholdingTaxController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-   public function destroy(WithholdingTax $withholdingTax)
-{
-    try {
-        $withholdingTax->delete();
-        return redirect()->route('withholding-tax.index')
-            ->with('success', 'ลบรายการหัก ณ ที่จ่ายเรียบร้อยแล้ว');
-    } catch (\Exception $e) {
-        return redirect()->route('withholding-tax.index')
-            ->with('error', 'ไม่สามารถลบได้เนื่องจากมีข้อมูลเชื่อมโยงอยู่');
-    }
-}
-
-
-
-
-public function bulkDelete(Request $request)
-{
-    $ids = $request->input('ids');
-    if (empty($ids) || !is_array($ids)) {
-        return response()->json(['success' => false, 'message' => 'ไม่มีรายการที่เลือก'], 400);
-    }
-
-    try {
-        $deleted = WithholdingTax::whereIn('id', $ids)->delete();
-
-        if ($deleted) {
-            return response()->json(['success' => true, 'message' => "ลบเอกสาร {$deleted} รายการเรียบร้อยแล้ว"]);
+    public function destroy(WithholdingTax $withholdingTax)
+    {
+        try {
+            $withholdingTax->delete();
+            return redirect()->route('withholding-tax.index')
+                ->with('success', 'ลบรายการหัก ณ ที่จ่ายเรียบร้อยแล้ว');
+        } catch (\Exception $e) {
+            return redirect()->route('withholding-tax.index')
+                ->with('error', 'ไม่สามารถลบได้เนื่องจากมีข้อมูลเชื่อมโยงอยู่');
         }
-
-        return response()->json(['success' => false, 'message' => 'ไม่พบรายการที่ต้องการลบ'], 404);
-    } catch (\Illuminate\Database\QueryException $e) {
-        // ตรวจสอบรหัส error 1451 (foreign key constraint)
-        if ($e->getCode() == 23000 || str_contains($e->getMessage(), 'foreign key constraint')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'ไม่สามารถลบได้เนื่องจากมีข้อมูลที่เชื่อมโยงอยู่ (เช่น รายการค่าใช้จ่ายที่ใช้อ้างอิง)'
-            ], 409);
-        }
-        return response()->json(['success' => false, 'message' => 'เกิดข้อผิดพลาดในระบบ: ' . $e->getMessage()], 500);
     }
-}
+
+    /**
+     * Bulk delete
+     */
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->ids;
+        WithholdingTax::whereIn('id', $ids)->delete();
+        return response()->json(['success' => true, 'message' => 'ลบข้อมูลเรียบร้อยแล้ว']);
+    }
 }

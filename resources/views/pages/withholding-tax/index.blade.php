@@ -95,37 +95,37 @@
                     <tr class="hover:bg-blue-50/30 transition-all duration-200 group" data-id="{{ $item->id }}">
                         <td class="px-6 py-4">
                             <input type="checkbox" class="wt-checkbox w-4 h-4 text-blue-600 rounded"
-                                value="{{ $item->id }}" data-wt-id="{{ $item->id }}" data-wt-name="{{ $item->withholding_no }}">
+                                value="{{ $item->id }}" data-wt-id="{{ $item->id }}" data-wt-number="{{ $item->withholding_number }}">
                         </td>
                         <td class="px-6 py-4">
                             <span class="text-sm font-bold text-purple-600 font-mono bg-purple-50 px-2 py-1 rounded-lg">
-                                {{ $item->withholding_no }}
+                                {{ $item->withholding_number }}
                             </span>
                         </td>
                         <td class="px-6 py-4 text-sm font-medium text-gray-700">
-                            {{ $item->withholding_date->format('d/m/Y') }}
+                            {{ $item->date->format('d/m/Y') }}
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex items-center">
                                 <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-md">
-                                    {{ mb_substr($item->company->name ?? '?', 0, 1) }}
+                                    {{ mb_substr($item->expense->company->name ?? '?', 0, 1) }}
                                 </div>
                                 <div class="ml-3">
-                                    <div class="text-sm font-semibold text-gray-900">{{ $item->company->name ?? '-' }}</div>
+                                    <div class="text-sm font-semibold text-gray-900">{{ $item->expense->company->name ?? '-' }}</div>
                                 </div>
                             </div>
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-600">
-                            {{ $item->invoice_no ?? '-' }}
+                            {{ $item->invoice_number ?? '-' }}
                         </td>
                         <td class="px-6 py-4 text-right text-sm font-bold text-gray-800">
-                            {{ number_format($item->tax_base, 2) }}
+                            {{ number_format($item->amount_before_withholding, 2) }}
                         </td>
                         <td class="px-6 py-4 text-center text-sm font-semibold text-blue-600">
-                            {{ $item->tax_rate }}%
+                            {{ $item->withholding_rate }}%
                         </td>
                         <td class="px-6 py-4 text-right text-sm font-bold text-red-600">
-                            {{ number_format($item->tax_amount, 2) }}
+                            {{ number_format($item->withholding_amount, 2) }}
                         </td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex justify-end items-center space-x-1">
@@ -136,7 +136,7 @@
                                     <i class="fas fa-pencil-alt text-sm"></i>
                                 </a>
                                 <button type="button" class="delete-wt p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
-                                    data-wt-id="{{ $item->id }}" data-wt-name="{{ $item->withholding_no }}" title="ลบ">
+                                    data-wt-id="{{ $item->id }}" data-wt-number="{{ $item->withholding_number }}" title="ลบ">
                                     <i class="fas fa-trash-alt text-sm"></i>
                                 </button>
                             </div>
@@ -180,7 +180,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const selectionBar = document.getElementById('selectionBar');
     const selectedCountSpan = document.getElementById('selectedCountDisplay');
 
-    // Update UI (selection bar, button text, selectAll state)
     function updateUI() {
         const checked = document.querySelectorAll('.wt-checkbox:checked');
         const count = checked.length;
@@ -195,35 +194,28 @@ document.addEventListener('DOMContentLoaded', function() {
             selectionBar.classList.add('hidden');
         }
 
-        // Update select all checkbox state
         const allChecked = checkboxes.length > 0 && checked.length === checkboxes.length;
         selectAll.checked = allChecked;
         selectAll.indeterminate = (checked.length > 0 && checked.length < checkboxes.length);
     }
 
-    // Clear all selections
     window.clearSelection = function() {
         checkboxes.forEach(cb => cb.checked = false);
         updateUI();
     };
 
-    // Select all / none
     selectAll.addEventListener('change', function() {
         checkboxes.forEach(cb => cb.checked = this.checked);
         updateUI();
     });
 
-    // Individual checkbox change
     checkboxes.forEach(cb => cb.addEventListener('change', updateUI));
-
-    // Initialize UI
     updateUI();
 
-    // Bulk delete function
     window.bulkDelete = function() {
         const checkedBoxes = document.querySelectorAll('.wt-checkbox:checked');
         const ids = Array.from(checkedBoxes).map(cb => cb.value);
-        const names = Array.from(checkedBoxes).map(cb => cb.dataset.wtName);
+        const numbers = Array.from(checkedBoxes).map(cb => cb.dataset.wtNumber);
 
         if (ids.length === 0) {
             Swal.fire({
@@ -235,9 +227,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Build list of selected items (max 5)
-        const listItems = names.slice(0, 5).map(n => `<li><i class="fas fa-receipt mr-2 text-red-400"></i>${escapeHtml(n)}</li>`).join('');
-        const moreCount = names.length > 5 ? `<li class="text-gray-400">...อีก ${names.length - 5} รายการ</li>` : '';
+        const listItems = numbers.slice(0, 5).map(n => `<li><i class="fas fa-receipt mr-2 text-red-400"></i>${escapeHtml(n)}</li>`).join('');
+        const moreCount = numbers.length > 5 ? `<li class="text-gray-400">...อีก ${numbers.length - 5} รายการ</li>` : '';
 
         Swal.fire({
             title: 'ยืนยันการลบหลายรายการ',
@@ -297,10 +288,10 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.delete-wt').forEach(btn => {
         btn.addEventListener('click', function() {
             const id = this.dataset.wtId;
-            const name = this.dataset.wtName;
+            const number = this.dataset.wtNumber;
             Swal.fire({
                 title: 'ยืนยันการลบ',
-                html: `เอกสาร <strong>${escapeHtml(name)}</strong> จะถูกลบอย่างถาวร`,
+                html: `เอกสาร <strong>${escapeHtml(number)}</strong> จะถูกลบอย่างถาวร`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#EF4444',
@@ -321,7 +312,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Helper function to escape HTML
     function escapeHtml(str) {
         if (!str) return '';
         return str.replace(/[&<>]/g, function(m) {
@@ -332,11 +322,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
-document.querySelector('tbody').addEventListener('change', function(e) {
-    if (e.target.classList.contains('wt-checkbox')) {
-        updateUI();
-    }
-});>
+</script>
 @endpush
 
 <style>

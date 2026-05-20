@@ -3,7 +3,7 @@
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 space-y-4 md:space-y-0">
         <div>
             <h1 class="text-2xl font-bold text-gray-900 font-kanit">เพิ่มหนังสือรับรองหัก ณ ที่จ่าย</h1>
-            <p class="text-sm text-gray-500 font-kanit">บันทึกข้อมูลการหักภาษี ณ ที่จ่ายสำหรับคู่ค้า</p>
+            <p class="text-sm text-gray-500 font-kanit">บันทึกข้อมูลการหักภาษี ณ ที่จ่ายสำหรับค่าใช้จ่าย</p>
         </div>
         <div class="flex space-x-3">
             <a href="{{ route('withholding-tax.index') }}"
@@ -46,11 +46,11 @@
                             <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider required:after:content-['*'] after:ml-0.5 after:text-red-500">
                                 เลขที่ใบหัก ณ ที่จ่าย
                             </label>
-                            <input type="text" name="withholding_no" id="withholding_no"
-                                   value="{{ old('withholding_no') }}"
-                                   class="w-full text-sm border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all @error('withholding_no') border-red-500 @enderror"
+                            <input type="text" name="withholding_number" id="withholding_number"
+                                   value="{{ old('withholding_number') }}"
+                                   class="w-full text-sm border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all @error('withholding_number') border-red-500 @enderror"
                                    placeholder="WT-2024-00001" required>
-                            @error('withholding_no')
+                            @error('withholding_number')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
@@ -60,31 +60,31 @@
                             <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider required:after:content-['*'] after:ml-0.5 after:text-red-500">
                                 วันที่ออกเอกสาร
                             </label>
-                            <input type="date" name="withholding_date" id="withholding_date"
-                                   value="{{ old('withholding_date', date('Y-m-d')) }}"
-                                   class="w-full text-sm border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all @error('withholding_date') border-red-500 @enderror"
+                            <input type="date" name="date" id="date"
+                                   value="{{ old('date', date('Y-m-d')) }}"
+                                   class="w-full text-sm border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all @error('date') border-red-500 @enderror"
                                    required>
-                            @error('withholding_date')
+                            @error('date')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        {{-- ผู้จำหน่าย --}}
+                        {{-- เลือกค่าใช้จ่าย (Expense) --}}
                         <div>
                             <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider required:after:content-['*'] after:ml-0.5 after:text-red-500">
-                                ผู้จำหน่าย / บริษัท
+                                ค่าใช้จ่ายที่เกี่ยวข้อง
                             </label>
-                            <select name="company_id" id="company_id"
-                                    class="w-full text-sm border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 @error('company_id') border-red-500 @enderror"
+                            <select name="expense_id" id="expense_id"
+                                    class="w-full text-sm border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 @error('expense_id') border-red-500 @enderror"
                                     required>
-                                <option value="">-- เลือกผู้จำหน่าย --</option>
-                                @foreach($companies as $company)
-                                    <option value="{{ $company->id }}" {{ old('company_id') == $company->id ? 'selected' : '' }}>
-                                        {{ $company->name }}
+                                <option value="">-- เลือกค่าใช้จ่าย --</option>
+                                @foreach($expenses as $expense)
+                                    <option value="{{ $expense->id }}" {{ old('expense_id') == $expense->id ? 'selected' : '' }}>
+                                        {{ $expense->doc_no }} - {{ $expense->company->name }} ({{ $expense->expense_date->format('d/m/Y') }})
                                     </option>
                                 @endforeach
                             </select>
-                            @error('company_id')
+                            @error('expense_id')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
@@ -94,11 +94,11 @@
                             <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">
                                 เลขที่ใบกำกับภาษี
                             </label>
-                            <input type="text" name="invoice_no" id="invoice_no"
-                                   value="{{ old('invoice_no') }}"
-                                   class="w-full text-sm border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all @error('invoice_no') border-red-500 @enderror"
+                            <input type="text" name="invoice_number" id="invoice_number"
+                                   value="{{ old('invoice_number') }}"
+                                   class="w-full text-sm border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all @error('invoice_number') border-red-500 @enderror"
                                    placeholder="INV-2024-00123">
-                            @error('invoice_no')
+                            @error('invoice_number')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
@@ -128,16 +128,16 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
                             <label class="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider required:after:content-['*'] after:ml-0.5 after:text-red-500">
-                                ยอดก่อนหัก (Tax Base)
+                                ยอดก่อนหัก (บาท)
                             </label>
                             <div class="relative">
                                 <span class="absolute left-3 top-3 text-gray-400">฿</span>
-                                <input type="number" step="0.01" name="tax_base" id="tax_base"
-                                       value="{{ old('tax_base') }}"
-                                       class="w-full pl-8 pr-3 py-3 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 @error('tax_base') border-red-500 @enderror"
+                                <input type="number" step="0.01" name="amount_before_withholding" id="amount_before_withholding"
+                                       value="{{ old('amount_before_withholding') }}"
+                                       class="w-full pl-8 pr-3 py-3 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 @error('amount_before_withholding') border-red-500 @enderror"
                                        placeholder="0.00" required>
                             </div>
-                            @error('tax_base')
+                            @error('amount_before_withholding')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
@@ -147,13 +147,13 @@
                                 อัตราหัก ณ ที่จ่าย (%)
                             </label>
                             <div class="relative">
-                                <input type="number" step="0.01" name="tax_rate" id="tax_rate"
-                                       value="{{ old('tax_rate') }}"
-                                       class="w-full pr-8 py-3 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 @error('tax_rate') border-red-500 @enderror"
+                                <input type="number" step="0.01" name="withholding_rate" id="withholding_rate"
+                                       value="{{ old('withholding_rate') }}"
+                                       class="w-full pr-8 py-3 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 @error('withholding_rate') border-red-500 @enderror"
                                        placeholder="3.00" required>
                                 <span class="absolute right-3 top-3 text-gray-400">%</span>
                             </div>
-                            @error('tax_rate')
+                            @error('withholding_rate')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
@@ -164,13 +164,13 @@
                             </label>
                             <div class="relative">
                                 <span class="absolute left-3 top-3 text-gray-400">฿</span>
-                                <input type="number" step="0.01" name="tax_amount" id="tax_amount"
-                                       value="{{ old('tax_amount') }}"
+                                <input type="number" step="0.01" name="withholding_amount" id="withholding_amount"
+                                       value="{{ old('withholding_amount') }}"
                                        class="w-full pl-8 pr-3 py-3 text-sm bg-gray-50 border border-gray-200 rounded-xl cursor-not-allowed"
                                        readonly required>
                             </div>
                             <p class="text-xs text-gray-400 mt-1">คำนวณอัตโนมัติจากยอดก่อนหักและอัตรา</p>
-                            @error('tax_amount')
+                            @error('withholding_amount')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
@@ -228,7 +228,7 @@
                 <ul class="list-disc list-inside space-y-1 text-gray-500">
                     <li>อัตราภาษีหัก ณ ที่จ่ายทั่วไปคือ 1%, 3%, 5%, 10%, 15%</li>
                     <li>จำนวนภาษี = ยอดก่อนหัก × อัตรา ÷ 100</li>
-                    <li>สามารถเพิ่มใบกำกับภาษีเพื่ออ้างอิงได้</li>
+                    <li>เลือกค่าใช้จ่ายที่เกี่ยวข้องเพื่อเชื่อมโยงข้อมูล</li>
                 </ul>
             </div>
         </div>
@@ -236,9 +236,9 @@
 
     <script>
         // DOM elements
-        const baseInput = document.getElementById('tax_base');
-        const rateInput = document.getElementById('tax_rate');
-        const taxAmountInput = document.getElementById('tax_amount');
+        const baseInput = document.getElementById('amount_before_withholding');
+        const rateInput = document.getElementById('withholding_rate');
+        const taxAmountInput = document.getElementById('withholding_amount');
 
         // Preview elements
         const previewBase = document.getElementById('previewBase');

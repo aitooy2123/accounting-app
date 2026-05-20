@@ -162,4 +162,5 @@ Route::get('expenses/{expense}', [ExpenseController::class, 'show'])->name('expe
 
 
 Route::resource('withholding-tax', WithholdingTaxController::class);
+Route::post('/withholding-tax/bulk-delete', [WithholdingTaxController::class, 'bulkDelete'])->name('withholding-tax.bulk-delete');
 require __DIR__ . '/auth.php';

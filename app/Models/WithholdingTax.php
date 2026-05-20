@@ -7,22 +7,26 @@ use Illuminate\Database\Eloquent\Model;
 
 class WithholdingTax extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
-        'company_id', 'expense_id', 'withholding_no', 'withholding_date',
-        'invoice_no', 'tax_base', 'tax_rate', 'tax_amount', 'remark'
+        'expense_id', 'withholding_number', 'date', 'invoice_number',
+        'amount_before_withholding', 'withholding_rate', 'withholding_amount', 'remark'
     ];
 
     protected $casts = [
-        'withholding_date' => 'date',
+        'date' => 'date',
     ];
 
-    public function company()
-    {
-        return $this->belongsTo(Company::class);
-    }
-
+ 
     public function expense()
-    {
-        return $this->belongsTo(Expense::class);
-    }
+{
+    return $this->belongsTo(Expense::class);
+}
+
+// ถ้าต้องการเรียก $withholdingTax->company โดยตรง
+public function getCompanyAttribute()
+{
+    return $this->expense?->company;
+}
 }
